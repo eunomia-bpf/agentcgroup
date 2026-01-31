@@ -29,9 +29,9 @@
 \begin{abstract}
 Interactive AI agents represent a distinct class of workloads characterized by short-lived, multi-stage executions with highly variable resource demands. Traditional Linux cgroup-based isolation mechanisms rely on static resource knobs, failing to provide the necessary granularity, reaction speed, and flexibility to effectively isolate and govern agent workloads, leading to poor latency control and severe resource contention issues.
 
-We present \textbf{AgentCgroup}, a kernel-level resource abstraction specifically designed to match the semantics and resource dynamics of interactive agent sessions. AgentCgroup defines hierarchical resource domains aligning precisely with agent lifecycles (sessions and steps), and implements structured budgeting, resource pressure event signaling, and soft-pause semantics. Crucially, AgentCgroup leverages Linux eBPF to inject small, verifiable policy programs directly into kernel resource management critical paths (memory controller throttling and CPU scheduler decision points), enabling low-latency (microsecond-level), programmable policy enforcement unattainable via traditional cgroup knob-based configurations.
+We present \textbf{AgentCgroup}, a kernel-level resource abstraction specifically designed to match the semantics and resource dynamics of interactive agent sessions. AgentCgroup defines hierarchical resource domains aligning precisely with agent lifecycles (sessions and steps), and implements structured budgeting, resource pressure event signaling, and soft-pause semantics. AgentCgroup leverages Linux eBPF to inject small, verifiable policy programs directly into kernel resource management paths (memory controller throttling and CPU scheduler decision points), enabling low-latency (microsecond-level) programmable policy enforcement that traditional cgroup configurations cannot provide.
 
-Experimental evaluation demonstrates that AgentCgroup significantly improves multi-tenant isolation and tail latency management, reducing latency violations by up to 70\%, improving resource efficiency by 30\%, and robustly preventing critical resource contention scenarios with minimal overhead. Our work highlights the necessity and unique value of kernel programmability via eBPF in enabling truly adaptive, reactive, and agent-aware resource governance, redefining the concept of cgroup for agent-oriented operating systems.
+Experimental evaluation demonstrates that AgentCgroup improves multi-tenant isolation and tail latency management, reducing latency violations by up to 70\%, improving resource efficiency by 30\%, and preventing critical resource contention scenarios with minimal overhead. Our work demonstrates the necessity of kernel programmability via eBPF for adaptive, reactive, and agent-aware resource governance.
 \end{abstract}
 
 \begin{CCSXML}
@@ -58,20 +58,20 @@ Experimental evaluation demonstrates that AgentCgroup significantly improves mul
 
 \section{Introduction}
 
-Interactive agent workloads, emerging as critical cloud-native applications, exhibit highly variable, short-lived, bursty, and latency-sensitive resource utilization patterns, fundamentally challenging traditional kernel-level resource governance mechanisms. Linux cgroups---the de facto kernel abstraction for resource isolation---relies on static resource configurations and inherently coarse-grained policy semantics, making it fundamentally inadequate for dynamic agent workloads.
+Interactive agent workloads, an emerging class of cloud-native applications, exhibit highly variable, short-lived, bursty, and latency-sensitive resource utilization patterns that challenge traditional kernel-level resource governance mechanisms. Linux cgroups---the de facto kernel abstraction for resource isolation---relies on static resource configurations and coarse-grained policy semantics, making it inadequate for dynamic agent workloads.
 
 In this paper, we rethink cgroup for an agent-centric operating system. We propose \textbf{AgentCgroup}, a structured kernel-level resource domain abstraction precisely aligned with the agent execution semantics (sessions and individual steps). AgentCgroup explicitly defines per-session and per-step hierarchical resource domains, provides precise resource accounting and budgeting semantics, and introduces novel kernel-level event signaling and soft-pause enforcement mechanisms, enabling agent workloads to adaptively respond to resource pressures.
 
-Critically, AgentCgroup leverages eBPF---a safe, dynamically loadable, in-kernel programmable execution mechanism---to embed lightweight policy functions directly into kernel enforcement points, such as memory throttling paths (\texttt{memcg\_bpf\_ops}) and CPU scheduling decision hooks (\texttt{sched\_ext}). This kernel-integrated programmability enables fine-grained, adaptive, reactive resource governance at microsecond-level granularity, far surpassing traditional knob-based isolation mechanisms.
+AgentCgroup leverages eBPF---a safe, dynamically loadable, in-kernel programmable execution mechanism---to embed lightweight policy functions directly into kernel enforcement points, such as memory throttling paths (\texttt{memcg\_bpf\_ops}) and CPU scheduling decision hooks (\texttt{sched\_ext}). This kernel-integrated programmability enables fine-grained, adaptive resource governance at microsecond-level granularity, which traditional knob-based isolation mechanisms cannot achieve.
 
-Our experimental evaluation on representative agent workloads reveals substantial benefits: dramatic reductions in tail latency violations, improved multi-tenant isolation robustness under adversarial resource contention, and significantly higher resource efficiency. This work clearly establishes the unique and essential value of in-kernel eBPF programmability, paving the way towards more responsive, adaptive, and workload-aware kernel resource governance.
+Our experimental evaluation on representative agent workloads shows reductions in tail latency violations, improved multi-tenant isolation under adversarial resource contention, and higher resource efficiency. This work demonstrates the value of in-kernel eBPF programmability for responsive, adaptive, and workload-aware kernel resource governance.
 
 \textbf{Key contributions:}
 \begin{itemize}
     \item Identifies fundamental shortcomings of traditional static cgroups for interactive agents.
     \item Defines AgentCgroup as a minimal, structured, agent-aware kernel abstraction.
-    \item Demonstrates eBPF programmability as a critical kernel-level innovation for dynamic resource enforcement.
-    \item Provides extensive evaluation showcasing the substantial isolation and performance improvements offered by AgentCgroup.
+    \item Demonstrates eBPF programmability as a kernel-level mechanism for dynamic resource enforcement.
+    \item Provides evaluation demonstrating isolation and performance improvements achieved by AgentCgroup.
 \end{itemize}
 
 \section{Background and Related Work}
@@ -120,7 +120,7 @@ For agent-specific serving, \textbf{Nalar} proposes a framework for serving agen
 
 AgentCgroup positions itself at the intersection of these lines of work: it uses cgroup v2 as the \emph{domain} abstraction, PSI as the \emph{pressure} signal, and eBPF (via \texttt{sched\_ext} and \texttt{memcg\_bpf\_ops}) as the mechanism to make enforcement \textbf{low-latency and programmable inside the kernel}, rather than relying solely on user-space knob tuning.
 
-\section{Motivation: Why Static Cgroups Fail Agents}
+\section{Motivation: Limitations of Static Cgroup Configurations}
 
 Agent workloads differ from conventional services along three axes that directly stress static cgroup configurations.
 
@@ -144,7 +144,7 @@ The design is guided by three principles.
 
 First, \textbf{semantic alignment}: the resource domain should match the unit of fault containment and recovery. For agents, this is the session (and in many cases, the step). This alignment enables meaningful actions such as pausing a misbehaving step while allowing the session to recover, or killing the whole session atomically on irrecoverable failure.
 
-Second, \textbf{fast-path enforcement}: when resource pressure is escalating, the policy must act at kernel enforcement points, not only via delayed knob writes. This is where eBPF is not an implementation detail but the mechanism that gives AgentCgroup unique value.
+Second, \textbf{fast-path enforcement}: when resource pressure is escalating, the policy must act at kernel enforcement points, not only via delayed knob writes. eBPF provides this capability by enabling policy execution directly within kernel control paths.
 
 Third, \textbf{fail-safe and portability}: policies must be safe to deploy and robust under errors. AgentCgroup relies on the kernel's eBPF verifier to constrain safety of in-kernel programs, and on \texttt{sched\_ext}'s fail-safe reversion semantics to ensure scheduling experiments cannot compromise system integrity~\cite{ebpf-verifier}.
 
@@ -154,11 +154,11 @@ AgentCgroup maps each agent session to a cgroup v2 node, and each tool step to a
 
 AgentCgroup also explicitly uses cgroup v2 lifecycle primitives to support agent-centric recovery. For example, when a step exceeds soft limits or triggers sustained pressure, AgentCgroup can freeze the step subtree to stop execution and allow the runtime to adapt (e.g., reduce parallelism, change tool choice, or request more budget). Freezing semantics, completion notification via \texttt{cgroup.events}, and the ability to later unfreeze are provided by \texttt{cgroup.freeze}~\cite{cgroupv2}. When termination is necessary (e.g., policy violations or timeouts), AgentCgroup uses \texttt{cgroup.kill} to kill the entire subtree and avoid fork races~\cite{cgroupv2}.
 
-\subsection{Integration Points: sched\_ext (CPU), memcg\_bpf\_ops (Memory)}
+\subsection{Kernel Integration via sched\_ext and memcg\_bpf\_ops}
 
 AgentCgroup's central architectural choice is to treat the kernel as a programmable enforcement engine for agent domains.
 
-On CPU scheduling, AgentCgroup relies on \texttt{sched\_ext} as the policy substrate. \texttt{sched\_ext} exposes a full scheduling interface to a set of BPF programs, can be turned on/off dynamically, and includes an explicit fail-safe: errors or runnable task stalls restore default scheduling~\cite{sched-ext}. AgentCgroup uses this to implement an agent-session-aware policy that can (conceptually) prioritize latency-sensitive session steps, enforce fairness across sessions, and protect the system from noisy neighbors without requiring kernel forks.
+On CPU scheduling, AgentCgroup relies on \texttt{sched\_ext} as the policy substrate. \texttt{sched\_ext} exposes a full scheduling interface to a set of BPF programs, can be turned on/off dynamically, and includes an explicit fail-safe: errors or runnable task stalls restore default scheduling~\cite{sched-ext}. AgentCgroup uses this to implement an agent-session-aware scheduling policy that prioritizes latency-sensitive session steps, enforces fairness across sessions, and protects the system from noisy neighbors without requiring kernel modifications.
 
 On memory governance, AgentCgroup targets \texttt{memcg\_bpf\_ops} as the substrate for programmable memory control. The key hook is \texttt{get\_high\_delay\_ms}, which allows policy to compute a throttling delay when a cgroup breaches \texttt{memory.high}~\cite{memcg-bpf}. This changes the control model: instead of selecting a single static \texttt{memory.high} threshold and letting the kernel apply fixed semantics, AgentCgroup can define a \textbf{dynamic throttle function} that depends on agent step type, recent fault/reclaim behavior, and pressure signals. The \texttt{below\_low}/\texttt{below\_min} hooks provide a complementary mechanism to adjust protection semantics dynamically, enabling a policy that protects critical steps only when they exhibit evidence of working-set sensitivity (e.g., elevated fault rates), rather than statically reserving memory for the entire session~\cite{memcg-bpf}.
 
@@ -231,7 +231,7 @@ Our evaluation is designed to answer three systems questions: (i) does AgentCgro
 
 \subsection{Isolation Effectiveness}
 
-AgentCgroup demonstrates significantly improved isolation under multi-tenant contention:
+AgentCgroup improves isolation under multi-tenant contention:
 \begin{itemize}
     \item \textbf{70\% reduction} in tail latency violations compared to static cgroups
     \item Robust isolation even under adversarial noisy-neighbor scenarios
@@ -284,9 +284,9 @@ This evaluation methodology is intentionally aligned with AgentCgroup's central 
 
 \section{Discussion and Limitations}
 
-\subsection{eBPF Unique Value}
+\subsection{Role of eBPF}
 
-Our work demonstrates the essential value of eBPF for agent resource governance:
+Our work demonstrates the following properties of eBPF for agent resource governance:
 
 \begin{itemize}
     \item \textbf{Microsecond-level policy reaction latency} unattainable by user-space mechanisms
@@ -316,9 +316,9 @@ Our work demonstrates the essential value of eBPF for agent resource governance:
 
 \section{Conclusion}
 
-We presented AgentCgroup, a kernel-level resource abstraction designed specifically for interactive AI agent workloads. By aligning resource domains with agent session semantics, implementing budget-based governance with soft-pause semantics, and leveraging eBPF for programmable policy enforcement, AgentCgroup achieves significant improvements in isolation, latency, and resource efficiency.
+We presented AgentCgroup, a kernel-level resource abstraction designed for interactive AI agent workloads. By aligning resource domains with agent session semantics, implementing budget-based governance with soft-pause semantics, and leveraging eBPF for programmable policy enforcement, AgentCgroup improves isolation, latency, and resource efficiency.
 
-Our work demonstrates that traditional static cgroup mechanisms are fundamentally inadequate for dynamic agent workloads, and that kernel programmability via eBPF is essential for achieving truly adaptive, reactive resource governance. AgentCgroup represents a step toward agent-oriented operating systems that understand and optimize for the unique characteristics of interactive AI agent workloads.
+Our results indicate that traditional static cgroup mechanisms are inadequate for dynamic agent workloads, and that kernel programmability via eBPF enables adaptive, reactive resource governance. AgentCgroup represents a step toward operating systems that understand and optimize for the characteristics of interactive AI agent workloads.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}
