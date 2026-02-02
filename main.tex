@@ -88,17 +88,9 @@ Linux cgroup v2 provides a hierarchical resource governance abstraction where th
 
 Linux increasingly addresses the tension between standardized interfaces and dynamic workloads by introducing programmable enforcement points through eBPF, a safe and dynamically loadable mechanism for executing policy functions inside the kernel~\cite{ebpf-verifier}. This programmability extends to cgroup v2: the device controller is implemented entirely via BPF programs rather than static interface files. On the CPU side, \texttt{sched\_ext} allows scheduling policies to be defined by BPF programs with fail-safe reversion to default behavior on errors~\cite{sched-ext}. On the memory side, \texttt{memcg\_bpf\_ops} introduces hooks such as \texttt{get\_high\_delay\_ms} for custom throttle delays on \texttt{memory.high} breaches~\cite{memcg-bpf}. The kernel is converging on a pattern where cgroups define resource domains and eBPF defines domain-specific policy; \sys adopts this pattern for agent-aware resource governance.
 
-\subsection{Recent Related Systems}
+\subsection{Related Systems}
 
-Several recent systems motivate the need for pressure-aware control and programmable policies, but none defines an agent-centric cgroup abstraction with in-kernel enforcement.
-
-Transparent Memory Offloading (TMO) demonstrates how memory pressure signals can drive resource control at datacenter scale: the paper describes a user-space component ``Senpai'' monitoring pressure and driving offload by writing to cgroup control files~\cite{tmo}. TMO validates that cgroup interfaces are the correct kernel boundary for enforcement, but the control loop lives in user space and interacts with the kernel through coarse knobs.
-
-On the CPU scheduler side, Mixture-of-Schedulers (ASA) proposes dynamically selecting among a portfolio of expert schedulers, switching via Linux \texttt{sched\_ext}~\cite{asa}. ASA reinforces that \texttt{sched\_ext} makes policy iteration and policy switching practical in production-like settings, but it targets general workload adaptation rather than the semantics and lifecycle constraints of agent sessions.
-
-For agent-specific serving, Nalar proposes a framework for serving agent workflows and emphasizes that agent workloads are evolving, multi-stage, and benefit from a two-level control architecture that combines global policy computation with local event-driven enforcement~\cite{nalar}. Nalar motivates why agent workloads need structured control loops, but it operates primarily at the runtime level rather than redefining the OS-level resource domain and enforcement semantics.
-
-\sys combines these approaches: it uses cgroup v2 as the \emph{domain} abstraction and eBPF through \texttt{sched\_ext} and \texttt{memcg\_bpf\_ops} to make enforcement low-latency and programmable inside the kernel, rather than relying solely on user-space knob tuning.
+Several recent systems motivate the need for pressure-aware control and programmable policies. TMO demonstrates pressure-driven memory control at datacenter scale using user-space monitoring and cgroup file writes~\cite{tmo}, validating cgroups as the enforcement boundary but relying on coarse knobs. Mixture-of-Schedulers (ASA) shows that \texttt{sched\_ext} makes dynamic scheduler switching practical~\cite{asa}, but targets general workloads rather than agent-specific semantics. Nalar proposes a two-level control architecture for agent workflows combining global policy with local enforcement~\cite{nalar}, but operates at the runtime level rather than redefining OS-level resource domains. \sys combines these directions: cgroup v2 as the domain abstraction and eBPF for low-latency, programmable in-kernel enforcement.
 
 \section{Motivation: Limitations of Static Cgroup Configurations}
 
