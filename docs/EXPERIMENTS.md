@@ -1,330 +1,287 @@
-# AgentCgroup Experiment Design (Trace-Driven)
+# AgentCgroup 实验设计（基于 Trace 回放）
 
-This document describes trace-driven experimental methodology for evaluating AgentCgroup. All experiments use pre-collected traces for reproducibility and to eliminate LLM randomness.
+本文档描述 AgentCgroup 的 trace 驱动实验方法。所有实验使用预先收集的 trace 进行回放，以确保可重复性并消除 LLM 的随机性。
 
-## 1. Why Trace-Driven?
+## 1. 为什么使用 Trace 回放？
 
-For OS/resource-control evaluation, trace-driven replay is preferred:
+对于 OS/资源控制的评估，trace 驱动回放是首选方法：
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **Online (with LLM)** | Realistic agent behavior | Non-deterministic, expensive, slow |
-| **Trace-driven replay** | Deterministic, fast, reproducible, no LLM cost | Need pre-collected traces |
+| 方法 | 优点 | 缺点 |
+|------|------|------|
+| **在线执行（带 LLM）** | 真实的 agent 行为 | 不确定性、昂贵、慢 |
+| **Trace 回放** | 确定性、快速、可重复、无 LLM 成本 | 需要预先收集的 trace |
 
-**Our approach**: Replay pre-collected tool-call traces to generate reproducible resource pressure patterns.
+**我们的方法**：回放预先收集的 tool call traces，生成可重复的资源压力模式。
 
-## 2. Available Trace Sources
+## 2. 可用的 Trace 数据源
 
-### 2.1 Code/CLI Traces (SWE-bench domain)
+### 2.1 代码/CLI Traces（SWE-bench 领域）
 
-**OpenHands Trajectories** (Recommended)
-- 67k+ agent trajectories with structured tool calls
-- Contains: bash commands, file edits, outputs
-- Average 64 turns, max 100 turns per trace
+**SWE-agent Trajectories**（推荐）
+- 80k+ trajectories
+- 已解决任务：平均 31 步，未解决：平均 58 步
+- 约 54% 的 trace 有对应的 Docker 镜像
 
 ```bash
-# Download traces
-pip install huggingface_hub
+# 下载（单个 shard 约 6670 条）
 python -c "
-from huggingface_hub import snapshot_download
-snapshot_download(
-  repo_id='nebius/SWE-rebench-openhands-trajectories',
+from huggingface_hub import hf_hub_download
+hf_hub_download(
+  repo_id='nebius/SWE-agent-trajectories',
   repo_type='dataset',
-  local_dir='data/openhands_trajs',
+  filename='data/train-00000-of-00012.parquet'
 )
 "
 ```
 
-**Trace format** (each trajectory):
+**OpenHands Trajectories**
+- 67k+ agent trajectories
+- 包含：bash 命令、文件编辑、输出
+- 平均 64 轮，最多 100 轮
+
+### 2.2 Trace 数据结构
+
+**SWE-agent trajectory 格式**：
 ```json
 {
-  "messages": [
-    {"role": "assistant", "tool_calls": [
-      {"function": {"name": "bash", "arguments": "{\"command\": \"pip install pytest\"}"}}
-    ]},
-    {"role": "tool", "content": "Successfully installed..."}
+  "instance_id": "repo__issue-123",
+  "model_name": "swe-agent-llama-70b",
+  "exit_status": "submitted",
+  "trajectory": [
+    {"role": "system", "text": "..."},
+    {"role": "user", "text": "issue description..."},
+    {"role": "ai", "text": "```\npip install pytest\n```"}
   ]
 }
 ```
 
-**SWE-agent Trajectories** (Alternative)
-- 80k trajectories
-- Solved: avg 31 steps, Unsolved: avg 58 steps
+**OpenHands trajectory 格式**：
+```json
+{
+  "trajectory": [
+    {"role": "system", "content": "..."},
+    {"role": "assistant", "tool_calls": [
+      {"function": {"name": "bash", "arguments": "{\"command\": \"pip install pytest\"}"}}
+    ]}
+  ]
+}
+```
+
+### 2.3 重要发现：Trace 不包含时间信息
+
+**经过验证，现有的 trace 数据集都不包含时间信息：**
+
+| 数据集 | 包含字段 | 有 LLM 调用时间？ | 有 Tool 执行时间？ |
+|--------|----------|-------------------|-------------------|
+| SWE-agent | `role`, `text`, `mask` | ❌ | ❌ |
+| OpenHands | `role`, `content`, `tool_calls` | ❌ | ❌ |
+
+**这意味着**：
+- 无法区分 LLM 推理时间 vs Tool 执行时间
+- 无法获得原始执行的 latency 分布
+- 回放时需要自己测量 Tool 执行时间
+
+**对实验的影响**：
+- 我们关注的是 **Tool 执行时的资源消耗**，而非 LLM 推理
+- 回放时测量的 latency 是真实的 Tool 执行时间
+- 如果需要模拟 LLM 思考间隔，需要额外添加 sleep
+
+### 2.4 Docker 镜像可用性
+
+SWE-rebench 提供预构建的 Docker 镜像：
+
+| 统计 | 数值 |
+|------|------|
+| 总 instances | ~21,000 |
+| 有 Docker 镜像的 | ~3,400 (16%) |
+| 镜像格式 | `swerebench/sweb.eval.x86_64.<repo>-<issue>` |
 
 ```bash
-# Download
+# 查询某个 instance 的镜像
 python -c "
-from huggingface_hub import snapshot_download
-snapshot_download(
-  repo_id='nebius/SWE-agent-trajectories',
-  repo_type='dataset',
-  local_dir='data/sweagent_trajs',
-)
+import pandas as pd
+from huggingface_hub import hf_hub_download
+path = hf_hub_download('nebius/SWE-rebench', 'dataset', 'data/test-00000-of-00002.parquet')
+df = pd.read_parquet(path)
+print(df[df['instance_id'] == 'xxx']['docker_image'].values)
 "
+
+# 拉取镜像
+docker pull docker.io/swerebench/sweb.eval.x86_64.hugovk_1776_pypistats-41
 ```
 
-### 2.2 Browser Traces (WebArena domain)
+## 3. Trace 回放架构
 
-**VisualWebArena Human Trajectories**
-- 233 tasks with Playwright trace recordings
-- Native Playwright trace.zip format
+### 3.1 统一 Trace IR
 
-```bash
-# Clone and get traces
-git clone https://github.com/web-arena-x/visualwebarena.git
-# Human traces in trace/ directory as .zip files
-
-# View a trace
-playwright show-trace path/to/trace.zip
-```
-
-**WebArena Human Demonstrations**
-- ~170 tasks with recorded trajectories
-- Available via WebArena resource page
-
-**Go-Browse-WA Dataset**
-- ~9.5K successful + ~17K failed trajectories on WebArena
-- Contains: accessibility tree, HTML, screenshots per step
-
-### 2.3 Trace Statistics
-
-| Source | Traces | Avg Steps | Format |
-|--------|--------|-----------|--------|
-| OpenHands trajectories | 67k+ | 64 turns | JSON (tool_calls) |
-| SWE-agent trajectories | 80k | 31-58 steps | JSON |
-| VisualWebArena human | 233 | varies | Playwright zip |
-| Go-Browse-WA | 26k+ | varies | JSON + screenshots |
-
-## 3. Trace Replay Architecture
-
-### 3.1 Unified Trace IR
-
-Convert all trace sources to a unified intermediate representation:
+将所有 trace 源转换为统一的中间表示：
 
 ```json
 {
-  "trace_id": "openhands_12345",
-  "source": "openhands|sweagent|webarena|visualwebarena",
+  "trace_id": "hugovk__pypistats-41",
+  "source": "sweagent",
+  "model": "swe-agent-llama-70b",
+  "exit_status": "submitted",
   "steps": [
     {
       "step_id": 0,
       "tool": "bash",
-      "command": "pip install pytest",
-      "cwd": "/workspace/repo",
+      "command": "pypistats python_minor pylast -m 2018-12",
       "timeout_ms": 60000
     },
     {
       "step_id": 1,
-      "tool": "bash",
-      "command": "python -m pytest tests/ -v",
-      "cwd": "/workspace/repo",
-      "timeout_ms": 300000
+      "tool": "swe_agent_editor",
+      "command": "open pypistats/cli.py 246",
+      "timeout_ms": 60000
     },
     {
       "step_id": 2,
-      "tool": "browser",
-      "action": "click",
-      "selector": "#submit-button"
+      "tool": "swe_agent_editor",
+      "command": "edit 242:247\ndef _month(yyyy_mm):\n...\nend_of_edit",
+      "timeout_ms": 60000
     }
   ]
 }
 ```
 
-### 3.2 Trace Converter Scripts
+### 3.2 已实现的脚本
 
-**OpenHands to IR**:
-```python
-import json
+| 脚本 | 功能 |
+|------|------|
+| `scripts/convert_sweagent_trace.py` | SWE-agent parquet → Trace IR |
+| `scripts/analyze_traces.py` | 分析 trace 统计，找出有 Docker 镜像的 |
+| `scripts/run_trace_in_container.py` | 在容器内回放 trace |
 
-def convert_openhands_trace(trace_path):
-    with open(trace_path) as f:
-        data = json.load(f)
+**回放脚本功能**：
+- 自动拉取 Docker 镜像
+- 执行 bash 命令和 SWE-agent editor 命令（open, edit, goto, submit 等）
+- 收集每步的 latency_ms
+- 运行后可选删除镜像释放空间
 
-    steps = []
-    for msg in data.get("messages", []):
-        if msg.get("role") == "assistant" and "tool_calls" in msg:
-            for tc in msg["tool_calls"]:
-                func = tc["function"]
-                args = json.loads(func["arguments"])
-                steps.append({
-                    "step_id": len(steps),
-                    "tool": func["name"],
-                    "command": args.get("command", ""),
-                    "timeout_ms": 60000
-                })
-
-    return {"trace_id": trace_path, "source": "openhands", "steps": steps}
+```bash
+# 使用方法
+python scripts/run_trace_in_container.py \
+    data/sample_traces/hugovk__pypistats-41.json \
+    docker.io/swerebench/sweb.eval.x86_64.hugovk_1776_pypistats-41 \
+    --cleanup  # 运行后删除镜像
 ```
 
-**Playwright trace to IR**:
-```python
-# Extract actions from Playwright trace zip
-# Each action becomes a step with tool="browser"
-```
+### 3.3 Editor 命令实现
 
-### 3.3 Replay Runner
+SWE-agent 使用特殊的编辑器命令，我们的回放器实现了以下命令：
 
-```python
-class TraceReplayRunner:
-    def __init__(self, cgroup_controller):
-        self.controller = cgroup_controller
+| 命令 | 说明 | 实现方式 |
+|------|------|----------|
+| `create <file>` | 创建文件 | `touch` |
+| `open <file> [line]` | 打开文件 | `sed -n` 显示内容 |
+| `goto <line>` | 跳转到行 | 更新内部状态 |
+| `scroll_down/up` | 滚动 | 更新行号 |
+| `edit <range>\n<content>\nend_of_edit` | 编辑文件 | Python 脚本替换行 |
+| `search_file <pattern>` | 搜索文件 | `grep -n` |
+| `submit` | 提交 | 无操作，标记完成 |
 
-    def replay(self, trace_ir, workload_cgroup):
-        results = []
-        for step in trace_ir["steps"]:
-            # Create tool-call cgroup as child
-            tool_cgroup = self.controller.create_child(
-                workload_cgroup, f"step_{step['step_id']}"
-            )
+## 4. 实验设计
 
-            # Execute tool call in cgroup
-            start = time.time()
-            if step["tool"] == "bash":
-                result = self.run_bash(step["command"], tool_cgroup)
-            elif step["tool"] == "browser":
-                result = self.run_browser_action(step, tool_cgroup)
+### 实验 1：Domain Mismatch 验证
 
-            # Collect metrics
-            results.append({
-                "step_id": step["step_id"],
-                "latency_ms": (time.time() - start) * 1000,
-                "memory_events": self.read_memory_events(tool_cgroup),
-                "cpu_time_ms": self.read_cpu_time(tool_cgroup)
-            })
+**目标**：验证细粒度 tool-call 级别控制 vs 粗粒度环境级别控制的差异
 
-            # Cleanup tool-call cgroup
-            self.controller.destroy(tool_cgroup)
+**Trace 选择**：
+- 从有 Docker 镜像的 trace 中选择 50 条
+- 混合短（10-20 步）和长（50+ 步）trace
+- 包含多样的 tool call（install, build, test, grep, edit）
 
-        return results
-```
+**回放配置**：
 
-## 4. Experiment Design (All Trace-Driven)
+| 配置 | Cgroup 结构 | 策略 |
+|------|-------------|------|
+| Static-Env | 整个 trace 一个 cgroup | 固定限制 |
+| Static-ToolCall | 每步一个子 cgroup | 固定每步限制 |
+| AgentCgroup | 每步一个子 cgroup | 动态 eBPF 策略 |
 
-### Experiment 1: Domain Mismatch
-
-**Trace source**: OpenHands trajectories (select 50 diverse traces)
-
-**Selection criteria**:
-- Mix of short (10-20 steps) and long (50+ steps) traces
-- Heterogeneous tool calls (install, build, test, grep, edit)
-
-**Replay configurations**:
-
-| Config | Cgroup Structure | Policy |
-|--------|-----------------|--------|
-| Static-Env | Single cgroup for entire trace | Fixed limits |
-| Static-ToolCall | Per-step child cgroups | Fixed per-step limits |
-| AgentCgroup | Per-step child cgroups | Dynamic eBPF policy |
-
-**Metrics collected per step**:
+**收集的指标**：
 - Wall-clock latency
-- CPU time (user + sys)
-- Max RSS
-- memory.high breach count
-- memory.max breach count
+- CPU 时间（user + sys）
+- 最大 RSS
+- memory.high 突破次数
+- memory.max 突破次数
 - OOM kills
 
-### Experiment 2: Timescale Mismatch
+### 实验 2：Timescale Mismatch 验证
 
-**Trace source**: Filter for "bursty" traces
-- Select steps with known high resource usage (pytest, make, npm install)
-- Or synthesize burst sequence from real traces
+**目标**：验证 in-kernel 控制 vs user-space 控制的响应时间差异
 
-**Replay configurations**:
+**Trace 选择**：筛选"突发性"trace
+- 包含已知高资源使用的步骤（pytest, make, npm install）
 
-| Config | Controller | Reaction Time |
-|--------|-----------|---------------|
-| User-space | Poll PSI every 50ms, write cgroup files | 50-100ms |
-| In-kernel | eBPF hooks (sched_ext, memcg_bpf_ops) | <1ms |
+**回放配置**：
 
-**Metrics**:
-- Time from memory.high breach to throttle applied
-- Interference on co-located workload (measure tail latency)
+| 配置 | 控制器 | 响应时间 |
+|------|--------|----------|
+| User-space | 每 50ms 轮询 PSI，写 cgroup 文件 | 50-100ms |
+| In-kernel | eBPF hooks（sched_ext, memcg_bpf_ops） | <1ms |
 
-### Experiment 3: Multi-Tenant Isolation
+**指标**：
+- 从 memory.high 突破到 throttle 生效的时间
+- 对共存 workload 的干扰（测量尾部延迟）
 
-**Trace sources**:
-- Tenant A: VisualWebArena Playwright trace (browser-heavy)
-- Tenant B: OpenHands trace (bash-heavy, compile/test)
-- Tenant C: Synthetic noisy neighbor (fork bomb / malloc stress)
+### 实验 3：多租户隔离
 
-**Replay**: Run all three concurrently, measure cross-tenant interference.
+**Trace 选择**：
+- 租户 A：SWE-agent trace（bash 密集，编译/测试）
+- 租户 B：另一个 SWE-agent trace
+- 租户 C：合成的 noisy neighbor（fork bomb / malloc stress）
 
-**Metrics**:
-- Per-tenant step latency distribution
-- Tenant A (browser) page load time degradation
-- Tenant B (bash) test execution time variance
+**方法**：同时运行三个租户，测量跨租户干扰
 
-### Experiment 4: Trace Replay Overhead
+**指标**：
+- 每租户的步骤延迟分布
+- 有/无 noisy neighbor 时的延迟变化
 
-**Goal**: Measure overhead of trace replay infrastructure itself.
+### 实验 4：开销测量
 
-**Method**:
-1. Run same trace with no resource control (baseline)
-2. Run with static cgroup (minimal overhead)
-3. Run with AgentCgroup (measure added overhead)
+**目标**：测量 AgentCgroup 本身的开销
 
-## 5. Environment Setup for Trace Replay
+**方法**：
+1. 无资源控制运行同一 trace（baseline）
+2. 使用静态 cgroup 运行（最小开销）
+3. 使用 AgentCgroup 运行（测量额外开销）
 
-### 5.1 For SWE-bench Traces
+## 5. Trace 选择指南
 
-Traces reference specific repos. Use SWE-rebench Docker images:
+### 代表性工作负载
 
-```bash
-# Pre-built images available
-docker pull ghcr.io/nebius/swe-rebench:<instance_id>
+选择覆盖以下类型的 trace：
 
-# Or build from SWE-rebench configs
-git clone https://github.com/nebius/SWE-rebench.git
-```
+| 类别 | 特征 | 示例命令 |
+|------|------|----------|
+| CPU 密集 | 编译、测试 | `make -j4`, `pytest` |
+| 内存密集 | 大数据处理 | `npm install`, 数据加载 |
+| IO 密集 | 文件操作 | `git clone`, `find`, `grep -r` |
+| 突发性 | 短暂的高峰 | 快速 pytest, 浏览器点击 |
+| 长时间运行 | 持续负载 | 完整测试套件 |
 
-**Replay approach**:
-1. Start container from pre-built image
-2. Replay bash commands from trace inside container
-3. Container runs in designated cgroup
+### 推荐的 Trace 子集
 
-### 5.2 For Browser Traces
+| 用途 | 数量 | 说明 |
+|------|------|------|
+| 快速冒烟测试 | 5 条 | 每条约 20 步 |
+| 开发迭代 | 20 条 | 混合复杂度 |
+| 论文主要结果 | 50-100 条 | 分层采样 |
+| 完整评估 | 全部 | 可选 |
 
-```bash
-# Install Playwright
-pip install playwright
-playwright install chromium
+## 6. 输出格式
 
-# For Playwright trace replay
-# Extract actions from trace.zip and execute via Playwright API
-```
-
-## 6. Trace Selection Guidelines
-
-### For Representative Workload
-
-Select traces that cover:
-
-| Category | Characteristics | Example Commands |
-|----------|-----------------|------------------|
-| CPU-heavy | Compilation, tests | `make -j4`, `pytest` |
-| Memory-heavy | Large data processing | `npm install`, data loading |
-| IO-heavy | File operations | `git clone`, `find`, `grep -r` |
-| Bursty | Short intense spikes | Quick pytest, browser click |
-| Long-running | Sustained load | Full test suite |
-
-### Recommended Trace Subsets
-
-**Quick smoke test**: 5 traces, ~20 steps each
-**Development iteration**: 20 traces, mixed complexity
-**Paper main results**: 50-100 traces, stratified sample
-**Full evaluation**: All available traces (optional)
-
-## 7. Output Format
-
-### Per-Step Metrics (metrics.jsonl)
+### 每步指标 (metrics.jsonl)
 
 ```json
-{"trace_id": "t1", "step_id": 0, "tool": "bash", "cmd": "pip install", "latency_ms": 5234, "cpu_ms": 4100, "max_rss_mb": 256, "mem_high_events": 0}
-{"trace_id": "t1", "step_id": 1, "tool": "bash", "cmd": "pytest", "latency_ms": 12456, "cpu_ms": 11200, "max_rss_mb": 512, "mem_high_events": 3}
+{"trace_id": "t1", "step_id": 0, "tool": "bash", "cmd": "pip install", "latency_ms": 5234, "exit_code": 0, "success": true}
+{"trace_id": "t1", "step_id": 1, "tool": "swe_agent_editor", "cmd": "edit 1:10...", "latency_ms": 800, "exit_code": 0, "success": true}
+{"trace_id": "t1", "step_id": 2, "tool": "bash", "cmd": "pytest", "latency_ms": 12456, "exit_code": 1, "success": false}
 ```
 
-### Aggregate Summary (summary.json)
+### 汇总统计 (summary.json)
 
 ```json
 {
@@ -334,58 +291,62 @@ Select traces that cover:
   "latency_p50_ms": 1234,
   "latency_p95_ms": 8765,
   "latency_p99_ms": 15432,
-  "mem_high_events_total": 45,
-  "oom_kills": 0
+  "success_rate": 0.85,
+  "bash_steps": 1200,
+  "editor_steps": 1140
 }
 ```
 
-## 8. Makefile Targets
+## 7. 已知限制和讨论
 
-```makefile
-# Download traces
-make download-traces-openhands
-make download-traces-sweagent
-make download-traces-webarena
+### 7.1 Trace 数据的局限性
 
-# Convert to IR
-make convert-traces
+1. **无时间信息**：原始 trace 不包含 LLM 调用时间或 tool 执行时间
+2. **部分镜像缺失**：只有约 16% 的 instance 有预构建 Docker 镜像
+3. **编辑可能失败**：editor 命令的回放可能因为行号变化而失败
 
-# Run experiments (all trace-driven)
-make exp1-domain-replay      # 50 traces x 3 configs
-make exp2-timescale-replay   # Bursty subset x 2 configs
-make exp3-multitenant-replay # 3 concurrent tenants
-make exp4-overhead           # Overhead measurement
+### 7.2 回放 vs 真实执行的差异
 
-# Generate figures
-make figures
+| 方面 | 真实执行 | Trace 回放 |
+|------|----------|------------|
+| LLM 调用 | 有，带延迟 | 无 |
+| 决策逻辑 | 动态 | 固定序列 |
+| Tool 执行 | 真实 | 真实 |
+| 资源消耗 | 真实 | 真实 |
+| 确定性 | 低 | 高 |
+
+**结论**：对于资源控制实验，trace 回放是合适的方法，因为我们关注的是 tool 执行时的资源消耗，而非 LLM 的决策过程。
+
+### 7.3 模拟 LLM 思考时间（可选）
+
+如果需要更真实地模拟 agent 行为，可以在步骤之间添加延迟：
+
+```python
+# 在回放时添加模拟的 LLM 思考时间
+import random
+import time
+
+for step in trace["steps"]:
+    # 模拟 LLM 思考时间（1-5 秒）
+    think_time = random.uniform(1.0, 5.0)
+    time.sleep(think_time)
+
+    # 执行 tool call
+    execute_step(step)
 ```
 
-## 9. Key Differences from Online Execution
+## 8. 参考资料
 
-| Aspect | Online (with LLM) | Trace Replay |
-|--------|------------------|--------------|
-| Determinism | Non-deterministic | Fully deterministic |
-| Cost | LLM API costs | Free |
-| Speed | Slow (API latency) | Fast (local execution) |
-| Reproducibility | Hard | Easy |
-| Realism | More realistic decisions | Fixed decision sequence |
-| Suitable for | Agent capability eval | System/resource eval |
-
-**For AgentCgroup (OS resource control paper)**: Trace replay is the right choice.
-
-## 10. References
-
-### Trace Sources
-- OpenHands trajectories: https://huggingface.co/datasets/nebius/SWE-rebench-openhands-trajectories
+### Trace 数据源
 - SWE-agent trajectories: https://huggingface.co/datasets/nebius/SWE-agent-trajectories
-- VisualWebArena: https://github.com/web-arena-x/visualwebarena
-- Go-Browse dataset: https://arxiv.org/abs/2506.03533
+- OpenHands trajectories: https://huggingface.co/datasets/nebius/SWE-rebench-openhands-trajectories
+- SWE-rebench (Docker 镜像): https://huggingface.co/datasets/nebius/SWE-rebench
 
-### Environments
-- SWE-rebench Docker: https://huggingface.co/datasets/nebius/SWE-rebench
-- BrowserGym: https://github.com/ServiceNow/BrowserGym
-- WebArena: https://github.com/web-arena-x/webarena
+### 环境
+- Docker 镜像格式: `docker.io/swerebench/sweb.eval.x86_64.<repo>-<issue>`
+- 容器内工作目录: `/testbed`
+- Conda 环境: `testbed`
 
-### Kernel Features
+### 内核特性
 - sched_ext: https://docs.kernel.org/scheduler/sched-ext.html
 - memcg_bpf_ops: https://lwn.net/Articles/1055698/
