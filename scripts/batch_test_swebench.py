@@ -240,7 +240,7 @@ class BatchSWEBenchRunner:
         self._generate_report()
 
     def _run_with_retry(self, task: dict, category: str, difficulty: str) -> dict:
-        """Run a single task with retry logic."""
+        """Run a single task with retry logic (only retry on Claude Code crash)."""
         task_dir_name = f"{category.replace('/', '_')}_{difficulty}"
         task_dir = self.output_dir / task_dir_name
         task_dir.mkdir(parents=True, exist_ok=True)
@@ -281,18 +281,36 @@ class BatchSWEBenchRunner:
                 except Exception as pe:
                     print(f"  Warning: Failed to generate plot: {pe}")
 
+                # Check for crash first - only crashes trigger retry
+                is_crash = self._check_crash(attempt_result)
+                if is_crash:
+                    print(f"  Claude Code crashed on attempt {attempt}")
+                    if attempt < self.max_retries:
+                        print(f"  Retrying...")
+                        continue
+                    else:
+                        print(f"  Max retries reached")
+                        result['crash'] = True
+                        break
+
+                # No crash - check success (but don't retry on failure)
                 if self._check_success(attempt_result):
                     result['success'] = True
                     result['successful_attempt'] = attempt
                     result['attempt_results'] = attempt_result
-                    break
                 else:
-                    print(f"Attempt {attempt} did not succeed")
+                    print(f"  Task did not succeed (no retry for non-crash failures)")
+                    result['attempt_results'] = attempt_result
+                # Exit loop - no retry for non-crash cases
+                break
 
             except Exception as e:
                 print(f"Attempt {attempt} failed with error: {e}")
                 with open(attempt_dir / "error.txt", "w") as f:
                     f.write(str(e))
+                # Exception counts as crash - retry
+                if attempt >= self.max_retries:
+                    result['crash'] = True
 
         result['end_time'] = datetime.now().isoformat()
         result['total_time'] = (
@@ -302,17 +320,18 @@ class BatchSWEBenchRunner:
 
         return result
 
-    def _check_success(self, result: dict) -> bool:
-        """Check if the attempt was successful."""
+    def _check_crash(self, result: dict) -> bool:
+        """Check if Claude Code crashed (triggers retry)."""
         output = result.get('claude_output', {}).get('stdout', '')
         stderr = result.get('claude_output', {}).get('stderr', '')
 
-        # Check for Claude Code CLI crash
         crash_indicators = ['No messages returned', 'UnhandledPromiseRejection', 'SIGKILL', 'SIGTERM']
         is_crash = any(indicator in stderr or indicator in output for indicator in crash_indicators)
-        if is_crash:
-            print(f"  Detected Claude Code crash!")
-            return False
+        return is_crash
+
+    def _check_success(self, result: dict) -> bool:
+        """Check if the attempt was successful (task completed and tests passed)."""
+        output = result.get('claude_output', {}).get('stdout', '')
 
         has_diff = 'diff --git' in output
 
@@ -327,7 +346,7 @@ class BatchSWEBenchRunner:
         has_fail_indicator = any(kw in output_cleaned for kw in fail_indicators)
 
         success = has_diff and has_pass_indicator and not has_fail_indicator
-        print(f"  Success check: diff={has_diff}, pass={has_pass_indicator}, fail={has_fail_indicator}, crash={is_crash}")
+        print(f"  Success check: diff={has_diff}, pass={has_pass_indicator}, fail={has_fail_indicator}")
         return success
 
     def _cleanup_images(self, image_name: str):
