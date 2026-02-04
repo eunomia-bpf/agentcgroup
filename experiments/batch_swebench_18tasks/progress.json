@@ -15,7 +15,9 @@
     "SQL_Data_Hard",
     "Web_Network_Hard",
     "DevOps_Build_Hard",
-    "ML_Scientific_Hard"
+    "ML_Scientific_Hard",
+    "CLI_Tools_Hard",
+    "Medical_Bio_Hard"
   ],
   "results": {
     "Web_Network_Easy": {
@@ -98,6 +100,16 @@
       "success": false,
       "attempts": 3,
       "total_time": 1529.777308
+    },
+    "CLI_Tools_Hard": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 292.081287
+    },
+    "Medical_Bio_Hard": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 731.218093
     }
   }
 }
