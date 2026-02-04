@@ -1,6 +1,6 @@
 # Batch SWE-bench Test Report
 
-Generated: 2026-02-04T03:58:24.605941
+Generated: 2026-02-04T04:09:06.532120
 
 ## Summary
 
@@ -8,10 +8,10 @@ Generated: 2026-02-04T03:58:24.605941
 - **Successful**: 1
 - **Failed**: 0
 - **Success Rate**: 100.0%
-- **Total Time**: 213.7s
+- **Total Time**: 305.8s
 
 ## Results by Task
 
 | Category | Difficulty | Instance ID | Success | Attempts | Time (s) |
 |----------|------------|-------------|---------|----------|----------|
-| Web/Network | Easy | encode__httpx-2701 | Yes | 1 | 213.7 |
+| SQL/Data | Easy | sqlfluff__sqlfluff-5362 | Yes | 1 | 305.8 |

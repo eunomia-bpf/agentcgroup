@@ -1,12 +1,18 @@
 {
   "completed": [
-    "Web_Network_Easy"
+    "Web_Network_Easy",
+    "SQL_Data_Easy"
   ],
   "results": {
     "Web_Network_Easy": {
       "success": true,
       "attempts": 1,
       "total_time": 213.667249
+    },
+    "SQL_Data_Easy": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 305.789627
     }
   }
 }

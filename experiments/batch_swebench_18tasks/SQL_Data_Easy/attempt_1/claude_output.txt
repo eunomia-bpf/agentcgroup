@@ -1,0 +1,67 @@
+Excellent! Everything is working perfectly. Let me now create a summary of the fix:
+
+## Summary
+
+I've successfully fixed the issue where sqlfluff was emitting ignored parsing errors to stdout instead of stderr.
+
+### The Issue
+When using `sqlfluff fix` or `sqlfluff format` with stdin, the message:
+```
+[0 templating/parsing errors remaining after "ignore" & "warning"]
+```
+was being printed to stdout, contaminating the formatted SQL output when redirected to a file.
+
+### Root Cause
+In `/testbed/src/sqlfluff/cli/formatters.py` at line 611, the `handle_files_with_tmp_or_prs_errors` method was using conditional stderr routing:
+```python
+err=num_filtered_errors > 0,
+```
+This meant the message only went to stderr when there were filtered errors remaining. When `num_filtered_errors == 0`, it defaulted to stdout.
+
+### The Fix
+Changed line 611 from:
+```python
+err=num_filtered_errors > 0,
+```
+to:
+```python
+err=True,
+```
+
+This ensures the message **always** goes to stderr, regardless of the error count.
+
+### Verification
+✅ All 150 CLI tests pass (145 command tests + 5 formatter tests)
+✅ stdout contains clean formatted SQL output
+✅ stderr contains all error/log messages as expected
+✅ The fix works for all test cases (parsing errors, valid SQL, fixable violations)
+
+### Git Diff
+```diff
+diff --git a/src/sqlfluff/cli/formatters.py b/src/sqlfluff/cli/formatters.py
+index af5d449fd..55e713dba 100644
+--- a/src/sqlfluff/cli/formatters.py
++++ b/src/sqlfluff/cli/formatters.py
+@@ -608,7 +608,7 @@ class OutputStreamFormatter:
+                         color=color,
+                     ),
+                     color=not self.plain_output,
+-                    err=num_filtered_errors > 0,
++                    err=True,
+                 )
+         return EXIT_FAIL if num_filtered_errors else EXIT_SUCCESS
+```
+=== GIT DIFF ===
+diff --git a/src/sqlfluff/cli/formatters.py b/src/sqlfluff/cli/formatters.py
+index af5d449fd..55e713dba 100644
+--- a/src/sqlfluff/cli/formatters.py
++++ b/src/sqlfluff/cli/formatters.py
+@@ -608,7 +608,7 @@ class OutputStreamFormatter:
+                         color=color,
+                     ),
+                     color=not self.plain_output,
+-                    err=num_filtered_errors > 0,
++                    err=True,
+                 )
+         return EXIT_FAIL if num_filtered_errors else EXIT_SUCCESS
+ 

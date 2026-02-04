@@ -18,6 +18,7 @@ Usage:
 
 import argparse
 import json
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -25,6 +26,7 @@ from typing import Dict, List, Optional
 
 # Import from run_swebench.py
 from run_swebench import SWEBenchRunner, ResourceMonitor
+from plot_resources import plot_from_attempt_dir
 
 # Sample tasks: 6 categories x 3 difficulties = 18 tasks
 SAMPLE_TASKS = {
@@ -151,18 +153,26 @@ DO NOT stop until you have:
 If you encounter test failures, debug and fix them. Keep trying until successful.'''
 
 
+# Default output directory name (fixed, for auto-resume)
+DEFAULT_OUTPUT_DIR = "batch_swebench_18tasks"
+
+
 class BatchSWEBenchRunner:
     """Run batch SWE-bench tests with retry and progress tracking."""
 
-    def __init__(self, max_retries: int = 3, output_base: Optional[Path] = None):
+    def __init__(self, max_retries: int = 3, output_base: Optional[Path] = None,
+                 use_timestamp: bool = False):
         self.max_retries = max_retries
         self.home = Path.home()
 
         if output_base:
             self.output_dir = output_base
-        else:
+        elif use_timestamp:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             self.output_dir = self.home / "agentcgroup" / "experiments" / f"batch_test_{timestamp}"
+        else:
+            # Use fixed name for auto-resume
+            self.output_dir = self.home / "agentcgroup" / "experiments" / DEFAULT_OUTPUT_DIR
 
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.progress_file = self.output_dir / "progress.json"
@@ -243,6 +253,13 @@ class BatchSWEBenchRunner:
                 )
 
                 attempt_result = runner.run(prompt=WORKFLOW_PROMPT, run_tests=True)
+
+                # Generate resource plot
+                try:
+                    plot_title = f"Resource Usage - {task['instance_id']} (Attempt {attempt})"
+                    plot_from_attempt_dir(attempt_dir, title=plot_title)
+                except Exception as pe:
+                    print(f"  Warning: Failed to generate plot: {pe}")
 
                 if self._check_success(attempt_result):
                     result['success'] = True
@@ -359,8 +376,9 @@ def main():
     parser.add_argument("--category", help="Run all tasks in category")
     parser.add_argument("--difficulty", help="Run all tasks of difficulty (Easy/Medium/Hard)")
     parser.add_argument("--max-retries", type=int, default=3, help="Max retries per task")
-    parser.add_argument("--resume", action="store_true", help="Resume from progress file")
-    parser.add_argument("--output-dir", help="Output directory (for resume)")
+    parser.add_argument("--output-dir", help="Custom output directory")
+    parser.add_argument("--new-run", action="store_true",
+                        help="Start fresh with timestamped directory (default: auto-resume)")
 
     args = parser.parse_args()
 
@@ -390,22 +408,13 @@ def main():
             return 1
 
     output_base = None
-    if args.resume or args.output_dir:
-        if args.output_dir:
-            output_base = Path(args.output_dir)
-        else:
-            exp_dir = Path.home() / "agentcgroup" / "experiments"
-            batch_dirs = sorted(exp_dir.glob("batch_test_*"), reverse=True)
-            if batch_dirs:
-                output_base = batch_dirs[0]
-                print(f"Resuming from: {output_base}")
-            else:
-                print("No previous batch test found to resume")
-                return 1
+    if args.output_dir:
+        output_base = Path(args.output_dir)
 
     runner = BatchSWEBenchRunner(
         max_retries=args.max_retries,
-        output_base=output_base
+        output_base=output_base,
+        use_timestamp=args.new_run,
     )
     runner.run_all(tasks)
 
