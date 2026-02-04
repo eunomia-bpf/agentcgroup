@@ -3,7 +3,15 @@
     "Web_Network_Easy",
     "SQL_Data_Easy",
     "CLI_Tools_Easy",
-    "DevOps_Build_Easy"
+    "DevOps_Build_Easy",
+    "ML_Scientific_Easy",
+    "Medical_Bio_Easy",
+    "SQL_Data_Medium",
+    "Web_Network_Medium",
+    "DevOps_Build_Medium",
+    "ML_Scientific_Medium",
+    "CLI_Tools_Medium",
+    "Medical_Bio_Medium"
   ],
   "results": {
     "Web_Network_Easy": {
@@ -26,6 +34,46 @@
       "success": true,
       "attempts": 1,
       "total_time": 317.667775
+    },
+    "ML_Scientific_Easy": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 824.772329
+    },
+    "Medical_Bio_Easy": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 470.815418
+    },
+    "SQL_Data_Medium": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 622.227215
+    },
+    "Web_Network_Medium": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 370.206134
+    },
+    "DevOps_Build_Medium": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 633.52587
+    },
+    "ML_Scientific_Medium": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 334.39182
+    },
+    "CLI_Tools_Medium": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 736.717299
+    },
+    "Medical_Bio_Medium": {
+      "success": true,
+      "attempts": 2,
+      "total_time": 802.059104
     }
   }
 }
