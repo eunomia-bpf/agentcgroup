@@ -105,9 +105,9 @@ SAMPLE_TASKS = {
         'docker_image': 'swerebench/sweb.eval.x86_64.asottile_1776_pyupgrade-939',
     },
     ('CLI/Tools', 'Medium'): {
-        'instance_id': 'Textualize__textual-3548',
+        'instance_id': 'Textualize__textual-2987',
         'repo': 'Textualize/textual',
-        'docker_image': 'swerebench/sweb.eval.x86_64.textualize_1776_textual-3548',
+        'docker_image': 'swerebench/sweb.eval.x86_64.textualize_1776_textual-2987',
     },
     ('CLI/Tools', 'Hard'): {
         'instance_id': 'joke2k__faker-1520',
@@ -117,19 +117,19 @@ SAMPLE_TASKS = {
 
     # Medical/Bio
     ('Medical/Bio', 'Easy'): {
-        'instance_id': 'pydicom__pydicom-1601',
+        'instance_id': 'pydicom__pydicom-1000',
         'repo': 'pydicom/pydicom',
-        'docker_image': 'swerebench/sweb.eval.x86_64.pydicom_1776_pydicom-1601',
+        'docker_image': 'swerebench/sweb.eval.x86_64.pydicom_1776_pydicom-1000',
     },
     ('Medical/Bio', 'Medium'): {
-        'instance_id': 'pydicom__pydicom-1853',
+        'instance_id': 'pydicom__pydicom-1090',
         'repo': 'pydicom/pydicom',
-        'docker_image': 'swerebench/sweb.eval.x86_64.pydicom_1776_pydicom-1853',
+        'docker_image': 'swerebench/sweb.eval.x86_64.pydicom_1776_pydicom-1090',
     },
     ('Medical/Bio', 'Hard'): {
-        'instance_id': 'pydicom__pydicom-2022',
+        'instance_id': 'pydicom__pydicom-2065',
         'repo': 'pydicom/pydicom',
-        'docker_image': 'swerebench/sweb.eval.x86_64.pydicom_1776_pydicom-2022',
+        'docker_image': 'swerebench/sweb.eval.x86_64.pydicom_1776_pydicom-2065',
     },
 }
 
@@ -211,6 +211,9 @@ class BatchSWEBenchRunner:
             result = self._run_with_retry(task, category, difficulty)
             self.results.append(result)
             self._save_progress(task_key, result)
+
+            # Cleanup images after each task to save disk space
+            self._cleanup_images(task['docker_image'])
 
             status = "SUCCESS" if result.get('success') else "FAILED"
             print(f"\n[{task_key}] {status} after {result.get('attempts', 0)} attempt(s)")
@@ -299,13 +302,37 @@ class BatchSWEBenchRunner:
         pass_indicators = ['passed', 'all tests', 'tests passed', 'tests pass', 'OK', '0 failed']
         has_pass_indicator = any(kw.lower() in output.lower() for kw in pass_indicators)
 
-        fail_indicators = ['FAILED', 'ERROR', 'failure', 'failed']
+        # Check for real failures, but exclude xfailed (expected failures in pytest)
         output_end = output[-2000:] if len(output) > 2000 else output
-        has_fail_indicator = any(kw in output_end for kw in fail_indicators)
+        # Remove xfailed/xpassed before checking for failures
+        output_cleaned = output_end.replace('xfailed', '').replace('xpassed', '')
+        fail_indicators = ['FAILED', 'ERROR', 'failure', 'failed']
+        has_fail_indicator = any(kw in output_cleaned for kw in fail_indicators)
 
         success = has_diff and has_pass_indicator and not has_fail_indicator
         print(f"  Success check: diff={has_diff}, pass={has_pass_indicator}, fail={has_fail_indicator}, crash={is_crash}")
         return success
+
+    def _cleanup_images(self, image_name: str):
+        """Remove Docker images after task to save disk space."""
+        print(f"  Cleaning up images for {image_name}...")
+        try:
+            # Remove fixed image
+            safe_name = image_name.replace("/", "_").replace(":", "_")
+            fixed_image = f"swebench-fixed-{safe_name}"
+            subprocess.run(["podman", "rmi", "-f", fixed_image],
+                          capture_output=True, timeout=30)
+
+            # Remove original image
+            subprocess.run(["podman", "rmi", "-f", f"docker.io/{image_name}"],
+                          capture_output=True, timeout=30)
+
+            # Prune dangling images
+            subprocess.run(["podman", "image", "prune", "-f"],
+                          capture_output=True, timeout=30)
+            print(f"  Images cleaned up")
+        except Exception as e:
+            print(f"  Warning: Failed to cleanup images: {e}")
 
     def _load_progress(self) -> set:
         """Load completed tasks from progress file."""
