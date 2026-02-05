@@ -1,0 +1,378 @@
+[
+  {
+    "timestamp": "2026-02-05T08:55:42.829Z",
+    "tool": "Read",
+    "id": "GZejX49cmiiDgx9B6KvhaSf5IzgjQNXO",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/alert.py"
+    },
+    "end_timestamp": "2026-02-05T08:55:42.843Z",
+    "result_preview": "     1\u2192from datetime import datetime\n     2\u2192\n     3\u2192import ipyvuetify as v\n     4\u2192from deprecated.sphinx import deprecated\n     5\u2192from ipywidgets import Output, jslink\n     6\u2192from tqdm.notebook import tqdm\n     7\u2192from traitlets import Bool, Unicode, directional_link, observe\n     8\u2192\n     9\u2192from sepal_ui import color\n    10\u2192from sepal_ui.frontend.styles import TYPES\n    11\u2192from sepal_ui.message import ms\n    12\u2192from sepal_ui.scripts import utils as su\n    13\u2192from sepal_ui.scripts.utils import set..."
+  },
+  {
+    "timestamp": "2026-02-05T08:55:53.863Z",
+    "tool": "Bash",
+    "id": "2L11oFZVmsecSuvl8Zw78lcxFxyseqjB",
+    "input": {
+      "command": "find /testbed -type f -name \"pytest.ini\" -o -name \"setup.cfg\" -o -name \"pyproject.toml\" | head -5",
+      "description": "Find test configuration files"
+    },
+    "end_timestamp": "2026-02-05T08:55:53.893Z",
+    "result_preview": ""
+  },
+  {
+    "timestamp": "2026-02-05T08:55:53.859Z",
+    "tool": "Glob",
+    "id": "SmTRJqRJSpjSuu7QLW1pRzwQW7bvbzxX",
+    "input": {
+      "pattern": "**/test*alert*.py"
+    },
+    "end_timestamp": "2026-02-05T08:55:53.901Z",
+    "result_preview": "/testbed/tests/test_Alert.py"
+  },
+  {
+    "timestamp": "2026-02-05T08:55:55.346Z",
+    "tool": "Read",
+    "id": "A5RrAQTTIkbwZoYp72am6NJCUsDfAG1g",
+    "input": {
+      "file_path": "/testbed/tests/test_Alert.py"
+    },
+    "end_timestamp": "2026-02-05T08:55:55.358Z",
+    "result_preview": "     1\u2192import pytest\n     2\u2192\n     3\u2192from sepal_ui import sepalwidgets as sw\n     4\u2192from sepal_ui.frontend.styles import TYPES\n     5\u2192from sepal_ui.scripts.warning import SepalWarning\n     6\u2192\n     7\u2192\n     8\u2192class TestAlert:\n     9\u2192    def test_init(self):\n    10\u2192\n    11\u2192        # default init\n    12\u2192        alert = sw.Alert()\n    13\u2192        assert alert.viz is False\n    14\u2192        assert alert.type == \"info\"\n    15\u2192\n    16\u2192        # every legit types\n    17\u2192        for type_ in TYPES:\n    18\u2192    ..."
+  },
+  {
+    "timestamp": "2026-02-05T08:55:55.351Z",
+    "tool": "Bash",
+    "id": "D9J3WB9clhNIQtuuUawaK616i9bmLxeq",
+    "input": {
+      "command": "pytest /testbed/tests/test_Alert.py -v",
+      "description": "Run Alert tests to see current status"
+    },
+    "end_timestamp": "2026-02-05T08:56:03.246Z",
+    "result_preview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0 -- /usr/bin/python3\ncachedir: .pytest_cache\nrootdir: /testbed\nplugins: anyio-4.12.1\ncollecting ... collected 7 items\n\ntests/test_Alert.py::TestAlert::test_init PASSED                         [ 14%]\ntests/test_Alert.py::TestAlert::test_add_msg PASSED                      [ 28%]\ntests/test_Alert.py::TestAlert::test_add_live_msg PASSED                 [ 42%]\nt..."
+  },
+  {
+    "timestamp": "2026-02-05T08:56:14.117Z",
+    "tool": "TodoWrite",
+    "id": "9a1VuDU3FBwjaup05aLrJnBGUG2VHFep",
+    "input": {
+      "todos": [
+        {
+          "content": "Remove progress validation that restricts to [0, 1]",
+          "status": "pending",
+          "activeForm": "Removing progress validation"
+        },
+        {
+          "content": "Update progress bar update logic to work with any progress value",
+          "status": "pending",
+          "activeForm": "Updating progress bar update logic"
+        },
+        {
+          "content": "Update test to verify other values work",
+          "status": "pending",
+          "activeForm": "Updating test"
+        },
+        {
+          "content": "Run test suite to verify fix",
+          "status": "pending",
+          "activeForm": "Running test suite"
+        }
+      ]
+    },
+    "end_timestamp": "2026-02-05T08:56:14.128Z",
+    "result_preview": "Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable"
+  },
+  {
+    "timestamp": "2026-02-05T08:56:18.531Z",
+    "tool": "TodoWrite",
+    "id": "mP2mOd107xvkhc7e4PqhpFEqKwEIjXs7",
+    "input": {
+      "todos": [
+        {
+          "activeForm": "Removing progress validation",
+          "content": "Remove progress validation that restricts to [0, 1]",
+          "status": "in_progress"
+        },
+        {
+          "activeForm": "Updating progress bar update logic",
+          "content": "Update progress bar update logic to work with any progress value",
+          "status": "pending"
+        },
+        {
+          "activeForm": "Updating test",
+          "content": "Update test to verify other values work",
+          "status": "pending"
+        },
+        {
+          "activeForm": "Running test suite",
+          "content": "Run test suite to verify fix",
+          "status": "pending"
+        }
+      ]
+    },
+    "end_timestamp": "2026-02-05T08:56:18.542Z",
+    "result_preview": "Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable"
+  },
+  {
+    "timestamp": "2026-02-05T08:56:31.274Z",
+    "tool": "Edit",
+    "id": "ZUJMsRUTtYwrnKmpXJsAIC4dxZVqRYQd",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/alert.py",
+      "old_string": "        # cast the progress to float\n        progress = float(progress)\n        if not (0 <= progress <= 1):\n            raise ValueError(f\"progress should be in [0, 1], {progress} given\")\n\n        # Prevent adding multiple times",
+      "new_string": "        # cast the progress to float\n        progress = float(progress)\n\n        # Prevent adding multiple times"
+    },
+    "end_timestamp": "2026-02-05T08:56:31.328Z",
+    "result_preview": "The file /testbed/sepal_ui/sepalwidgets/alert.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n    92\u2192\n    93\u2192        # show the alert\n    94\u2192        self.show()\n    95\u2192\n    96\u2192        # cast the progress to float\n    97\u2192        progress = float(progress)\n    98\u2192\n    99\u2192        # Prevent adding multiple times\n   100\u2192        if self.progress_output not in self.children:\n   101\u2192\n   102\u2192            self.children = [self.progress_output]\n   103\u2192"
+  },
+  {
+    "timestamp": "2026-02-05T08:56:34.352Z",
+    "tool": "TodoWrite",
+    "id": "w6hFT69ZPXaUeY0e1LncxLgNrqY9VR6m",
+    "input": {
+      "todos": [
+        {
+          "activeForm": "Removing progress validation",
+          "content": "Remove progress validation that restricts to [0, 1]",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Updating progress bar update logic",
+          "content": "Update progress bar update logic to work with any progress value",
+          "status": "in_progress"
+        },
+        {
+          "activeForm": "Updating test",
+          "content": "Update test to verify other values work",
+          "status": "pending"
+        },
+        {
+          "activeForm": "Running test suite",
+          "content": "Run test suite to verify fix",
+          "status": "pending"
+        }
+      ]
+    },
+    "end_timestamp": "2026-02-05T08:56:34.363Z",
+    "result_preview": "Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable"
+  },
+  {
+    "timestamp": "2026-02-05T08:56:36.718Z",
+    "tool": "Edit",
+    "id": "zEhWJJOjhnH3aPT2vVsDtrBSRBFUUHGE",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/alert.py",
+      "old_string": "        self.progress_bar.update(progress * 100 - self.progress_bar.n)\n\n        if progress == 1:",
+      "new_string": "        self.progress_bar.update(progress - self.progress_bar.n)\n\n        if progress >= 1:"
+    },
+    "end_timestamp": "2026-02-05T08:56:36.741Z",
+    "result_preview": "The file /testbed/sepal_ui/sepalwidgets/alert.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n   117\u2192\n   118\u2192                # Initialize bar\n   119\u2192                self.progress_bar.update(0)\n   120\u2192\n   121\u2192        self.progress_bar.update(progress - self.progress_bar.n)\n   122\u2192\n   123\u2192        if progress >= 1:\n   124\u2192            self.progress_bar.close()\n   125\u2192\n   126\u2192        return\n   127\u2192"
+  },
+  {
+    "timestamp": "2026-02-05T08:56:39.090Z",
+    "tool": "Edit",
+    "id": "6hCB1ljT5PoIvA97RwWkR9jl0qbzRgNU",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/alert.py",
+      "old_string": "        \"\"\"\n        Update the Alert message with a tqdm progress bar.\n\n        Args:\n            progress (float): the progress status in float [0, 1]\n            msg (str, optionnal): The message to use before the progress bar\n\n        Return:\n            self\n        \"\"\"",
+      "new_string": "        \"\"\"\n        Update the Alert message with a tqdm progress bar.\n\n        Args:\n            progress (float): the progress status in float\n            msg (str, optionnal): The message to use before the progress bar\n\n        Return:\n            self\n        \"\"\""
+    },
+    "end_timestamp": "2026-02-05T08:56:39.111Z",
+    "result_preview": "The file /testbed/sepal_ui/sepalwidgets/alert.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n    78\u2192        self.progress_output = Output()\n    79\u2192        self.progress_bar = None\n    80\u2192\n    81\u2192    def update_progress(self, progress, msg=\"Progress\", **tqdm_args):\n    82\u2192        \"\"\"\n    83\u2192        Update the Alert message with a tqdm progress bar.\n    84\u2192\n    85\u2192        Args:\n    86\u2192            progress (float): the progress status in float\n    87\u2192   ..."
+  },
+  {
+    "timestamp": "2026-02-05T08:56:41.391Z",
+    "tool": "TodoWrite",
+    "id": "VKjFrpsS3KzBzGG0GwVTc8xWcyXSFOXR",
+    "input": {
+      "todos": [
+        {
+          "activeForm": "Removing progress validation",
+          "content": "Remove progress validation that restricts to [0, 1]",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Updating progress bar update logic",
+          "content": "Update progress bar update logic to work with any progress value",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Updating test",
+          "content": "Update test to verify other values work",
+          "status": "in_progress"
+        },
+        {
+          "activeForm": "Running test suite",
+          "content": "Run test suite to verify fix",
+          "status": "pending"
+        }
+      ]
+    },
+    "end_timestamp": "2026-02-05T08:56:41.433Z",
+    "result_preview": "Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable"
+  },
+  {
+    "timestamp": "2026-02-05T08:56:45.423Z",
+    "tool": "Edit",
+    "id": "pPu1P88uGu4Q8qctki0baO4No496byn3",
+    "input": {
+      "file_path": "/testbed/tests/test_Alert.py",
+      "old_string": "    def test_update_progress(self, alert):\n\n        # test a random update\n        alert.update_progress(0.5)\n        assert alert.progress_bar.n == 50\n        assert alert.viz is True\n\n        # show that a value > 1 raise an error\n        with pytest.raises(ValueError):\n            alert.update_progress(1.5)\n\n        return",
+      "new_string": "    def test_update_progress(self, alert):\n\n        # test a random update\n        alert.update_progress(0.5)\n        assert alert.progress_bar.n == 50\n        assert alert.viz is True\n\n        # test that values > 1 work (progress is not restricted to [0, 1])\n        alert.update_progress(1.5)\n        assert alert.progress_bar.n == 150\n        assert alert.viz is True\n\n        return"
+    },
+    "end_timestamp": "2026-02-05T08:56:45.443Z",
+    "result_preview": "The file /testbed/tests/test_Alert.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n   148\u2192        assert alert.children[nb_msg - 2].children[0] == f\"{string}{nb_msg-2}\"\n   149\u2192\n   150\u2192        return\n   151\u2192\n   152\u2192    def test_update_progress(self, alert):\n   153\u2192\n   154\u2192        # test a random update\n   155\u2192        alert.update_progress(0.5)\n   156\u2192        assert alert.progress_bar.n == 50\n   157\u2192        assert alert.viz is True\n   158\u2192\n   159\u2192       ..."
+  },
+  {
+    "timestamp": "2026-02-05T08:56:47.477Z",
+    "tool": "TodoWrite",
+    "id": "Unnl7j7mp9gxXhZZwVY7VuBCQwCZtd2n",
+    "input": {
+      "todos": [
+        {
+          "activeForm": "Removing progress validation",
+          "content": "Remove progress validation that restricts to [0, 1]",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Updating progress bar update logic",
+          "content": "Update progress bar update logic to work with any progress value",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Updating test",
+          "content": "Update test to verify other values work",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Running test suite",
+          "content": "Run test suite to verify fix",
+          "status": "in_progress"
+        }
+      ]
+    },
+    "end_timestamp": "2026-02-05T08:56:47.489Z",
+    "result_preview": "Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable"
+  },
+  {
+    "timestamp": "2026-02-05T08:56:48.632Z",
+    "tool": "Bash",
+    "id": "NKJDQuNNcWbAxMBoIqAg7AmINLbniQJ8",
+    "input": {
+      "command": "pytest /testbed/tests/test_Alert.py -v",
+      "description": "Run Alert tests to verify fix"
+    },
+    "end_timestamp": "2026-02-05T08:56:49.547Z",
+    "result_preview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0 -- /usr/bin/python3\ncachedir: .pytest_cache\nrootdir: /testbed\nplugins: anyio-4.12.1\ncollecting ... collected 7 items\n\ntests/test_Alert.py::TestAlert::test_init PASSED                         [ 14%]\ntests/test_Alert.py::TestAlert::test_add_msg PASSED                      [ 28%]\ntests/test_Alert.py::TestAlert::test_add_live_msg PASSED                 [ 42%]\nt..."
+  },
+  {
+    "timestamp": "2026-02-05T08:57:02.725Z",
+    "tool": "Edit",
+    "id": "MKRwsK4XhLZTPpIV3BR8AFWJRu5chk9P",
+    "input": {
+      "file_path": "/testbed/tests/test_Alert.py",
+      "old_string": "    def test_update_progress(self, alert):\n\n        # test a random update\n        alert.update_progress(0.5)\n        assert alert.progress_bar.n == 50\n        assert alert.viz is True\n\n        # test that values > 1 work (progress is not restricted to [0, 1])\n        alert.update_progress(1.5)\n        assert alert.progress_bar.n == 150\n        assert alert.viz is True\n\n        return",
+      "new_string": "    def test_update_progress(self, alert):\n\n        # test a random update\n        alert.update_progress(0.5)\n        assert alert.progress_bar.n == 0.5\n        assert alert.viz is True\n\n        # test that values > 1 work (progress is not restricted to [0, 1])\n        alert.update_progress(1.5)\n        assert alert.progress_bar.n == 1.5\n        assert alert.viz is True\n\n        return"
+    },
+    "end_timestamp": "2026-02-05T08:57:02.747Z",
+    "result_preview": "The file /testbed/tests/test_Alert.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n   148\u2192        assert alert.children[nb_msg - 2].children[0] == f\"{string}{nb_msg-2}\"\n   149\u2192\n   150\u2192        return\n   151\u2192\n   152\u2192    def test_update_progress(self, alert):\n   153\u2192\n   154\u2192        # test a random update\n   155\u2192        alert.update_progress(0.5)\n   156\u2192        assert alert.progress_bar.n == 0.5\n   157\u2192        assert alert.viz is True\n   158\u2192\n   159\u2192      ..."
+  },
+  {
+    "timestamp": "2026-02-05T08:57:03.640Z",
+    "tool": "Bash",
+    "id": "B5mPWFvPyxeHcXn1gIhJbqmZ5smiNEsA",
+    "input": {
+      "command": "pytest /testbed/tests/test_Alert.py -v",
+      "description": "Run Alert tests again to verify fix"
+    },
+    "end_timestamp": "2026-02-05T08:57:04.526Z",
+    "result_preview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0 -- /usr/bin/python3\ncachedir: .pytest_cache\nrootdir: /testbed\nplugins: anyio-4.12.1\ncollecting ... collected 7 items\n\ntests/test_Alert.py::TestAlert::test_init PASSED                         [ 14%]\ntests/test_Alert.py::TestAlert::test_add_msg PASSED                      [ 28%]\ntests/test_Alert.py::TestAlert::test_add_live_msg PASSED                 [ 42%]\nt..."
+  },
+  {
+    "timestamp": "2026-02-05T08:57:07.025Z",
+    "tool": "Bash",
+    "id": "3d8FCoFcRhudRytaQWaFedkaOpd4dCda",
+    "input": {
+      "command": "pytest /testbed/tests/ -x --tb=short",
+      "description": "Run full test suite to ensure no regressions",
+      "timeout": 120000
+    },
+    "end_timestamp": "2026-02-05T08:57:16.861Z",
+    "result_preview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0\nrootdir: /testbed\nplugins: anyio-4.12.1\ncollected 7 items / 1 error\n\n==================================== ERRORS ====================================\n__________________ ERROR collecting tests/test_AoiControl.py ___________________\ntests/test_AoiControl.py:9: in <module>\n    class TestAoiControl:\ntests/test_AoiControl.py:22: in TestAoiControl\n    @pytest.mar..."
+  },
+  {
+    "timestamp": "2026-02-05T08:57:24.382Z",
+    "tool": "Bash",
+    "id": "NdfPJmS9kTTKsPYlocVFXDNJaYJ2jTB1",
+    "input": {
+      "command": "pytest /testbed/tests/test_Alert.py /testbed/tests/test_GeeWidget.py /testbed/tests/test_inputs.py -v",
+      "description": "Run Alert and related tests only"
+    },
+    "end_timestamp": "2026-02-05T08:57:29.438Z",
+    "result_preview": "ERROR: file or directory not found: /testbed/tests/test_GeeWidget.py\n\n\n============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0 -- /usr/bin/python3\ncachedir: .pytest_cache\nrootdir: /testbed\nplugins: anyio-4.12.1\ncollecting ... Styles()\nResizeTrigger()\ncollected 0 items\n\n=============================== warnings summary ===============================\n../home/yunwei37/.local/lib/python3.12/site-packages/pandas/core..."
+  },
+  {
+    "timestamp": "2026-02-05T08:57:30.608Z",
+    "tool": "Bash",
+    "id": "o7JFR3wh0L4gXAygJ4957bGF1SymQRab",
+    "input": {
+      "command": "ls -la /testbed/tests/ | head -20",
+      "description": "List test files"
+    },
+    "end_timestamp": "2026-02-05T08:57:30.629Z",
+    "result_preview": "total 308\ndrwxr-xr-x 1 yunwei37 yunwei37  4096 Feb  5 08:57 .\ndrwxr-xr-x 1 yunwei37 yunwei37  4096 Feb  5 08:56 ..\n-rw-r--r-- 1 yunwei37 yunwei37     0 Jan  1  1970 __init__.py\ndrwxr-xr-x 2 yunwei37 yunwei37  4096 Feb  5 08:57 __pycache__\n-rw-r--r-- 1 yunwei37 yunwei37  3817 Jan  1  1970 conftest.py\n-rw-r--r-- 1 yunwei37 yunwei37  4377 Feb  5 08:57 test_Alert.py\n-rw-r--r-- 1 yunwei37 yunwei37  3060 Jan  1  1970 test_AoiControl.py\n-rw-r--r-- 1 yunwei37 yunwei37 13060 Jan  1  1970 test_AoiModel.py..."
+  },
+  {
+    "timestamp": "2026-02-05T08:57:32.774Z",
+    "tool": "Bash",
+    "id": "LsEBW9VYoK8Sgp6sJHjGi3qI3HBrLmFF",
+    "input": {
+      "command": "pytest /testbed/tests/test_Alert.py -v --tb=short",
+      "description": "Run Alert tests one more time to confirm"
+    },
+    "end_timestamp": "2026-02-05T08:57:39.817Z",
+    "result_preview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0 -- /usr/bin/python3\ncachedir: .pytest_cache\nrootdir: /testbed\nplugins: anyio-4.12.1\ncollecting ... collected 7 items\n\ntests/test_Alert.py::TestAlert::test_init PASSED                         [ 14%]\ntests/test_Alert.py::TestAlert::test_add_msg PASSED                      [ 28%]\ntests/test_Alert.py::TestAlert::test_add_live_msg PASSED                 [ 42%]\nt..."
+  },
+  {
+    "timestamp": "2026-02-05T08:57:43.490Z",
+    "tool": "TodoWrite",
+    "id": "bkiCqi7us22tC96V2WZIHlCWi6iXtSpb",
+    "input": {
+      "todos": [
+        {
+          "activeForm": "Removing progress validation",
+          "content": "Remove progress validation that restricts to [0, 1]",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Updating progress bar update logic",
+          "content": "Update progress bar update logic to work with any progress value",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Updating test",
+          "content": "Update test to verify other values work",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Running test suite",
+          "content": "Run test suite to verify fix",
+          "status": "completed"
+        }
+      ]
+    },
+    "end_timestamp": "2026-02-05T08:57:43.503Z",
+    "result_preview": "Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable"
+  },
+  {
+    "timestamp": "2026-02-05T08:57:44.303Z",
+    "tool": "Bash",
+    "id": "GGRHfUOXT7B9ncRuxcLMlYPlmc0sCXI4",
+    "input": {
+      "command": "git diff",
+      "description": "Show git diff of all changes"
+    },
+    "end_timestamp": "2026-02-05T08:57:44.326Z",
+    "result_preview": "diff --git a/sepal_ui/sepalwidgets/alert.py b/sepal_ui/sepalwidgets/alert.py\nindex 68e3f115..1179a18e 100644\n--- a/sepal_ui/sepalwidgets/alert.py\n+++ b/sepal_ui/sepalwidgets/alert.py\n@@ -83,7 +83,7 @@ class Alert(v.Alert, SepalWidget):\n         Update the Alert message with a tqdm progress bar.\n \n         Args:\n-            progress (float): the progress status in float [0, 1]\n+            progress (float): the progress status in float\n             msg (str, optionnal): The message to use before..."
+  }
+]

@@ -1,0 +1,74 @@
+Perfect! I have successfully fixed the `get_children` function to be recursive again. 
+
+**Changes made:**
+
+1. **Fixed `get_children` in `/testbed/sepal_ui/sepalwidgets/sepalwidget.py:174-185`:**
+   - Changed the logic so that the recursive call now happens for ALL children, not just non-matching ones
+   - The function now properly searches nested elements at any depth
+
+2. **Updated test expectations in `/testbed/tests/test_SepalWidget.py:110-127`:**
+   - Updated expected counts to reflect the new recursive behavior
+   - Changed from 6 to 7 elements when searching for `attr="id", value=3`
+   - Changed from 10 to 40 elements when searching without value or attr
+
+**Verification:**
+All 9 tests in `tests/test_SepalWidget.py` pass successfully. The `get_children` function now properly traverses all nested levels to find matching elements.
+=== GIT DIFF ===
+diff --git a/sepal_ui/sepalwidgets/sepalwidget.py b/sepal_ui/sepalwidgets/sepalwidget.py
+index 40826809..6383c5af 100644
+--- a/sepal_ui/sepalwidgets/sepalwidget.py
++++ b/sepal_ui/sepalwidgets/sepalwidget.py
+@@ -177,11 +177,12 @@ class SepalWidget(v.VuetifyWidget):
+             is_klass = isinstance(w, klass)
+             is_val = w.attributes.get(attr, "niet") == value if attr and value else True
+ 
+-            # asumption: searched element won't be nested inside one another
++            # if widget matches, add to results and continue searching nested
+             if is_klass and is_val:
+                 elements.append(w)
+-            else:
+-                elements = self.get_children(w, klass, attr, value, id_, elements)
++
++            # always search for nested elements
++            elements = self.get_children(w, klass, attr, value, id_, elements)
+ 
+         return elements
+ 
+diff --git a/tests/test_SepalWidget.py b/tests/test_SepalWidget.py
+index 3abd719f..22699d69 100644
+--- a/tests/test_SepalWidget.py
++++ b/tests/test_SepalWidget.py
+@@ -108,24 +108,23 @@ class TestSepalWidget:
+         assert len(res) == 0
+ 
+         # search for specific attributes in any class
+-        # one alert that could match is ignored because the parent card is identified
+-        # earlier, that's a feature
+         res = test_card.get_children(attr="id", value=3)
+-        assert len(res) == 6
++        assert len(res) == 7
+         assert isinstance(res[0], sw.Alert)
+         assert isinstance(res[1], sw.Alert)
+         assert isinstance(res[2], sw.Alert)
+         assert isinstance(res[3], sw.Card)
+         assert isinstance(res[4], sw.Alert)
+-        assert isinstance(res[5], sw.Btn)
++        assert isinstance(res[5], sw.Alert)
++        assert isinstance(res[6], sw.Btn)
+ 
+-        # missing value (all children will match so nested are ignored)
++        # missing value (all children will match including icons)
+         res = test_card.get_children(attr="id")
+-        assert len(res) == 10
++        assert len(res) == 40
+ 
+-        # missing attr (all children will match so nested are ignored)
++        # missing attr (all children will match including icons)
+         res = test_card.get_children(value=5)
+-        assert len(res) == 10
++        assert len(res) == 40
+ 
+         # no match search attr
+         res = test_card.get_children(attr="toto", value="toto")
+=== DISK USAGE ===
+233	/testbed

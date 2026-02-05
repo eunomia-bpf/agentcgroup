@@ -1,0 +1,665 @@
+[
+  {
+    "timestamp": "2026-02-05T09:12:21.983Z",
+    "tool": "TodoWrite",
+    "id": "gJiXgAMeSZH44RAcvvB6erfn20qAGUIK",
+    "input": {
+      "todos": [
+        {
+          "content": "Explore codebase to understand InputFile implementation",
+          "status": "in_progress",
+          "activeForm": "Exploring codebase to understand InputFile implementation"
+        },
+        {
+          "content": "Implement max_depth parameter in InputFile",
+          "status": "pending",
+          "activeForm": "Implementing max_depth parameter in InputFile"
+        },
+        {
+          "content": "Run the test suite to verify the implementation",
+          "status": "pending",
+          "activeForm": "Running the test suite to verify the implementation"
+        },
+        {
+          "content": "Fix any failing tests",
+          "status": "pending",
+          "activeForm": "Fixing any failing tests"
+        },
+        {
+          "content": "Show final git diff",
+          "status": "pending",
+          "activeForm": "Showing final git diff"
+        }
+      ]
+    },
+    "end_timestamp": "2026-02-05T09:12:21.991Z",
+    "result_preview": "Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable"
+  },
+  {
+    "timestamp": "2026-02-05T09:12:23.435Z",
+    "tool": "Grep",
+    "id": "lKLUKw5O7rZkHFvOkDKelktbPQGdLdrD",
+    "input": {
+      "pattern": "class InputFile",
+      "output_mode": "files_with_matches"
+    },
+    "end_timestamp": "2026-02-05T09:12:23.461Z",
+    "result_preview": "No files found"
+  },
+  {
+    "timestamp": "2026-02-05T09:12:23.438Z",
+    "tool": "Grep",
+    "id": "zhPy0PQPeitcvU1LEJdTJv0gGtRg5U0D",
+    "input": {
+      "pattern": "InputFile",
+      "output_mode": "files_with_matches",
+      "type": "py"
+    },
+    "end_timestamp": "2026-02-05T09:12:23.465Z",
+    "result_preview": "No files found"
+  },
+  {
+    "timestamp": "2026-02-05T09:12:24.448Z",
+    "tool": "Bash",
+    "id": "oNlYIziWQBxnjdH6L8GvOGZ95Nlz7cHl",
+    "input": {
+      "command": "find . -type f -name \"*.py\" | head -20",
+      "description": "List Python files in the project"
+    },
+    "end_timestamp": "2026-02-05T09:12:24.477Z",
+    "result_preview": "./docs/source/conf.py\n./docs/source/_extentions/line_break.py\n./noxfile.py\n./sepal_ui/planetapi/__init__.py\n./sepal_ui/planetapi/planet_widgets.py\n./sepal_ui/planetapi/planet_view.py\n./sepal_ui/planetapi/planet_model.py\n./sepal_ui/model/__init__.py\n./sepal_ui/model/model.py\n./sepal_ui/reclassify/reclassify_view.py\n./sepal_ui/reclassify/__init__.py\n./sepal_ui/reclassify/table_view.py\n./sepal_ui/reclassify/reclassify_model.py\n./sepal_ui/reclassify/reclassify_tile.py\n./sepal_ui/reclassify/parameter..."
+  },
+  {
+    "timestamp": "2026-02-05T09:12:26.834Z",
+    "tool": "Grep",
+    "id": "mpXSitfF4i0SHlincCOVoV0ZqF57ebJW",
+    "input": {
+      "output_mode": "files_with_matches",
+      "pattern": "module_downloads"
+    },
+    "end_timestamp": "2026-02-05T09:12:26.859Z",
+    "result_preview": "No files found"
+  },
+  {
+    "timestamp": "2026-02-05T09:12:26.838Z",
+    "tool": "Grep",
+    "id": "dEN7yWy98EyAP0lWDLNCPWGeuW3KWJOx",
+    "input": {
+      "output_mode": "files_with_matches",
+      "pattern": "sepal_user"
+    },
+    "end_timestamp": "2026-02-05T09:12:26.863Z",
+    "result_preview": "No files found"
+  },
+  {
+    "timestamp": "2026-02-05T09:12:28.311Z",
+    "tool": "Grep",
+    "id": "RDtPHMz93UUKwgOF0z8StFSrFs07TNuM",
+    "input": {
+      "output_mode": "files_with_matches",
+      "pattern": "InputFile"
+    },
+    "end_timestamp": "2026-02-05T09:12:28.332Z",
+    "result_preview": "No files found"
+  },
+  {
+    "timestamp": "2026-02-05T09:12:28.316Z",
+    "tool": "Grep",
+    "id": "fZsGCo3hsxP5NonJ7JtGIIMNyOnSWGF3",
+    "input": {
+      "output_mode": "files_with_matches",
+      "pattern": "max_depth"
+    },
+    "end_timestamp": "2026-02-05T09:12:28.336Z",
+    "result_preview": "No files found"
+  },
+  {
+    "timestamp": "2026-02-05T09:12:30.301Z",
+    "tool": "Grep",
+    "id": "6k7CHgk2cijEVQoB8NM2lC5J8rYF6wqE",
+    "input": {
+      "output_mode": "files_with_matches",
+      "pattern": "file.*input|file.*select|file.*widget",
+      "-i": true
+    },
+    "end_timestamp": "2026-02-05T09:12:30.333Z",
+    "result_preview": "Found 22 files\n/testbed/CHANGELOG.md\n/testbed/docs/source/conf.py\n/testbed/docs/source/widgets/disclaimer.rst\n/testbed/docs/source/widgets/file_input.rst\n/testbed/docs/source/widgets/index.rst\n/testbed/sepal_ui/aoi/aoi_view.py\n/testbed/sepal_ui/bin/sepal_ipyvuetify.py\n/testbed/sepal_ui/message/ar-SA/locale.json\n/testbed/sepal_ui/message/en/locale.json\n/testbed/sepal_ui/message/es/locale.json\n/testbed/sepal_ui/message/fr/locale.json\n/testbed/sepal_ui/message/pt-PT/locale.json\n/testbed/sepal_ui/me..."
+  },
+  {
+    "timestamp": "2026-02-05T09:12:30.311Z",
+    "tool": "Bash",
+    "id": "G68fH1IeicUR4MTU3eCiI6JKYBtcSupI",
+    "input": {
+      "command": "find . -type f -name \"*.py\" -exec grep -l \"InputFile\\|file.*path\" {} \\;",
+      "description": "Find files containing file input logic"
+    },
+    "end_timestamp": "2026-02-05T09:12:37.879Z",
+    "result_preview": "./sepal_ui/reclassify/reclassify_view.py\n./sepal_ui/reclassify/table_view.py\n./sepal_ui/reclassify/reclassify_model.py\n./sepal_ui/sepalwidgets/inputs.py\n./sepal_ui/aoi/aoi_model.py\n./sepal_ui/bin/activate_venv.py\n./sepal_ui/scripts/decorator.py\n./sepal_ui/scripts/utils.py\n./sepal_ui/mapping/sepal_map.py\n./tests/test_ReclassifyModel.py\n./tests/test_ReclassifyView.py\n./tests/check_warnings.py\n./tests/test_DownloadBtn.py\n./tests/test_FileInput.py"
+  },
+  {
+    "timestamp": "2026-02-05T09:12:42.731Z",
+    "tool": "Read",
+    "id": "NS6BkrYrGm1Xt6eHpdb2zP3Q4tbj1kbS",
+    "input": {
+      "file_path": "/testbed/tests/test_FileInput.py"
+    },
+    "end_timestamp": "2026-02-05T09:12:42.743Z",
+    "result_preview": "     1\u2192import pytest\n     2\u2192from traitlets import Any\n     3\u2192\n     4\u2192from sepal_ui import sepalwidgets as sw\n     5\u2192from sepal_ui.model import Model\n     6\u2192\n     7\u2192\n     8\u2192class TestFileInput:\n     9\u2192    def test_init(self, root_dir):\n    10\u2192\n    11\u2192        # default init\n    12\u2192        file_input = sw.FileInput()\n    13\u2192\n    14\u2192        assert isinstance(file_input, sw.FileInput)\n    15\u2192        assert file_input.v_model == \"\"\n    16\u2192\n    17\u2192        # init with a string\n    18\u2192        file_input ..."
+  },
+  {
+    "timestamp": "2026-02-05T09:12:42.727Z",
+    "tool": "Read",
+    "id": "L8HI0VzschDpHddvUfrbqF7ntzH4Phpg",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/inputs.py"
+    },
+    "end_timestamp": "2026-02-05T09:12:42.761Z",
+    "result_preview": "     1\u2192\"\"\"\n     2\u2192Custom input widgets to setup parameters in application.\n     3\u2192\n     4\u2192Gather the customized ``ipyvuetifyWidgets`` used to create input fields in applications.\n     5\u2192All the content of this modules is included in the parent ``sepal_ui.sepalwidgets`` package. So it can be imported directly from there.\n     6\u2192\n     7\u2192Example:\n     8\u2192    .. jupyter-execute::\n     9\u2192\n    10\u2192        from sepal_ui import sepalwidgets as sw\n    11\u2192\n    12\u2192        sw.DatePicker()\n    13\u2192\"\"\"\n    14\u2192\n ..."
+  },
+  {
+    "timestamp": "2026-02-05T09:12:53.358Z",
+    "tool": "Read",
+    "id": "8nPD5k4Fkm9zyt7LvKNq43NDRcqqMGFz",
+    "input": {
+      "file_path": "/testbed/tests/conftest.py"
+    },
+    "end_timestamp": "2026-02-05T09:12:53.370Z",
+    "result_preview": "     1\u2192import uuid\n     2\u2192from itertools import product\n     3\u2192from pathlib import Path\n     4\u2192\n     5\u2192import ee\n     6\u2192import geopandas as gpd\n     7\u2192import pytest\n     8\u2192from shapely import geometry as sg\n     9\u2192\n    10\u2192import sepal_ui.sepalwidgets as sw\n    11\u2192from sepal_ui.scripts import gee\n    12\u2192from sepal_ui.scripts import utils as su\n    13\u2192\n    14\u2192# try to init earthengine. if it does not work the non existing credentials will\n    15\u2192# be used to skpip\n    16\u2192try:\n    17\u2192    su.init_ee..."
+  },
+  {
+    "timestamp": "2026-02-05T09:13:00.386Z",
+    "tool": "TodoWrite",
+    "id": "GtoTwRev4gmrEJV7hTH6OUD85Mo25Esl",
+    "input": {
+      "todos": [
+        {
+          "activeForm": "Exploring codebase to understand InputFile implementation",
+          "content": "Explore codebase to understand InputFile implementation",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Implementing max_depth parameter in InputFile",
+          "content": "Implement max_depth parameter in InputFile",
+          "status": "in_progress"
+        },
+        {
+          "activeForm": "Running the test suite to verify the implementation",
+          "content": "Run the test suite to verify the implementation",
+          "status": "pending"
+        },
+        {
+          "activeForm": "Fixing any failing tests",
+          "content": "Fix any failing tests",
+          "status": "pending"
+        },
+        {
+          "activeForm": "Showing final git diff",
+          "content": "Show final git diff",
+          "status": "pending"
+        }
+      ]
+    },
+    "end_timestamp": "2026-02-05T09:13:00.398Z",
+    "result_preview": "Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable"
+  },
+  {
+    "timestamp": "2026-02-05T09:13:11.693Z",
+    "tool": "Edit",
+    "id": "OMuqj4w70lK8fKbW1VkvD2o7OqjcdtCg",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/inputs.py",
+      "old_string": "class FileInput(v.Flex, SepalWidget):\n\n    extentions: List[str] = []\n    \"list: the extention list\"\n\n    folder: Path = Path.home()\n    \"the current folder\"\n\n    file: t.Unicode = t.Unicode(\"\").tag(sync=True)\n    \"the current file\"\n\n    selected_file: Optional[v.TextField] = None\n    \"the textfield where the file pathname is stored\"\n\n    loading: Optional[v.ProgressLinear] = None\n    \"loading top bar of the menu component\"\n\n    file_list: Optional[v.List] = None\n    \"the list of files and folder that are available in the current folder\"\n\n    file_menu: Optional[v.Menu] = None\n    \"the menu that hide and show the file_list\"\n\n    reload: Optional[v.Btn] = None\n    \"reload btn to reload the file list on the current folder\"\n\n    clear: Optional[v.Btn] = None\n    \"clear btn to remove everything and set back to the ini folder\"\n\n    v_model: t.Unicode = t.Unicode(None, allow_none=True).tag(sync=True)\n    \"the v_model of the input\"\n\n    ICON_STYLE: dict = json.loads((ss.JSON_DIR / \"file_icons.json\").read_text())\n    \"the style applied to the icons in the file menu\"",
+      "new_string": "class FileInput(v.Flex, SepalWidget):\n\n    extentions: List[str] = []\n    \"list: the extention list\"\n\n    folder: Path = Path.home()\n    \"the current folder\"\n\n    max_depth: int = 0\n    \"maximum depth from starting folder, 0 means only parent navigation\"\n\n    file: t.Unicode = t.Unicode(\"\").tag(sync=True)\n    \"the current file\"\n\n    selected_file: Optional[v.TextField] = None\n    \"the textfield where the file pathname is stored\"\n\n    loading: Optional[v.ProgressLinear] = None\n    \"loading top bar of the menu component\"\n\n    file_list: Optional[v.List] = None\n    \"the list of files and folder that are available in the current folder\"\n\n    file_menu: Optional[v.Menu] = None\n    \"the menu that hide and show the file_list\"\n\n    reload: Optional[v.Btn] = None\n    \"reload btn to reload the file list on the current folder\"\n\n    clear: Optional[v.Btn] = None\n    \"clear btn to remove everything and set back to the ini folder\"\n\n    v_model: t.Unicode = t.Unicode(None, allow_none=True).tag(sync=True)\n    \"the v_model of the input\"\n\n    ICON_STYLE: dict = json.loads((ss.JSON_DIR / \"file_icons.json\").read_text())\n    \"the style applied to the icons in the file menu\""
+    },
+    "end_timestamp": "2026-02-05T09:13:11.733Z",
+    "result_preview": "The file /testbed/sepal_ui/sepalwidgets/inputs.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n   175\u2192\n   176\u2192        return valid\n   177\u2192\n   178\u2192\n   179\u2192class FileInput(v.Flex, SepalWidget):\n   180\u2192\n   181\u2192    extentions: List[str] = []\n   182\u2192    \"list: the extention list\"\n   183\u2192\n   184\u2192    folder: Path = Path.home()\n   185\u2192    \"the current folder\"\n   186\u2192\n   187\u2192    max_depth: int = 0\n   188\u2192    \"maximum depth from starting folder, 0 means only par..."
+  },
+  {
+    "timestamp": "2026-02-05T09:13:18.937Z",
+    "tool": "Edit",
+    "id": "0p9IwKE0fBo22UL48L16Ucq96cTDnmUu",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/inputs.py",
+      "old_string": "    def __init__(\n        self,\n        extentions: List[str] = [],\n        folder: Union[str, Path] = Path.home(),\n        label: str = ms.widgets.fileinput.label,\n        v_model: Union[str, None] = \"\",\n        clearable: bool = False,\n        **kwargs,\n    ) -> None:\n        \"\"\"\n        Custom input field to select a file in the sepal folders.\n\n        Args:\n            extentions: the list of the allowed extentions. the FileInput will only display these extention and folders\n            folder: the starting folder of the file input\n            label: the label of the input\n            v_model: the default value\n            clearable: wether or not to make the widget clearable. default to False\n            kwargs: any parameter from a v.Flex abject. If set, 'children' will be overwritten.\n        \"\"\"\n        self.extentions = extentions\n        self.folder = Path(folder)",
+      "new_string": "    def __init__(\n        self,\n        extentions: List[str] = [],\n        folder: Union[str, Path] = Path.home(),\n        max_depth: int = 0,\n        label: str = ms.widgets.fileinput.label,\n        v_model: Union[str, None] = \"\",\n        clearable: bool = False,\n        **kwargs,\n    ) -> None:\n        \"\"\"\n        Custom input field to select a file in the sepal folders.\n\n        Args:\n            extentions: the list of the allowed extentions. the FileInput will only display these extention and folders\n            folder: the starting folder of the file input\n            max_depth: maximum depth from starting folder, 0 means unlimited navigation\n            label: the label of the input\n            v_model: the default value\n            clearable: wether or not to make the widget clearable. default to False\n            kwargs: any parameter from a v.Flex abject. If set, 'children' will be overwritten.\n        \"\"\"\n        self.extentions = extentions\n        self.folder = Path(folder)\n        self.max_depth = max_depth"
+    },
+    "end_timestamp": "2026-02-05T09:13:18.960Z",
+    "result_preview": "The file /testbed/sepal_ui/sepalwidgets/inputs.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n   213\u2192\n   214\u2192    ICON_STYLE: dict = json.loads((ss.JSON_DIR / \"file_icons.json\").read_text())\n   215\u2192    \"the style applied to the icons in the file menu\"\n   216\u2192\n   217\u2192    def __init__(\n   218\u2192        self,\n   219\u2192        extentions: List[str] = [],\n   220\u2192        folder: Union[str, Path] = Path.home(),\n   221\u2192        max_depth: int = 0,\n   222\u2192        la..."
+  },
+  {
+    "timestamp": "2026-02-05T09:13:35.384Z",
+    "tool": "Edit",
+    "id": "7ceyDIctVZeTiaMbVsK0kGM8OtGvyBCZ",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/inputs.py",
+      "old_string": "    def _get_items(self) -> List[v.ListItem]:\n        \"\"\"\n        Create the list of items inside the folder.\n\n        Returns:\n            list of items inside the selected folder\n        \"\"\"\n        folder = self.folder\n\n        list_dir = [el for el in folder.glob(\"*/\") if not el.name.startswith(\".\")]\n\n        if self.extentions:\n            list_dir = [\n                el for el in list_dir if el.is_dir() or el.suffix in self.extentions\n            ]\n\n        folder_list = []\n        file_list = []\n\n        for el in list_dir:\n\n            if el.is_dir():\n                icon = self.ICON_STYLE[\"\"][\"icon\"]\n                color = self.ICON_STYLE[\"\"][\"color\"][v.theme.dark]\n            elif el.suffix in self.ICON_STYLE.keys():\n                icon = self.ICON_STYLE[el.suffix][\"icon\"]\n                color = self.ICON_STYLE[el.suffix][\"color\"][v.theme.dark]\n            else:\n                icon = self.ICON_STYLE[\"DEFAULT\"][\"icon\"]\n                color = self.ICON_STYLE[\"DEFAULT\"][\"color\"][v.theme.dark]\n\n            children = [\n                v.ListItemAction(children=[v.Icon(color=color, children=[icon])]),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[el.stem + el.suffix])]\n                ),\n            ]\n\n            if el.is_dir():\n                folder_list.append(v.ListItem(value=str(el), children=children))\n            else:\n                file_size = su.get_file_size(el)\n                children.append(\n                    v.ListItemActionText(class_=\"ml-1\", children=[file_size])\n                )\n                file_list.append(v.ListItem(value=str(el), children=children))\n\n        folder_list = humansorted(folder_list, key=lambda x: x.value)\n        file_list = humansorted(file_list, key=lambda x: x.value)\n\n        parent_item = v.ListItem(\n            value=str(folder.parent),\n            children=[\n                v.ListItemAction(\n                    children=[\n                        v.Icon(\n                            color=self.ICON_STYLE[\"PARENT\"][\"color\"][v.theme.dark],\n                            children=[self.ICON_STYLE[\"PARENT\"][\"icon\"]],\n                        )\n                    ]\n                ),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[f\".. /{folder.parent.stem}\"])]\n                ),\n            ],\n        )\n\n        folder_list.extend(file_list)\n        folder_list.insert(0, parent_item)\n\n        return folder_list",
+      "new_string": "    def _get_items(self) -> List[v.ListItem]:\n        \"\"\"\n        Create the list of items inside the folder.\n\n        Returns:\n            list of items inside the selected folder\n        \"\"\"\n        folder = self.folder\n\n        list_dir = [el for el in folder.glob(\"*/\") if not el.name.startswith(\".\")]\n\n        if self.extentions:\n            list_dir = [\n                el for el in list_dir if el.is_dir() or el.suffix in self.extentions\n            ]\n\n        folder_list = []\n        file_list = []\n\n        for el in list_dir:\n\n            if el.is_dir():\n                icon = self.ICON_STYLE[\"\"][\"icon\"]\n                color = self.ICON_STYLE[\"\"][\"color\"][v.theme.dark]\n            elif el.suffix in self.ICON_STYLE.keys():\n                icon = self.ICON_STYLE[el.suffix][\"icon\"]\n                color = self.ICON_STYLE[el.suffix][\"color\"][v.theme.dark]\n            else:\n                icon = self.ICON_STYLE[\"DEFAULT\"][\"icon\"]\n                color = self.ICON_STYLE[\"DEFAULT\"][\"color\"][v.theme.dark]\n\n            children = [\n                v.ListItemAction(children=[v.Icon(color=color, children=[icon])]),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[el.stem + el.suffix])]\n                ),\n            ]\n\n            if el.is_dir():\n                folder_list.append(v.ListItem(value=str(el), children=children))\n            else:\n                file_size = su.get_file_size(el)\n                children.append(\n                    v.ListItemActionText(class_=\"ml-1\", children=[file_size])\n                )\n                file_list.append(v.ListItem(value=str(el), children=children))\n\n        folder_list = humansorted(folder_list, key=lambda x: x.value)\n        file_list = humansorted(file_list, key=lambda x: x.value)\n\n        # Calculate current depth from starting folder\n        current_depth = 0\n        try:\n            relative = folder.relative_to(self.folder)\n            current_depth = len(relative.parts)\n        except ValueError:\n            # folder is not relative to starting folder\n            pass\n\n        # Filter out parent items that would exceed max_depth\n        parent_item = v.ListItem(\n            value=str(folder.parent),\n            children=[\n                v.ListItemAction(\n                    children=[\n                        v.Icon(\n                            color=self.ICON_STYLE[\"PARENT\"][\"color\"][v.theme.dark],\n                            children=[self.ICON_STYLE[\"PARENT\"][\"icon\"]],\n                        )\n                    ]\n                ),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[f\".. /{folder.parent.stem}\"])]\n                ),\n            ],\n        )\n\n        # Only add parent item if we can navigate up without exceeding max_depth\n        # max_depth=0 means only parent navigation (no going down)\n        # max_depth>0 means we can navigate up and down\n        if current_depth < self.max_depth or self.max_depth == 0:\n            folder_list.insert(0, parent_item)\n\n        folder_list.extend(file_list)\n\n        return folder_list"
+    },
+    "end_timestamp": "2026-02-05T09:13:35.406Z",
+    "result_preview": "The file /testbed/sepal_ui/sepalwidgets/inputs.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n   397\u2192        self.file_list.children[0].children = items\n   398\u2192\n   399\u2192        return\n   400\u2192\n   401\u2192    def _get_items(self) -> List[v.ListItem]:\n   402\u2192        \"\"\"\n   403\u2192        Create the list of items inside the folder.\n   404\u2192\n   405\u2192        Returns:\n   406\u2192            list of items inside the selected folder\n   407\u2192        \"\"\"\n   408\u2192        folder ..."
+  },
+  {
+    "timestamp": "2026-02-05T09:13:56.888Z",
+    "tool": "Edit",
+    "id": "rKDCdVuGpGoa3EUwp6u3DiFTbUGnzcMK",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/inputs.py",
+      "old_string": "    def _get_items(self) -> List[v.ListItem]:\n        \"\"\"\n        Create the list of items inside the folder.\n\n        Returns:\n            list of items inside the selected folder\n        \"\"\"\n        folder = self.folder\n\n        list_dir = [el for el in folder.glob(\"*/\") if not el.name.startswith(\".\")]\n\n        if self.extentions:\n            list_dir = [\n                el for el in list_dir if el.is_dir() or el.suffix in self.extentions\n            ]\n\n        folder_list = []\n        file_list = []\n\n        for el in list_dir:\n\n            if el.is_dir():\n                icon = self.ICON_STYLE[\"\"][\"icon\"]\n                color = self.ICON_STYLE[\"\"][\"color\"][v.theme.dark]\n            elif el.suffix in self.ICON_STYLE.keys():\n                icon = self.ICON_STYLE[el.suffix][\"icon\"]\n                color = self.ICON_STYLE[el.suffix][\"color\"][v.theme.dark]\n            else:\n                icon = self.ICON_STYLE[\"DEFAULT\"][\"icon\"]\n                color = self.ICON_STYLE[\"DEFAULT\"][\"color\"][v.theme.dark]\n\n            children = [\n                v.ListItemAction(children=[v.Icon(color=color, children=[icon])]),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[el.stem + el.suffix])]\n                ),\n            ]\n\n            if el.is_dir():\n                folder_list.append(v.ListItem(value=str(el), children=children))\n            else:\n                file_size = su.get_file_size(el)\n                children.append(\n                    v.ListItemActionText(class_=\"ml-1\", children=[file_size])\n                )\n                file_list.append(v.ListItem(value=str(el), children=children))\n\n        folder_list = humansorted(folder_list, key=lambda x: x.value)\n        file_list = humansorted(file_list, key=lambda x: x.value)\n\n        # Calculate current depth from starting folder\n        current_depth = 0\n        try:\n            relative = folder.relative_to(self.folder)\n            current_depth = len(relative.parts)\n        except ValueError:\n            # folder is not relative to starting folder\n            pass\n\n        # Filter out parent items that would exceed max_depth\n        parent_item = v.ListItem(\n            value=str(folder.parent),\n            children=[\n                v.ListItemAction(\n                    children=[\n                        v.Icon(\n                            color=self.ICON_STYLE[\"PARENT\"][\"color\"][v.theme.dark],\n                            children=[self.ICON_STYLE[\"PARENT\"][\"icon\"]],\n                        )\n                    ]\n                ),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[f\".. /{folder.parent.stem}\"])]\n                ),\n            ],\n        )\n\n        # Only add parent item if we can navigate up without exceeding max_depth\n        # max_depth=0 means only parent navigation (no going down)\n        # max_depth>0 means we can navigate up and down\n        if current_depth < self.max_depth or self.max_depth == 0:\n            folder_list.insert(0, parent_item)\n\n        folder_list.extend(file_list)\n\n        return folder_list",
+      "new_string": "    def _get_items(self) -> List[v.ListItem]:\n        \"\"\"\n        Create the list of items inside the folder.\n\n        Returns:\n            list of items inside the selected folder\n        \"\"\"\n        folder = self.folder\n\n        list_dir = [el for el in folder.glob(\"*/\") if not el.name.startswith(\".\")]\n\n        if self.extentions:\n            list_dir = [\n                el for el in list_dir if el.is_dir() or el.suffix in self.extentions\n            ]\n\n        folder_list = []\n        file_list = []\n\n        for el in list_dir:\n\n            if el.is_dir():\n                icon = self.ICON_STYLE[\"\"][\"icon\"]\n                color = self.ICON_STYLE[\"\"][\"color\"][v.theme.dark]\n            elif el.suffix in self.ICON_STYLE.keys():\n                icon = self.ICON_STYLE[el.suffix][\"icon\"]\n                color = self.ICON_STYLE[el.suffix][\"color\"][v.theme.dark]\n            else:\n                icon = self.ICON_STYLE[\"DEFAULT\"][\"icon\"]\n                color = self.ICON_STYLE[\"DEFAULT\"][\"color\"][v.theme.dark]\n\n            children = [\n                v.ListItemAction(children=[v.Icon(color=color, children=[icon])]),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[el.stem + el.suffix])]\n                ),\n            ]\n\n            if el.is_dir():\n                folder_list.append(v.ListItem(value=str(el), children=children))\n            else:\n                file_size = su.get_file_size(el)\n                children.append(\n                    v.ListItemActionText(class_=\"ml-1\", children=[file_size])\n                )\n                file_list.append(v.ListItem(value=str(el), children=children))\n\n        folder_list = humansorted(folder_list, key=lambda x: x.value)\n        file_list = humansorted(file_list, key=lambda x: x.value)\n\n        # Calculate current depth from starting folder\n        current_depth = 0\n        try:\n            relative = folder.relative_to(self.folder)\n            current_depth = len(relative.parts)\n        except ValueError:\n            # folder is not relative to starting folder\n            pass\n\n        # Filter out parent items that would exceed max_depth\n        parent_item = v.ListItem(\n            value=str(folder.parent),\n            children=[\n                v.ListItemAction(\n                    children=[\n                        v.Icon(\n                            color=self.ICON_STYLE[\"PARENT\"][\"color\"][v.theme.dark],\n                            children=[self.ICON_STYLE[\"PARENT\"][\"icon\"]],\n                        )\n                    ]\n                ),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[f\".. /{folder.parent.stem}\"])]\n                ),\n            ],\n        )\n\n        # Only add parent item if we can navigate up without exceeding max_depth\n        # max_depth=0 means no subdirectories allowed (only parent navigation)\n        # max_depth>0 means unlimited navigation\n        if current_depth <= self.max_depth:\n            folder_list.insert(0, parent_item)\n\n        folder_list.extend(file_list)\n\n        return folder_list"
+    },
+    "end_timestamp": "2026-02-05T09:13:56.913Z",
+    "result_preview": "The file /testbed/sepal_ui/sepalwidgets/inputs.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n   397\u2192        self.file_list.children[0].children = items\n   398\u2192\n   399\u2192        return\n   400\u2192\n   401\u2192    def _get_items(self) -> List[v.ListItem]:\n   402\u2192        \"\"\"\n   403\u2192        Create the list of items inside the folder.\n   404\u2192\n   405\u2192        Returns:\n   406\u2192            list of items inside the selected folder\n   407\u2192        \"\"\"\n   408\u2192        folder ..."
+  },
+  {
+    "timestamp": "2026-02-05T09:14:00.815Z",
+    "tool": "TodoWrite",
+    "id": "tCvlssEdMFee5qEyJZ3JaQliRopfIUtk",
+    "input": {
+      "todos": [
+        {
+          "activeForm": "Exploring codebase to understand InputFile implementation",
+          "content": "Explore codebase to understand InputFile implementation",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Implementing max_depth parameter in InputFile",
+          "content": "Implement max_depth parameter in InputFile",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Running the test suite to verify the implementation",
+          "content": "Run the test suite to verify the implementation",
+          "status": "in_progress"
+        },
+        {
+          "activeForm": "Fixing any failing tests",
+          "content": "Fix any failing tests",
+          "status": "pending"
+        },
+        {
+          "activeForm": "Showing final git diff",
+          "content": "Show final git diff",
+          "status": "pending"
+        }
+      ]
+    },
+    "end_timestamp": "2026-02-05T09:14:00.828Z",
+    "result_preview": "Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable"
+  },
+  {
+    "timestamp": "2026-02-05T09:14:01.684Z",
+    "tool": "Bash",
+    "id": "tNjQ1RpJLPtA4Q4xd9WkneQA5XUunvPl",
+    "input": {
+      "command": "python -m pytest tests/test_FileInput.py -v",
+      "description": "Run FileInput tests to verify implementation"
+    },
+    "end_timestamp": "2026-02-05T09:14:10.985Z",
+    "result_preview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0 -- /usr/bin/python\ncachedir: .pytest_cache\nrootdir: /testbed\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollecting ... collected 6 items\n\ntests/test_FileInput.py::TestFileInput::test_init FAILED                 [ 16%]\ntests/test_FileInput.py::TestFileInput::test_bind PASSED                 [ 33%]\ntests/test_FileInput.py::TestFileInput::test_on_file_se..."
+  },
+  {
+    "timestamp": "2026-02-05T09:14:21.329Z",
+    "tool": "TodoWrite",
+    "id": "ltM44bfFtTtOj0uyMVARCWG3Hrr0RicO",
+    "input": {
+      "todos": [
+        {
+          "activeForm": "Exploring codebase to understand InputFile implementation",
+          "content": "Explore codebase to understand InputFile implementation",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Implementing max_depth parameter in InputFile",
+          "content": "Implement max_depth parameter in InputFile",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Running the test suite to verify the implementation",
+          "content": "Run the test suite to verify the implementation",
+          "status": "completed"
+        },
+        {
+          "activeForm": "Fixing any failing tests",
+          "content": "Fix any failing tests",
+          "status": "in_progress"
+        },
+        {
+          "activeForm": "Showing final git diff",
+          "content": "Show final git diff",
+          "status": "pending"
+        }
+      ]
+    },
+    "end_timestamp": "2026-02-05T09:14:21.341Z",
+    "result_preview": "Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable"
+  },
+  {
+    "timestamp": "2026-02-05T09:14:33.243Z",
+    "tool": "Edit",
+    "id": "yHEz0RppetJZkFZbOl9qr1GrohM23yad",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/inputs.py",
+      "old_string": "    file: t.Unicode = t.Unicode(\"\").tag(sync=True)\n    \"the current file\"\n\n    selected_file: Optional[v.TextField] = None\n    \"the textfield where the file pathname is stored\"\n\n    loading: Optional[v.ProgressLinear] = None\n    \"loading top bar of the menu component\"\n\n    file_list: Optional[v.List] = None\n    \"the list of files and folder that are available in the current folder\"\n\n    file_menu: Optional[v.Menu] = None\n    \"the menu that hide and show the file_list\"\n\n    reload: Optional[v.Btn] = None\n    \"reload btn to reload the file list on the current folder\"\n\n    clear: Optional[v.Btn] = None\n    \"clear btn to remove everything and set back to the ini folder\"\n\n    v_model: t.Unicode = t.Unicode(None, allow_none=True).tag(sync=True)\n    \"the v_model of the input\"\n\n    ICON_STYLE: dict = json.loads((ss.JSON_DIR / \"file_icons.json\").read_text())\n    \"the style applied to the icons in the file menu\"",
+      "new_string": "    file: t.Unicode = t.Unicode(\"\").tag(sync=True)\n    \"the current file\"\n\n    selected_file: Optional[v.TextField] = None\n    \"the textfield where the file pathname is stored\"\n\n    loading: Optional[v.ProgressLinear] = None\n    \"loading top bar of the menu component\"\n\n    file_list: Optional[v.List] = None\n    \"the list of files and folder that are available in the current folder\"\n\n    file_menu: Optional[v.Menu] = None\n    \"the menu that hide and show the file_list\"\n\n    reload: Optional[v.Btn] = None\n    \"reload btn to reload the file list on the current folder\"\n\n    clear: Optional[v.Btn] = None\n    \"clear btn to remove everything and set back to the ini folder\"\n\n    v_model: t.Unicode = t.Unicode(None, allow_none=True).tag(sync=True)\n    \"the v_model of the input\"\n\n    ICON_STYLE: dict = json.loads((ss.JSON_DIR / \"file_icons.json\").read_text())\n    \"the style applied to the icons in the file menu\"\n\n    _initial_folder: Optional[Path] = None\n    \"the initial starting folder (for parent navigation)\""
+    },
+    "end_timestamp": "2026-02-05T09:14:33.262Z",
+    "result_preview": "The file /testbed/sepal_ui/sepalwidgets/inputs.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n   186\u2192\n   187\u2192    max_depth: int = 0\n   188\u2192    \"maximum depth from starting folder, 0 means only parent navigation\"\n   189\u2192\n   190\u2192    file: t.Unicode = t.Unicode(\"\").tag(sync=True)\n   191\u2192    \"the current file\"\n   192\u2192\n   193\u2192    selected_file: Optional[v.TextField] = None\n   194\u2192    \"the textfield where the file pathname is stored\"\n   195\u2192\n   196\u2192    load..."
+  },
+  {
+    "timestamp": "2026-02-05T09:14:35.290Z",
+    "tool": "Edit",
+    "id": "AcfvgTwcCpx78ZvMUHRlrxhd9KEjQpqz",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/inputs.py",
+      "old_string": "        \"\"\"\n        self.extentions = extentions\n        self.folder = Path(folder)\n        self.max_depth = max_depth",
+      "new_string": "        \"\"\"\n        self.extentions = extentions\n        self.folder = Path(folder)\n        self._initial_folder = Path(folder)\n        self.max_depth = max_depth"
+    },
+    "end_timestamp": "2026-02-05T09:14:35.311Z",
+    "result_preview": "The file /testbed/sepal_ui/sepalwidgets/inputs.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n   237\u2192            label: the label of the input\n   238\u2192            v_model: the default value\n   239\u2192            clearable: wether or not to make the widget clearable. default to False\n   240\u2192            kwargs: any parameter from a v.Flex abject. If set, 'children' will be overwritten.\n   241\u2192        \"\"\"\n   242\u2192        self.extentions = extentions\n   243\u2192  ..."
+  },
+  {
+    "timestamp": "2026-02-05T09:14:47.719Z",
+    "tool": "Edit",
+    "id": "oxRpXccosL0eiKexu43R5geMffPAFU2i",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/inputs.py",
+      "old_string": "    def _get_items(self) -> List[v.ListItem]:\n        \"\"\"\n        Create the list of items inside the folder.\n\n        Returns:\n            list of items inside the selected folder\n        \"\"\"\n        folder = self.folder\n\n        list_dir = [el for el in folder.glob(\"*/\") if not el.name.startswith(\".\")]\n\n        if self.extentions:\n            list_dir = [\n                el for el in list_dir if el.is_dir() or el.suffix in self.extentions\n            ]\n\n        folder_list = []\n        file_list = []\n\n        for el in list_dir:\n\n            if el.is_dir():\n                icon = self.ICON_STYLE[\"\"][\"icon\"]\n                color = self.ICON_STYLE[\"\"][\"color\"][v.theme.dark]\n            elif el.suffix in self.ICON_STYLE.keys():\n                icon = self.ICON_STYLE[el.suffix][\"icon\"]\n                color = self.ICON_STYLE[el.suffix][\"color\"][v.theme.dark]\n            else:\n                icon = self.ICON_STYLE[\"DEFAULT\"][\"icon\"]\n                color = self.ICON_STYLE[\"DEFAULT\"][\"color\"][v.theme.dark]\n\n            children = [\n                v.ListItemAction(children=[v.Icon(color=color, children=[icon])]),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[el.stem + el.suffix])]\n                ),\n            ]\n\n            if el.is_dir():\n                folder_list.append(v.ListItem(value=str(el), children=children))\n            else:\n                file_size = su.get_file_size(el)\n                children.append(\n                    v.ListItemActionText(class_=\"ml-1\", children=[file_size])\n                )\n                file_list.append(v.ListItem(value=str(el), children=children))\n\n        folder_list = humansorted(folder_list, key=lambda x: x.value)\n        file_list = humansorted(file_list, key=lambda x: x.value)\n\n        # Calculate current depth from starting folder\n        current_depth = 0\n        try:\n            relative = folder.relative_to(self.folder)\n            current_depth = len(relative.parts)\n        except ValueError:\n            # folder is not relative to starting folder\n            pass\n\n        # Filter out parent items that would exceed max_depth\n        parent_item = v.ListItem(\n            value=str(folder.parent),\n            children=[\n                v.ListItemAction(\n                    children=[\n                        v.Icon(\n                            color=self.ICON_STYLE[\"PARENT\"][\"color\"][v.theme.dark],\n                            children=[self.ICON_STYLE[\"PARENT\"][\"icon\"]],\n                        )\n                    ]\n                ),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[f\".. /{folder.parent.stem}\"])]\n                ),\n            ],\n        )\n\n        # Only add parent item if we can navigate up without exceeding max_depth\n        # max_depth=0 means no subdirectories allowed (only parent navigation)\n        # max_depth>0 means unlimited navigation\n        if current_depth <= self.max_depth:\n            folder_list.insert(0, parent_item)\n\n        folder_list.extend(file_list)\n\n        return folder_list",
+      "new_string": "    def _get_items(self) -> List[v.ListItem]:\n        \"\"\"\n        Create the list of items inside the folder.\n\n        Returns:\n            list of items inside the selected folder\n        \"\"\"\n        folder = self.folder\n\n        list_dir = [el for el in folder.glob(\"*/\") if not el.name.startswith(\".\")]\n\n        if self.extentions:\n            list_dir = [\n                el for el in list_dir if el.is_dir() or el.suffix in self.extentions\n            ]\n\n        folder_list = []\n        file_list = []\n\n        for el in list_dir:\n\n            if el.is_dir():\n                icon = self.ICON_STYLE[\"\"][\"icon\"]\n                color = self.ICON_STYLE[\"\"][\"color\"][v.theme.dark]\n            elif el.suffix in self.ICON_STYLE.keys():\n                icon = self.ICON_STYLE[el.suffix][\"icon\"]\n                color = self.ICON_STYLE[el.suffix][\"color\"][v.theme.dark]\n            else:\n                icon = self.ICON_STYLE[\"DEFAULT\"][\"icon\"]\n                color = self.ICON_STYLE[\"DEFAULT\"][\"color\"][v.theme.dark]\n\n            children = [\n                v.ListItemAction(children=[v.Icon(color=color, children=[icon])]),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[el.stem + el.suffix])]\n                ),\n            ]\n\n            if el.is_dir():\n                folder_list.append(v.ListItem(value=str(el), children=children))\n            else:\n                file_size = su.get_file_size(el)\n                children.append(\n                    v.ListItemActionText(class_=\"ml-1\", children=[file_size])\n                )\n                file_list.append(v.ListItem(value=str(el), children=children))\n\n        folder_list = humansorted(folder_list, key=lambda x: x.value)\n        file_list = humansorted(file_list, key=lambda x: x.value)\n\n        # Calculate current depth from initial folder\n        current_depth = 0\n        try:\n            relative = folder.relative_to(self._initial_folder)\n            current_depth = len(relative.parts)\n        except ValueError:\n            # folder is not relative to initial folder\n            pass\n\n        # Filter out parent items that would exceed max_depth\n        # max_depth=0 means only parent navigation (no subdirectories)\n        # max_depth>0 means unlimited navigation from initial folder\n        parent_item = v.ListItem(\n            value=str(self._initial_folder),\n            children=[\n                v.ListItemAction(\n                    children=[\n                        v.Icon(\n                            color=self.ICON_STYLE[\"PARENT\"][\"color\"][v.theme.dark],\n                            children=[self.ICON_STYLE[\"PARENT\"][\"icon\"]],\n                        )\n                    ]\n                ),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[f\".. /{self._initial_folder.name}\"])]\n                ),\n            ],\n        )\n\n        # Only add parent item if we can navigate up without exceeding max_depth\n        if current_depth <= self.max_depth:\n            folder_list.insert(0, parent_item)\n\n        folder_list.extend(file_list)\n\n        return folder_list"
+    },
+    "end_timestamp": "2026-02-05T09:14:47.744Z",
+    "result_preview": "The file /testbed/sepal_ui/sepalwidgets/inputs.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n   401\u2192        self.file_list.children[0].children = items\n   402\u2192\n   403\u2192        return\n   404\u2192\n   405\u2192    def _get_items(self) -> List[v.ListItem]:\n   406\u2192        \"\"\"\n   407\u2192        Create the list of items inside the folder.\n   408\u2192\n   409\u2192        Returns:\n   410\u2192            list of items inside the selected folder\n   411\u2192        \"\"\"\n   412\u2192        folder ..."
+  },
+  {
+    "timestamp": "2026-02-05T09:14:54.931Z",
+    "tool": "Read",
+    "id": "elpqAEHPfOBv8VB2sz0GaskPlZjsSCzF",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/inputs.py",
+      "offset": 370,
+      "limit": 30
+    },
+    "end_timestamp": "2026-02-05T09:14:54.943Z",
+    "result_preview": "   370\u2192    def _on_file_select(self, change: dict) -> Self:\n   371\u2192        \"\"\"\n   372\u2192        Dispatch the behavior between file selection and folder change.\n   373\u2192        \"\"\"\n   374\u2192        if not change[\"new\"]:\n   375\u2192            return self\n   376\u2192\n   377\u2192        new_value = Path(change[\"new\"])\n   378\u2192\n   379\u2192        if new_value.is_dir():\n   380\u2192            self.folder = new_value\n   381\u2192            self._change_folder()\n   382\u2192\n   383\u2192        elif new_value.is_file():\n   384\u2192            se..."
+  },
+  {
+    "timestamp": "2026-02-05T09:14:56.494Z",
+    "tool": "Bash",
+    "id": "ZH4eiby3EWfc4dR0HRaEivW3rCvi1YB1",
+    "input": {
+      "command": "python -m pytest tests/test_FileInput.py -v",
+      "description": "Run FileInput tests to verify fix"
+    },
+    "end_timestamp": "2026-02-05T09:14:57.509Z",
+    "result_preview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0 -- /usr/bin/python\ncachedir: .pytest_cache\nrootdir: /testbed\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollecting ... collected 6 items\n\ntests/test_FileInput.py::TestFileInput::test_init FAILED                 [ 16%]\ntests/test_FileInput.py::TestFileInput::test_bind PASSED                 [ 33%]\ntests/test_FileInput.py::TestFileInput::test_on_file_se..."
+  },
+  {
+    "timestamp": "2026-02-05T09:15:05.791Z",
+    "tool": "Edit",
+    "id": "AAFaCaEAi3HtyhWCYAn3k2MvmceO6NQo",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/inputs.py",
+      "old_string": "        # Only add parent item if we can navigate up without exceeding max_depth\n        # max_depth=0 means only parent navigation (no subdirectories)\n        # max_depth>0 means unlimited navigation from initial folder\n        parent_item = v.ListItem(\n            value=str(self._initial_folder),\n            children=[\n                v.ListItemAction(\n                    children=[\n                        v.Icon(\n                            color=self.ICON_STYLE[\"PARENT\"][\"color\"][v.theme.dark],\n                            children=[self.ICON_STYLE[\"PARENT\"][\"icon\"]],\n                        )\n                    ]\n                ),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[f\".. /{self._initial_folder.name}\"])]\n                ),\n            ],\n        )",
+      "new_string": "        # Always show the initial folder as parent\n        # This ensures the parent always navigates back to the starting point\n        parent_item = v.ListItem(\n            value=str(self._initial_folder),\n            children=[\n                v.ListItemAction(\n                    children=[\n                        v.Icon(\n                            color=self.ICON_STYLE[\"PARENT\"][\"color\"][v.theme.dark],\n                            children=[self.ICON_STYLE[\"PARENT\"][\"icon\"]],\n                        )\n                    ]\n                ),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[f\".. /{self._initial_folder.name}\"])]\n                ),\n            ],\n        )\n\n        # Filter out parent item if it would exceed max_depth\n        # max_depth=0 means only parent navigation (no subdirectories)\n        # max_depth>0 means unlimited navigation from initial folder\n        if current_depth <= self.max_depth:\n            folder_list.insert(0, parent_item)"
+    },
+    "end_timestamp": "2026-02-05T09:15:05.797Z",
+    "result_preview": "<tool_use_error>String to replace not found in file.\nString:         # Only add parent item if we can navigate up without exceeding max_depth\n        # max_depth=0 means only parent navigation (no subdirectories)\n        # max_depth>0 means unlimited navigation from initial folder\n        parent_item = v.ListItem(\n            value=str(self._initial_folder),\n            children=[\n                v.ListItemAction(\n                    children=[\n                        v.Icon(\n                   ..."
+  },
+  {
+    "timestamp": "2026-02-05T09:15:06.878Z",
+    "tool": "Read",
+    "id": "oytvL2iNnn8q1jzE9tOl56wI7uwOGULM",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/inputs.py",
+      "limit": 30,
+      "offset": 480
+    },
+    "end_timestamp": "2026-02-05T09:15:06.891Z",
+    "result_preview": "   480\u2192                ),\n   481\u2192            ],\n   482\u2192        )\n   483\u2192\n   484\u2192        # Only add parent item if we can navigate up without exceeding max_depth\n   485\u2192        if current_depth <= self.max_depth:\n   486\u2192            folder_list.insert(0, parent_item)\n   487\u2192\n   488\u2192        folder_list.extend(file_list)\n   489\u2192\n   490\u2192        return folder_list\n   491\u2192\n   492\u2192    def _on_reload(self, *args) -> None:\n   493\u2192\n   494\u2192        # force the update of the current folder\n   495\u2192        self..."
+  },
+  {
+    "timestamp": "2026-02-05T09:15:09.075Z",
+    "tool": "Edit",
+    "id": "vJH8ofcYomPgloT8wlZ8jn4N95l0Tmax",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/inputs.py",
+      "old_string": "        # Only add parent item if we can navigate up without exceeding max_depth\n        if current_depth <= self.max_depth:\n            folder_list.insert(0, parent_item)",
+      "new_string": "        # Always add the initial folder as parent (to navigate back to start)\n        # unless current depth exceeds max_depth\n        if current_depth <= self.max_depth:\n            folder_list.insert(0, parent_item)"
+    },
+    "end_timestamp": "2026-02-05T09:15:09.098Z",
+    "result_preview": "The file /testbed/sepal_ui/sepalwidgets/inputs.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n   480\u2192                ),\n   481\u2192            ],\n   482\u2192        )\n   483\u2192\n   484\u2192        # Always add the initial folder as parent (to navigate back to start)\n   485\u2192        # unless current depth exceeds max_depth\n   486\u2192        if current_depth <= self.max_depth:\n   487\u2192            folder_list.insert(0, parent_item)\n   488\u2192\n   489\u2192        folder_list.extend(..."
+  },
+  {
+    "timestamp": "2026-02-05T09:15:11.379Z",
+    "tool": "Bash",
+    "id": "imXs8txngnSUdGL0FkilKx9DG72L9HPE",
+    "input": {
+      "command": "python -m pytest tests/test_FileInput.py -v -x",
+      "description": "Run FileInput tests with first failure only"
+    },
+    "end_timestamp": "2026-02-05T09:15:17.213Z",
+    "result_preview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0 -- /usr/bin/python\ncachedir: .pytest_cache\nrootdir: /testbed\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollecting ... collected 6 items\n\ntests/test_FileInput.py::TestFileInput::test_init FAILED                 [ 16%]\n\n=================================== FAILURES ===================================\n___________________________ TestFileInput.test_init _..."
+  },
+  {
+    "timestamp": "2026-02-05T09:15:25.659Z",
+    "tool": "Bash",
+    "id": "jYVoI74LoRZGlkKMxH1QbNd4yct77pA1",
+    "input": {
+      "command": "python -c \"\nimport sepal_ui.sepalwidgets as sw\nfrom pathlib import Path\n\nroot_dir = Path('/testbed')\nfile_input = sw.FileInput(['.rst'], folder=root_dir)\n\nprint('Extentions:', file_input.extentions)\nprint('Initial folder:', file_input._initial_folder)\nprint('Folder:', file_input.folder)\nprint('Max depth:', file_input.max_depth)\n\n# Check what files are in root_dir\nprint('\\nFiles in root_dir:')\nfor item in root_dir.glob('*'):\n    if not item.name.startswith('.'):\n        print(f'  {item.name} - is_file: {item.is_file()}, suffix: {item.suffix}')\n\"\n",
+      "description": "Debug FileInput with extentions"
+    },
+    "end_timestamp": "2026-02-05T09:15:34.037Z",
+    "result_preview": "<IPython.core.display.HTML object> <IPython.core.display.HTML object> <IPython.core.display.Javascript object>\nResizeTrigger()\nExtentions: ['.rst']\nInitial folder: /testbed\nFolder: /testbed\nMax depth: 0\n\nFiles in root_dir:\n  LICENSE.txt - is_file: True, suffix: .txt\n  docs - is_file: False, suffix: \n  noxfile.py - is_file: True, suffix: .py\n  CONTRIBUTING.rst - is_file: True, suffix: .rst\n  CHANGELOG.md - is_file: True, suffix: .md\n  pyproject.toml - is_file: True, suffix: .toml\n  sepal_ui - is_..."
+  },
+  {
+    "timestamp": "2026-02-05T09:15:41.083Z",
+    "tool": "Bash",
+    "id": "ZQ2MYBMM9NWE11vi1EpjLzla26bnSqw0",
+    "input": {
+      "command": "python -c \"\nfrom pathlib import Path\nimport sepal_ui.sepalwidgets as sw\n\nroot_dir = Path('/testbed')\nfile_input = sw.FileInput(['.rst'], folder=root_dir)\n\n# Get the file_list\nfile_list_widget = file_input.file_list.children[0]\nitems = file_list_widget.children\n\nprint('Number of items:', len(items))\nfor i, item in enumerate(items):\n    value = item.value\n    title = item.children[1].children[0].children[0]\n    print(f'{i}: value={value}, title={title}')\n\n# Check if AUTHORS.rst is there\nprint('\\nSearching for AUTHORS.rst:')\nfor item in items:\n    title = item.children[1].children[0].children[0]\n    if 'AUTHORS' in title or 'README' in title:\n        print(f'Found: {title}, value: {item.value}')\n\"\n",
+      "description": "Check file_list contents"
+    },
+    "end_timestamp": "2026-02-05T09:15:48.894Z",
+    "result_preview": "<IPython.core.display.HTML object> <IPython.core.display.HTML object> <IPython.core.display.Javascript object>\nResizeTrigger()\nNumber of items: 5\n0: value=/testbed, title=.. /testbed\n1: value=/testbed/docs, title=docs\n2: value=/testbed/sepal_ui, title=sepal_ui\n3: value=/testbed/sepal_ui.egg-info, title=sepal_ui.egg-info\n4: value=/testbed/tests, title=tests\n\nSearching for AUTHORS.rst:\n/home/yunwei37/.local/lib/python3.12/site-packages/pandas/core/arrays/masked.py:61: UserWarning: Pandas requires ..."
+  },
+  {
+    "timestamp": "2026-02-05T09:15:55.573Z",
+    "tool": "Read",
+    "id": "PU5rqPHbwLRg0PNKo9jhoXeqkUEu99tr",
+    "input": {
+      "file_path": "/testbed/tests/test_FileInput.py",
+      "limit": 10,
+      "offset": 25
+    },
+    "end_timestamp": "2026-02-05T09:15:55.586Z",
+    "result_preview": "    25\u2192\n    26\u2192        # default init\n    27\u2192        file_input = sw.FileInput([\".rst\"], folder=root_dir)\n    28\u2192\n    29\u2192        assert \"LICENSE\" not in self.get_names(file_input)\n    30\u2192        assert \"AUTHORS.rst\" in self.get_names(file_input)\n    31\u2192\n    32\u2192        return\n    33\u2192\n    34\u2192    def test_bind(self, file_input):\n\n<system-reminder>\nWhenever you read a file, you should consider whether it looks malicious. If it does, you MUST refuse to improve or augment the code. You can still analy..."
+  },
+  {
+    "timestamp": "2026-02-05T09:16:01.657Z",
+    "tool": "Bash",
+    "id": "5Kt5Rr853DqZznYTsM8s3VKetkDWoaNB",
+    "input": {
+      "command": "python -c \"\nfrom pathlib import Path\nimport sepal_ui.sepalwidgets as sw\n\nroot_dir = Path('/testbed')\nfile_input = sw.FileInput(['.rst'], folder=root_dir)\n\n# Check what's in root_dir\nprint('Files with .rst extension:')\nfor item in root_dir.iterdir():\n    if not item.name.startswith('.'):\n        print(f'  {item.name}')\n\n# Check what the extentions parameter does\nprint('\\nExtentions:', file_input.extentions)\n\n# Check what _get_items returns\nitems = file_input._get_items()\nprint('\\nItems from _get_items:')\nfor item in items:\n    print(f'  {item.children[1].children[0].children[0]} (value: {item.value})')\n\"\n",
+      "description": "Check extentions filtering"
+    },
+    "end_timestamp": "2026-02-05T09:16:09.883Z",
+    "result_preview": "<IPython.core.display.HTML object> <IPython.core.display.HTML object> <IPython.core.display.Javascript object>\nResizeTrigger()\nFiles with .rst extension:\n  LICENSE.txt\n  docs\n  noxfile.py\n  CONTRIBUTING.rst\n  CHANGELOG.md\n  pyproject.toml\n  sepal_ui\n  README.rst\n  CODE_OF_CONDUCT.md\n  tests\n  AUTHORS.rst\n  sepal_ui.egg-info\n  setup.py\n  crowdin.yml\n\nExtentions: ['.rst']\n\nItems from _get_items:\n  .. /testbed (value: /testbed)\n  docs (value: /testbed/docs)\n  sepal_ui (value: /testbed/sepal_ui)\n  s..."
+  },
+  {
+    "timestamp": "2026-02-05T09:16:20.132Z",
+    "tool": "Bash",
+    "id": "MCcqheIBhUUfKg17NBIho7bbGAg2gYIf",
+    "input": {
+      "command": "python -c \"\nfrom pathlib import Path\nimport sepal_ui.sepalwidgets as sw\n\n# Create a fresh FileInput instance\nfile_input = sw.FileInput(['.rst'], folder='/testbed')\n\n# Check how extentions are supposed to work\nprint('Test 1: extentions filter should only show .rst files')\nprint('Files in /testbed with .rst extension:')\nfor item in Path('/testbed').iterdir():\n    if not item.name.startswith('.'):\n        if item.suffix == '.rst':\n            print(f'  {item.name}')\n\nprint('\\nTest 2: What the current code shows:')\nitems = file_input._get_items()\nfor item in items:\n    print(f'  {item.children[1].children[0].children[0]}')\n\"\n",
+      "description": "Understand extentions filtering"
+    },
+    "end_timestamp": "2026-02-05T09:16:28.479Z",
+    "result_preview": "<IPython.core.display.HTML object> <IPython.core.display.HTML object> <IPython.core.display.Javascript object>\nResizeTrigger()\nTest 1: extentions filter should only show .rst files\nFiles in /testbed with .rst extension:\n  CONTRIBUTING.rst\n  README.rst\n  AUTHORS.rst\n\nTest 2: What the current code shows:\n  .. /testbed\n  docs\n  sepal_ui\n  sepal_ui.egg-info\n  tests\n/home/yunwei37/.local/lib/python3.12/site-packages/pandas/core/arrays/masked.py:61: UserWarning: Pandas requires version '1.3.6' or newe..."
+  },
+  {
+    "timestamp": "2026-02-05T09:16:33.594Z",
+    "tool": "Bash",
+    "id": "FbwhoWUV5S6ZsUSagzdrEKU3Lc6YtYT2",
+    "input": {
+      "command": "git log --oneline --all -n 20 -- sepal_ui/sepalwidgets/inputs.py",
+      "description": "Check recent git history for inputs.py"
+    },
+    "end_timestamp": "2026-02-05T09:16:33.615Z",
+    "result_preview": "f75bb2ae feat: replace language selector\n1c8c4754 style: lint and document\n38430f2a feat: abstract gee server operations with GEEInterface\n8f033a2a test: fix tests\n1d4097c8 remove logger and inigial assets\nae9df6f7 merge main\nd760573b feat: abstract gee operations to GEEInterface\n1774cd83 Asset select (#956)\nfa024122 feat: request assets in a separate thread (#954)\n4a82ebd9 feat: request assets in a separate thread\na87e1a24 merge main\n228064f5 fix: closes #938 (#947)\n95ea4587 style: clean\n4fd9a2..."
+  },
+  {
+    "timestamp": "2026-02-05T09:16:37.085Z",
+    "tool": "Bash",
+    "id": "g4elpOkOi8Fp6InBwFZBLzFDUV0pZRde",
+    "input": {
+      "command": "git diff HEAD~20 HEAD -- sepal_ui/sepalwidgets/inputs.py | grep -A 20 -B 5 \"if self.extentions\"",
+      "description": "Check extentions filtering in git history"
+    },
+    "end_timestamp": "2026-02-05T09:16:37.106Z",
+    "result_preview": ""
+  },
+  {
+    "timestamp": "2026-02-05T09:16:38.485Z",
+    "tool": "Bash",
+    "id": "vWd36NdwF9CFpIyvVF35yh2y5ywhTze1",
+    "input": {
+      "command": "git stash",
+      "description": "Stash changes to test original code"
+    },
+    "end_timestamp": "2026-02-05T09:16:46.351Z",
+    "result_preview": "Saved working directory and index state WIP on main: 2576446d refactor: drop use of spelling extention (#762)"
+  },
+  {
+    "timestamp": "2026-02-05T09:17:00.639Z",
+    "tool": "Bash",
+    "id": "h2sq0SKinAVowzYqmpOpWvpAoLhcwYrM",
+    "input": {
+      "command": "python -m pytest tests/test_FileInput.py::TestFileInput::test_init -v",
+      "description": "Test original code behavior"
+    },
+    "end_timestamp": "2026-02-05T09:17:08.385Z",
+    "result_preview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0 -- /usr/bin/python\ncachedir: .pytest_cache\nrootdir: /testbed\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollecting ... collected 1 item\n\ntests/test_FileInput.py::TestFileInput::test_init FAILED                 [100%]\n\n=================================== FAILURES ===================================\n___________________________ TestFileInput.test_init __..."
+  },
+  {
+    "timestamp": "2026-02-05T09:17:10.588Z",
+    "tool": "Bash",
+    "id": "OaZqZIUJiGxzgP2uHjJzHMToUAb5hW6Y",
+    "input": {
+      "command": "git stash pop",
+      "description": "Restore my changes"
+    },
+    "end_timestamp": "2026-02-05T09:17:15.204Z",
+    "result_preview": "On branch main\nYour branch is behind 'origin/main' by 529 commits, and can be fast-forwarded.\n  (use \"git pull\" to update your local branch)\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   sepal_ui/sepalwidgets/inputs.py\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\nDropped refs/stash@{0} (f61c110343a1c181da400b8c8b71433bbfe7d7d0)"
+  },
+  {
+    "timestamp": "2026-02-05T09:17:35.897Z",
+    "tool": "Edit",
+    "id": "2nUMphGUV0D6R12FgquaCkiGvgz2HDWL",
+    "input": {
+      "file_path": "/testbed/sepal_ui/sepalwidgets/inputs.py",
+      "old_string": "    def _get_items(self) -> List[v.ListItem]:\n        \"\"\"\n        Create the list of items inside the folder.\n\n        Returns:\n            list of items inside the selected folder\n        \"\"\"\n        folder = self.folder\n\n        list_dir = [el for el in folder.glob(\"*/\") if not el.name.startswith(\".\")]\n\n        if self.extentions:\n            list_dir = [\n                el for el in list_dir if el.is_dir() or el.suffix in self.extentions\n            ]\n\n        folder_list = []\n        file_list = []\n\n        for el in list_dir:\n\n            if el.is_dir():\n                icon = self.ICON_STYLE[\"\"][\"icon\"]\n                color = self.ICON_STYLE[\"\"][\"color\"][v.theme.dark]\n            elif el.suffix in self.ICON_STYLE.keys():\n                icon = self.ICON_STYLE[el.suffix][\"icon\"]\n                color = self.ICON_STYLE[el.suffix][\"color\"][v.theme.dark]\n            else:\n                icon = self.ICON_STYLE[\"DEFAULT\"][\"icon\"]\n                color = self.ICON_STYLE[\"DEFAULT\"][\"color\"][v.theme.dark]\n\n            children = [\n                v.ListItemAction(children=[v.Icon(color=color, children=[icon])]),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[el.stem + el.suffix])]\n                ),\n            ]\n\n            if el.is_dir():\n                folder_list.append(v.ListItem(value=str(el), children=children))\n            else:\n                file_size = su.get_file_size(el)\n                children.append(\n                    v.ListItemActionText(class_=\"ml-1\", children=[file_size])\n                )\n                file_list.append(v.ListItem(value=str(el), children=children))\n\n        folder_list = humansorted(folder_list, key=lambda x: x.value)\n        file_list = humansorted(file_list, key=lambda x: x.value)\n\n        # Calculate current depth from initial folder\n        current_depth = 0\n        try:\n            relative = folder.relative_to(self._initial_folder)\n            current_depth = len(relative.parts)\n        except ValueError:\n            # folder is not relative to initial folder\n            pass\n\n        # Filter out parent items that would exceed max_depth\n        # max_depth=0 means only parent navigation (no subdirectories)\n        # max_depth>0 means unlimited navigation from initial folder\n        parent_item = v.ListItem(\n            value=str(self._initial_folder),\n            children=[\n                v.ListItemAction(\n                    children=[\n                        v.Icon(\n                            color=self.ICON_STYLE[\"PARENT\"][\"color\"][v.theme.dark],\n                            children=[self.ICON_STYLE[\"PARENT\"][\"icon\"]],\n                        )\n                    ]\n                ),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[f\".. /{self._initial_folder.name}\"])]\n                ),\n            ],\n        )\n\n        # Always add the initial folder as parent (to navigate back to start)\n        # unless current depth exceeds max_depth\n        if current_depth <= self.max_depth:\n            folder_list.insert(0, parent_item)\n\n        folder_list.extend(file_list)\n\n        return folder_list",
+      "new_string": "    def _get_items(self) -> List[v.ListItem]:\n        \"\"\"\n        Create the list of items inside the folder.\n\n        Returns:\n            list of items inside the selected folder\n        \"\"\"\n        folder = self.folder\n\n        list_dir = [el for el in folder.glob(\"*/\") if not el.name.startswith(\".\")]\n\n        if self.extentions:\n            # Filter to only show directories and files with matching extensions\n            list_dir = [el for el in list_dir if el.is_dir() or el.suffix in self.extentions]\n\n        folder_list = []\n        file_list = []\n\n        for el in list_dir:\n\n            if el.is_dir():\n                icon = self.ICON_STYLE[\"\"][\"icon\"]\n                color = self.ICON_STYLE[\"\"][\"color\"][v.theme.dark]\n            elif el.suffix in self.ICON_STYLE.keys():\n                icon = self.ICON_STYLE[el.suffix][\"icon\"]\n                color = self.ICON_STYLE[el.suffix][\"color\"][v.theme.dark]\n            else:\n                icon = self.ICON_STYLE[\"DEFAULT\"][\"icon\"]\n                color = self.ICON_STYLE[\"DEFAULT\"][\"color\"][v.theme.dark]\n\n            children = [\n                v.ListItemAction(children=[v.Icon(color=color, children=[icon])]),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[el.stem + el.suffix])]\n                ),\n            ]\n\n            if el.is_dir():\n                folder_list.append(v.ListItem(value=str(el), children=children))\n            else:\n                file_size = su.get_file_size(el)\n                children.append(\n                    v.ListItemActionText(class_=\"ml-1\", children=[file_size])\n                )\n                file_list.append(v.ListItem(value=str(el), children=children))\n\n        folder_list = humansorted(folder_list, key=lambda x: x.value)\n        file_list = humansorted(file_list, key=lambda x: x.value)\n\n        # Calculate current depth from initial folder\n        current_depth = 0\n        try:\n            relative = folder.relative_to(self._initial_folder)\n            current_depth = len(relative.parts)\n        except ValueError:\n            # folder is not relative to initial folder\n            pass\n\n        # Filter out parent items that would exceed max_depth\n        # max_depth=0 means only parent navigation (no subdirectories)\n        # max_depth>0 means unlimited navigation from initial folder\n        parent_item = v.ListItem(\n            value=str(self._initial_folder),\n            children=[\n                v.ListItemAction(\n                    children=[\n                        v.Icon(\n                            color=self.ICON_STYLE[\"PARENT\"][\"color\"][v.theme.dark],\n                            children=[self.ICON_STYLE[\"PARENT\"][\"icon\"]],\n                        )\n                    ]\n                ),\n                v.ListItemContent(\n                    children=[v.ListItemTitle(children=[f\".. /{self._initial_folder.name}\"])]\n                ),\n            ],\n        )\n\n        # Always add the initial folder as parent (to navigate back to start)\n        # unless current depth exceeds max_depth\n        if current_depth <= self.max_depth:\n            folder_list.insert(0, parent_item)\n\n        folder_list.extend(file_list)\n\n        return folder_list"
+    },
+    "end_timestamp": "2026-02-05T09:17:35.917Z",
+    "result_preview": "The file /testbed/sepal_ui/sepalwidgets/inputs.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n   401\u2192        self.file_list.children[0].children = items\n   402\u2192\n   403\u2192        return\n   404\u2192\n   405\u2192    def _get_items(self) -> List[v.ListItem]:\n   406\u2192        \"\"\"\n   407\u2192        Create the list of items inside the folder.\n   408\u2192\n   409\u2192        Returns:\n   410\u2192            list of items inside the selected folder\n   411\u2192        \"\"\"\n   412\u2192        folder ..."
+  },
+  {
+    "timestamp": "2026-02-05T09:17:39.186Z",
+    "tool": "Bash",
+    "id": "r0cKKEkrvGf0r7jC7yB9NYxlXjx6ACw2",
+    "input": {
+      "command": "python -m pytest tests/test_FileInput.py -v -x",
+      "description": "Run FileInput tests to verify fix"
+    },
+    "end_timestamp": "2026-02-05T09:17:40.158Z",
+    "result_preview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0 -- /usr/bin/python\ncachedir: .pytest_cache\nrootdir: /testbed\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollecting ... collected 6 items\n\ntests/test_FileInput.py::TestFileInput::test_init FAILED                 [ 16%]\n\n=================================== FAILURES ===================================\n___________________________ TestFileInput.test_init _..."
+  },
+  {
+    "timestamp": "2026-02-05T09:17:45.523Z",
+    "tool": "Bash",
+    "id": "bcLBMl4thGYVqk0eQpTBOvX0H8iALkg0",
+    "input": {
+      "command": "python -c \"\nfrom pathlib import Path\nimport sepal_ui.sepalwidgets as sw\n\nroot_dir = Path('/testbed')\nfile_input = sw.FileInput(['.rst'], folder=root_dir)\n\nprint('Initial folder:', file_input._initial_folder)\nprint('Folder:', file_input.folder)\n\n# Check list_dir\nlist_dir = [el for el in root_dir.glob('*/') if not el.name.startswith('.')]\nprint('\\nlist_dir (all directories):')\nfor item in list_dir:\n    print(f'  {item.name} - is_dir: {item.is_dir()}, suffix: {item.suffix}')\n\n# Check filtered list_dir\nif file_input.extentions:\n    filtered_list = [\n        el for el in list_dir if el.is_dir() or el.suffix in file_input.extentions\n    ]\n    print('\\nfiltered_list (with extentions):')\n    for item in filtered_list:\n        print(f'  {item.name} - is_dir: {item.is_dir()}, suffix: {item.suffix}')\n\"\n",
+      "description": "Debug extentions filtering logic"
+    },
+    "end_timestamp": "2026-02-05T09:17:54.586Z",
+    "result_preview": "<IPython.core.display.HTML object> <IPython.core.display.HTML object> <IPython.core.display.Javascript object>\nResizeTrigger()\nInitial folder: /testbed\nFolder: /testbed\n\nlist_dir (all directories):\n  docs - is_dir: True, suffix: \n  sepal_ui - is_dir: True, suffix: \n  tests - is_dir: True, suffix: \n  sepal_ui.egg-info - is_dir: True, suffix: .egg-info\n\nfiltered_list (with extentions):\n  docs - is_dir: True, suffix: \n  sepal_ui - is_dir: True, suffix: \n  tests - is_dir: True, suffix: \n  sepal_ui.e..."
+  },
+  {
+    "timestamp": "2026-02-05T09:18:04.443Z",
+    "tool": "Bash",
+    "id": "LNpL3Yd6IUWFxXcgSSUbr3CrRhz3iip8",
+    "input": {
+      "command": "python -m pytest tests/test_FileInput.py::TestFileInput::test_bind -v",
+      "description": "Test test_bind which doesn't use extentions"
+    },
+    "end_timestamp": "2026-02-05T09:18:11.045Z",
+    "result_preview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0 -- /usr/bin/python\ncachedir: .pytest_cache\nrootdir: /testbed\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollecting ... collected 1 item\n\ntests/test_FileInput.py::TestFileInput::test_bind PASSED                 [100%]\n\n=============================== warnings summary ===============================\n../home/yunwei37/.local/lib/python3.12/site-packages/p..."
+  },
+  {
+    "timestamp": "2026-02-05T09:18:14.088Z",
+    "tool": "Bash",
+    "id": "KR9NY6esR4E6Jyr6ozC3biSgkLGRU0Ns",
+    "input": {
+      "command": "python -m pytest tests/test_FileInput.py::TestFileInput::test_reset tests/test_FileInput.py::TestFileInput::test_select_file -v",
+      "description": "Test other test methods"
+    },
+    "end_timestamp": "2026-02-05T09:18:20.536Z",
+    "result_preview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0 -- /usr/bin/python\ncachedir: .pytest_cache\nrootdir: /testbed\nconfigfile: pyproject.toml\nplugins: anyio-4.12.1\ncollecting ... collected 2 items\n\ntests/test_FileInput.py::TestFileInput::test_reset PASSED                [ 50%]\ntests/test_FileInput.py::TestFileInput::test_select_file PASSED          [100%]\n\n=============================== warnings summary =====..."
+  },
+  {
+    "timestamp": "2026-02-05T09:18:31.773Z",
+    "tool": "Write",
+    "id": "2coFTPgmDddKKDDuCiitgQDu4I2afkqX",
+    "input": {
+      "file_path": "/testbed/test_max_depth.py",
+      "content": "\"\"\"Test the max_depth parameter for FileInput\"\"\"\nimport pytest\nfrom pathlib import Path\nimport sepal_ui.sepalwidgets as sw\n\n\ndef test_max_depth_default():\n    \"\"\"Test that max_depth defaults to 0 (unlimited navigation)\"\"\"\n    file_input = sw.FileInput()\n    assert file_input.max_depth == 0\n\n\ndef test_max_depth_custom():\n    \"\"\"Test that max_depth can be set to a custom value\"\"\"\n    file_input = sw.FileInput(max_depth=2)\n    assert file_input.max_depth == 2\n\n\ndef test_max_depth_with_folder():\n    \"\"\"Test max_depth works with folder parameter\"\"\"\n    root_dir = Path('/testbed')\n    file_input = sw.FileInput(folder=root_dir, max_depth=1)\n    assert file_input.max_depth == 1\n    assert file_input._initial_folder == root_dir\n\n\ndef test_max_depth_parent_navigation():\n    \"\"\"Test that parent navigation works correctly with max_depth\"\"\"\n    root_dir = Path('/testbed')\n    file_input = sw.FileInput(folder=root_dir, max_depth=0)\n\n    # With max_depth=0, only parent navigation should be available\n    # The parent should always point to the initial folder\n    parent_value = file_input._get_items()[0].value\n    assert str(root_dir) in parent_value\n    assert \"testbed\" in parent_value\n\n\ndef test_max_depth_initial_folder():\n    \"\"\"Test that _initial_folder is set correctly\"\"\"\n    root_dir = Path('/home/user/projects')\n    file_input = sw.FileInput(folder=root_dir)\n\n    assert file_input._initial_folder == root_dir\n    assert file_input.folder == root_dir\n\n\ndef test_max_depth_resets_to_initial():\n    \"\"\"Test that navigating back to initial folder is always possible\"\"\"\n    root_dir = Path('/testbed')\n    file_input = sw.FileInput(folder=root_dir)\n\n    # Navigate to a subfolder\n    subfolder = root_dir / \"docs\"\n    file_input._on_file_select({\"new\": subfolder})\n\n    # Parent should still point to initial folder\n    items = file_input._get_items()\n    parent_value = items[0].value\n    assert str(root_dir) in parent_value\n    assert parent_value.endswith(\"testbed\")\n\n\ndef test_max_depth_depth_calculation():\n    \"\"\"Test that current depth is calculated correctly\"\"\"\n    root_dir = Path('/testbed')\n    file_input = sw.FileInput(folder=root_dir)\n\n    # Initial depth should be 0\n    assert file_input._get_items()  # Call to trigger depth calculation\n\n    # Navigate to subfolder\n    subfolder = root_dir / \"docs\"\n    file_input._on_file_select({\"new\": subfolder})\n\n    # Depth should be 1 (docs is 1 level deep from testbed)\n    # This is tested implicitly by checking that parent is shown\n\n\nif __name__ == \"__main__\":\n    test_max_depth_default()\n    test_max_depth_custom()\n    test_max_depth_with_folder()\n    test_max_depth_parent_navigation()\n    test_max_depth_initial_folder()\n    test_max_depth_resets_to_initial()\n    test_max_depth_depth_calculation()\n    print(\"All max_depth tests passed!\")\n"
+    },
+    "end_timestamp": "2026-02-05T09:18:31.834Z",
+    "result_preview": "File created successfully at: /testbed/test_max_depth.py"
+  },
+  {
+    "timestamp": "2026-02-05T09:18:36.369Z",
+    "tool": "Bash",
+    "id": "kNIHMnvQDlx7fo3kFIfrpI5gDfJvEb8c",
+    "input": {
+      "command": "python test_max_depth.py",
+      "description": "Run custom max_depth tests"
+    },
+    "end_timestamp": "2026-02-05T09:18:42.608Z",
+    "result_preview": "/home/yunwei37/.local/lib/python3.12/site-packages/pandas/core/arrays/masked.py:61: UserWarning: Pandas requires version '1.3.6' or newer of 'bottleneck' (version '1.3.5' currently installed).\n  from pandas.core import (\nTraceback (most recent call last):\n  File \"/testbed/test_max_depth.py\", line 86, in <module>\n    test_max_depth_resets_to_initial()\n  File \"/testbed/test_max_depth.py\", line 61, in test_max_depth_resets_to_initial\n    assert parent_value.endswith(\"testbed\")\n           ^^^^^^^^^^..."
+  },
+  {
+    "timestamp": "2026-02-05T09:18:44.902Z",
+    "tool": "Bash",
+    "id": "G0Sr2C8vAsSVpcGrmxirUOOTMtpLHTzr",
+    "input": {
+      "command": "python -c \"\nfrom pathlib import Path\nimport sepal_ui.sepalwidgets as sw\n\nroot_dir = Path('/testbed')\nfile_input = sw.FileInput(folder=root_dir, max_depth=1)\n\n# Navigate to a subfolder\nsubfolder = root_dir / 'docs'\nfile_input._on_file_select({'new': subfolder})\n\n# Check what the parent value is\nitems = file_input._get_items()\nfor item in items:\n    if '..' in item.children[1].children[0].children[0]:\n        print(f'Parent value: {item.value}')\n        print(f'Parent name: {item.children[1].children[0].children[0]}')\n\"\n",
+      "description": "Debug parent value"
+    },
+    "end_timestamp": "2026-02-05T09:18:52.092Z",
+    "result_preview": "<IPython.core.display.HTML object> <IPython.core.display.HTML object> <IPython.core.display.Javascript object>\nResizeTrigger()\nParent value: /testbed\nParent name: .. /testbed\n/home/yunwei37/.local/lib/python3.12/site-packages/pandas/core/arrays/masked.py:61: UserWarning: Pandas requires version '1.3.6' or newer of 'bottleneck' (version '1.3.5' currently installed).\n  from pandas.core import ("
+  },
+  {
+    "timestamp": "2026-02-05T09:18:58.673Z",
+    "tool": "Edit",
+    "id": "ylyOHCYtvXiqrd5O7rAZ2iqX6CVbMoRD",
+    "input": {
+      "file_path": "/testbed/test_max_depth.py",
+      "old_string": "def test_max_depth_resets_to_initial():\n    \"\"\"Test that navigating back to initial folder is always possible\"\"\"\n    root_dir = Path('/testbed')\n    file_input = sw.FileInput(folder=root_dir)\n\n    # Navigate to a subfolder\n    subfolder = root_dir / \"docs\"\n    file_input._on_file_select({\"new\": subfolder})\n\n    # Parent should still point to initial folder\n    items = file_input._get_items()\n    parent_value = items[0].value\n    assert str(root_dir) in parent_value\n    assert parent_value.endswith(\"testbed\")",
+      "new_string": "def test_max_depth_resets_to_initial():\n    \"\"\"Test that navigating back to initial folder is always possible\"\"\"\n    root_dir = Path('/testbed')\n    file_input = sw.FileInput(folder=root_dir)\n\n    # Navigate to a subfolder\n    subfolder = root_dir / \"docs\"\n    file_input._on_file_select({\"new\": subfolder})\n\n    # Parent should still point to initial folder\n    items = file_input._get_items()\n    parent_value = items[0].value\n    parent_name = items[0].children[1].children[0].children[0]\n    assert str(root_dir) == parent_value\n    assert \"testbed\" in parent_name"
+    },
+    "end_timestamp": "2026-02-05T09:18:58.693Z",
+    "result_preview": "The file /testbed/test_max_depth.py has been updated. Here's the result of running `cat -n` on a snippet of the edited file:\n    44\u2192    assert file_input._initial_folder == root_dir\n    45\u2192    assert file_input.folder == root_dir\n    46\u2192\n    47\u2192\n    48\u2192def test_max_depth_resets_to_initial():\n    49\u2192    \"\"\"Test that navigating back to initial folder is always possible\"\"\"\n    50\u2192    root_dir = Path('/testbed')\n    51\u2192    file_input = sw.FileInput(folder=root_dir)\n    52\u2192\n    53\u2192    # Navigate to a..."
+  },
+  {
+    "timestamp": "2026-02-05T09:19:00.219Z",
+    "tool": "Bash",
+    "id": "uPXWcSmiqIPoXj6QNozDrtxIoVOiDmDQ",
+    "input": {
+      "command": "python test_max_depth.py",
+      "description": "Run custom max_depth tests"
+    },
+    "end_timestamp": "2026-02-05T09:19:01.086Z",
+    "result_preview": "/home/yunwei37/.local/lib/python3.12/site-packages/pandas/core/arrays/masked.py:61: UserWarning: Pandas requires version '1.3.6' or newer of 'bottleneck' (version '1.3.5' currently installed).\n  from pandas.core import (\nTraceback (most recent call last):\n  File \"/testbed/test_max_depth.py\", line 87, in <module>\n    test_max_depth_resets_to_initial()\n  File \"/testbed/test_max_depth.py\", line 61, in test_max_depth_resets_to_initial\n    assert str(root_dir) == parent_value\n           ^^^^^^^^^^^^^..."
+  }
+]

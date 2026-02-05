@@ -1,0 +1,104 @@
+
+=== GIT DIFF ===
+diff --git a/sepal_ui/sepalwidgets/inputs.py b/sepal_ui/sepalwidgets/inputs.py
+index 04e69553..616dc8d5 100644
+--- a/sepal_ui/sepalwidgets/inputs.py
++++ b/sepal_ui/sepalwidgets/inputs.py
+@@ -184,6 +184,9 @@ class FileInput(v.Flex, SepalWidget):
+     folder: Path = Path.home()
+     "the current folder"
+ 
++    max_depth: int = 0
++    "maximum depth from starting folder, 0 means only parent navigation"
++
+     file: t.Unicode = t.Unicode("").tag(sync=True)
+     "the current file"
+ 
+@@ -211,10 +214,14 @@ class FileInput(v.Flex, SepalWidget):
+     ICON_STYLE: dict = json.loads((ss.JSON_DIR / "file_icons.json").read_text())
+     "the style applied to the icons in the file menu"
+ 
++    _initial_folder: Optional[Path] = None
++    "the initial starting folder (for parent navigation)"
++
+     def __init__(
+         self,
+         extentions: List[str] = [],
+         folder: Union[str, Path] = Path.home(),
++        max_depth: int = 0,
+         label: str = ms.widgets.fileinput.label,
+         v_model: Union[str, None] = "",
+         clearable: bool = False,
+@@ -226,6 +233,7 @@ class FileInput(v.Flex, SepalWidget):
+         Args:
+             extentions: the list of the allowed extentions. the FileInput will only display these extention and folders
+             folder: the starting folder of the file input
++            max_depth: maximum depth from starting folder, 0 means unlimited navigation
+             label: the label of the input
+             v_model: the default value
+             clearable: wether or not to make the widget clearable. default to False
+@@ -233,6 +241,8 @@ class FileInput(v.Flex, SepalWidget):
+         """
+         self.extentions = extentions
+         self.folder = Path(folder)
++        self._initial_folder = Path(folder)
++        self.max_depth = max_depth
+ 
+         self.selected_file = v.TextField(
+             readonly=True,
+@@ -404,9 +414,8 @@ class FileInput(v.Flex, SepalWidget):
+         list_dir = [el for el in folder.glob("*/") if not el.name.startswith(".")]
+ 
+         if self.extentions:
+-            list_dir = [
+-                el for el in list_dir if el.is_dir() or el.suffix in self.extentions
+-            ]
++            # Filter to only show directories and files with matching extensions
++            list_dir = [el for el in list_dir if el.is_dir() or el.suffix in self.extentions]
+ 
+         folder_list = []
+         file_list = []
+@@ -442,8 +451,20 @@ class FileInput(v.Flex, SepalWidget):
+         folder_list = humansorted(folder_list, key=lambda x: x.value)
+         file_list = humansorted(file_list, key=lambda x: x.value)
+ 
++        # Calculate current depth from initial folder
++        current_depth = 0
++        try:
++            relative = folder.relative_to(self._initial_folder)
++            current_depth = len(relative.parts)
++        except ValueError:
++            # folder is not relative to initial folder
++            pass
++
++        # Filter out parent items that would exceed max_depth
++        # max_depth=0 means only parent navigation (no subdirectories)
++        # max_depth>0 means unlimited navigation from initial folder
+         parent_item = v.ListItem(
+-            value=str(folder.parent),
++            value=str(self._initial_folder),
+             children=[
+                 v.ListItemAction(
+                     children=[
+@@ -454,13 +475,17 @@ class FileInput(v.Flex, SepalWidget):
+                     ]
+                 ),
+                 v.ListItemContent(
+-                    children=[v.ListItemTitle(children=[f".. /{folder.parent.stem}"])]
++                    children=[v.ListItemTitle(children=[f".. /{self._initial_folder.name}"])]
+                 ),
+             ],
+         )
+ 
++        # Always add the initial folder as parent (to navigate back to start)
++        # unless current depth exceeds max_depth
++        if current_depth <= self.max_depth:
++            folder_list.insert(0, parent_item)
++
+         folder_list.extend(file_list)
+-        folder_list.insert(0, parent_item)
+ 
+         return folder_list
+ 
+=== DISK USAGE ===
+232	/testbed

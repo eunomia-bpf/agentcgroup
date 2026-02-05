@@ -1,0 +1,126 @@
+## Summary
+
+The issue has been fixed. The `Alert` class now allows developers to set the `total` parameter only once, and subsequent calls to `update_progress()` will reuse it.
+
+### Changes Made:
+
+1. **Added instance variable `_total`** (sepal_ui/sepalwidgets/alert.py:75) - Stores the total value for reuse across multiple `update_progress()` calls
+
+2. **Modified `update_progress()` logic** (sepal_ui/sepalwidgets/alert.py:117-163) - Now uses the stored `total` if not explicitly provided in `tqdm_args`
+
+3. **Enhanced `reset()` method** (sepal_ui/sepalwidgets/alert.py:251) - Now also resets the progress bar, output, and total for clean state
+
+4. **Added test case** (tests/test_sepalwidgets/test_Alert.py:182-188) - Verifies that `total` can be set once and reused without errors
+
+### How It Works:
+
+```python
+alert = sw.Alert()
+
+# Set total only once
+alert.update_progress(0, "toto", total=10)
+
+# Subsequent calls don't need total
+for i in range(10):
+    alert.update_progress(i)
+```
+
+All 7 tests pass successfully.
+=== GIT DIFF ===
+diff --git a/sepal_ui/sepalwidgets/alert.py b/sepal_ui/sepalwidgets/alert.py
+index 19718f51..2304ae23 100644
+--- a/sepal_ui/sepalwidgets/alert.py
++++ b/sepal_ui/sepalwidgets/alert.py
+@@ -72,6 +72,9 @@ class Alert(v.Alert, SepalWidget):
+     progress_output: Optional[Output] = None
+     "the output object where the progress bar is stored"
+ 
++    _total: Optional[float] = None
++    "the total value of the progress bar"
++
+     def __init__(self, type_: str = "info", **kwargs) -> None:
+         r"""A custom Alert widget.
+ 
+@@ -114,19 +117,27 @@ class Alert(v.Alert, SepalWidget):
+         self.show()
+ 
+         # cast the progress to float
+-        total = tqdm_args.get("total", 1)
++        # If total is provided in tqdm_args, use it; otherwise use the stored total or 1
++        total = tqdm_args.get("total")
++        if total is None:
++            total = self._total if self._total is not None else 1
+         progress = float(progress)
+         if not (0 <= progress <= total):
+             raise ValueError(f"progress should be in [0, {total}], {progress} given")
+ 
+         # Prevent adding multiple times
+-        if self.progress_output not in self.children:
++        if self.progress_output is None or self.progress_output not in self.children:
++
++            if self.progress_output is None:
++                self.progress_output = Output()
+ 
+             self.children = [self.progress_output]
+ 
++            # Set tqdm arguments
+             tqdm_args.setdefault("bar_format", "{l_bar}{bar}{n_fmt}/{total_fmt}")
+             tqdm_args.setdefault("dynamic_ncols", False)
+-            tqdm_args.setdefault("total", 1)
++            # Use the actual total, not just the stored one
++            tqdm_args.setdefault("total", total)
+             tqdm_args.setdefault("desc", msg)
+             tqdm_args.setdefault("colour", getattr(color, self.type))
+ 
+@@ -139,10 +150,21 @@ class Alert(v.Alert, SepalWidget):
+                 # Initialize bar
+                 self.progress_bar.update(0)
+ 
+-        self.progress_bar.update(progress - self.progress_bar.n)
++            # Store the total for future calls
++            self._total = total
++
++        elif self._total is not None and total != self._total:
++            # If progress bar exists and total was already set, update it
++            self._total = total
++
++        update_value = progress - self.progress_bar.n
++        # tqdm.update(0) is a no-op, so we need to handle it specially
++        if update_value != 0 or progress == total:
++            self.progress_bar.update(update_value)
+ 
+         if progress == total:
+             self.progress_bar.close()
++            self._total = None
+ 
+         return
+ 
+@@ -226,6 +248,9 @@ class Alert(v.Alert, SepalWidget):
+         """Empty the messages and hide it."""
+         self.children = [""]
+         self.hide()
++        self.progress_bar = None
++        self.progress_output = None
++        self._total = None
+ 
+         return self
+ 
+diff --git a/tests/test_sepalwidgets/test_Alert.py b/tests/test_sepalwidgets/test_Alert.py
+index 3f8de9a4..030a140f 100644
+--- a/tests/test_sepalwidgets/test_Alert.py
++++ b/tests/test_sepalwidgets/test_Alert.py
+@@ -179,4 +179,12 @@ def test_update_progress() -> None:
+     assert alert.progress_bar.n == 50
+     assert alert.viz is True
+ 
++    # test that total can be set once and reused
++    alert.reset()
++    alert.update_progress(0, "test", total=10)
++    for i in range(11):
++        alert.update_progress(i)
++    assert alert.progress_bar.n == 10
++    assert alert.viz is True
++
+     return
+=== DISK USAGE ===
+233	/testbed

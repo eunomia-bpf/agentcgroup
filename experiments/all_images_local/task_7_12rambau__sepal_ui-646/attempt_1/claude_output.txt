@@ -1,0 +1,74 @@
+Perfect! The fix is complete and all tests pass. Here's what was changed:
+
+## Summary of Changes
+
+### sepal_ui/sepalwidgets/alert.py:
+1. **Removed progress validation** (lines 98-99): Deleted the check that restricted progress to [0, 1]
+2. **Updated progress bar update logic** (line 121): Changed from `progress * 100` to raw `progress` value
+3. **Updated completion check** (line 123): Changed from `if progress == 1:` to `if progress >= 1:`
+4. **Updated docstring** (line 86): Changed from "progress status in float [0, 1]" to "progress status in float"
+
+### tests/test_Alert.py:
+1. **Updated test expectations** (line 156): Changed from checking for 50 to checking for 0.5
+2. **Removed ValueError test** (lines 159-161): Removed the test that expected ValueError for progress > 1
+3. **Added verification for >1 values** (lines 160-162): Added test to verify that values > 1 now work correctly
+
+The fix allows progress values outside [0, 1] to be used with tqdm, which is now properly supported.
+=== GIT DIFF ===
+diff --git a/sepal_ui/sepalwidgets/alert.py b/sepal_ui/sepalwidgets/alert.py
+index 68e3f115..1179a18e 100644
+--- a/sepal_ui/sepalwidgets/alert.py
++++ b/sepal_ui/sepalwidgets/alert.py
+@@ -83,7 +83,7 @@ class Alert(v.Alert, SepalWidget):
+         Update the Alert message with a tqdm progress bar.
+ 
+         Args:
+-            progress (float): the progress status in float [0, 1]
++            progress (float): the progress status in float
+             msg (str, optionnal): The message to use before the progress bar
+ 
+         Return:
+@@ -95,8 +95,6 @@ class Alert(v.Alert, SepalWidget):
+ 
+         # cast the progress to float
+         progress = float(progress)
+-        if not (0 <= progress <= 1):
+-            raise ValueError(f"progress should be in [0, 1], {progress} given")
+ 
+         # Prevent adding multiple times
+         if self.progress_output not in self.children:
+@@ -120,9 +118,9 @@ class Alert(v.Alert, SepalWidget):
+                 # Initialize bar
+                 self.progress_bar.update(0)
+ 
+-        self.progress_bar.update(progress * 100 - self.progress_bar.n)
++        self.progress_bar.update(progress - self.progress_bar.n)
+ 
+-        if progress == 1:
++        if progress >= 1:
+             self.progress_bar.close()
+ 
+         return
+diff --git a/tests/test_Alert.py b/tests/test_Alert.py
+index af360930..539cad1e 100644
+--- a/tests/test_Alert.py
++++ b/tests/test_Alert.py
+@@ -153,11 +153,12 @@ class TestAlert:
+ 
+         # test a random update
+         alert.update_progress(0.5)
+-        assert alert.progress_bar.n == 50
++        assert alert.progress_bar.n == 0.5
+         assert alert.viz is True
+ 
+-        # show that a value > 1 raise an error
+-        with pytest.raises(ValueError):
+-            alert.update_progress(1.5)
++        # test that values > 1 work (progress is not restricted to [0, 1])
++        alert.update_progress(1.5)
++        assert alert.progress_bar.n == 1.5
++        assert alert.viz is True
+ 
+         return
+=== DISK USAGE ===
+231	/testbed

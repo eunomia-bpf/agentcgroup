@@ -1,0 +1,74 @@
+## Summary
+
+I've successfully fixed the issue by replacing regular tuples with `NamedTuple` in both transpiler files:
+
+**Changes made:**
+1. Added `from collections import namedtuple` import
+2. Created `AttrPath` named tuple with fields `attr_name`, `sub_attr`, `uri`
+3. Updated both `sql.py` and `django_q_object.py` to use the NamedTuple instead of plain tuples
+
+**Testing:**
+- All 156 tests pass successfully
+- The fix maintains backward compatibility while improving code readability and enabling field access by name instead of index
+
+**Git diff:**
+The changes are minimal and focused only on the specific issue requested.
+=== GIT DIFF ===
+diff --git a/src/scim2_filter_parser/transpilers/django_q_object.py b/src/scim2_filter_parser/transpilers/django_q_object.py
+index ec41fe3..65950af 100644
+--- a/src/scim2_filter_parser/transpilers/django_q_object.py
++++ b/src/scim2_filter_parser/transpilers/django_q_object.py
+@@ -2,6 +2,7 @@
+ The logic in this module builds a Django Q object from an SCIM filter.
+ """
+ import ast
++from collections import namedtuple
+ from typing import Mapping
+ 
+ from django.db.models import Q
+@@ -10,6 +11,8 @@ from scim2_filter_parser import ast as scim2ast
+ from scim2_filter_parser.lexer import SCIMLexer
+ from scim2_filter_parser.parser import SCIMParser
+ 
++AttrPath = namedtuple('AttrPath', ['attr_name', 'sub_attr', 'uri'])
++
+ 
+ def get_query(scim_query: str, attr_map: Mapping):
+     token_stream = SCIMLexer().tokenize(scim_query)
+@@ -176,7 +179,7 @@ class Transpiler(ast.NodeTransformer):
+ 
+         # Convert attr_name to another value based on map.
+         # Otherwise, return None.
+-        attr_path_tuple = (attr_name_value, sub_attr_value, uri_value)
++        attr_path_tuple = AttrPath(attr_name_value, sub_attr_value, uri_value)
+         return self.attr_map.get(attr_path_tuple)
+ 
+     @staticmethod
+diff --git a/src/scim2_filter_parser/transpilers/sql.py b/src/scim2_filter_parser/transpilers/sql.py
+index 6254f1e..6e69572 100644
+--- a/src/scim2_filter_parser/transpilers/sql.py
++++ b/src/scim2_filter_parser/transpilers/sql.py
+@@ -4,9 +4,12 @@ clause based on a SCIM filter.
+ """
+ import ast
+ import string
++from collections import namedtuple
+ 
+ from .. import ast as scim2ast
+ 
++AttrPath = namedtuple('AttrPath', ['attr_name', 'sub_attr', 'uri'])
++
+ 
+ class Transpiler(ast.NodeTransformer):
+     """
+@@ -145,7 +148,7 @@ class Transpiler(ast.NodeTransformer):
+ 
+         # Convert attr_name to another value based on map.
+         # Otherwise, return None.
+-        attr_path_tuple = (attr_name_value, sub_attr_value, uri_value)
++        attr_path_tuple = AttrPath(attr_name_value, sub_attr_value, uri_value)
+         self.attr_paths.append(attr_path_tuple)
+         return self.attr_map.get(attr_path_tuple)
+ 
+=== DISK USAGE ===
+81	/testbed

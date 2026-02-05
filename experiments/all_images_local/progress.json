@@ -2,7 +2,48 @@
   "completed": [
     "0b01001001__spectree-64",
     "12rambau__sepal_ui-411",
-    "12rambau__sepal_ui-501"
+    "12rambau__sepal_ui-501",
+    "12rambau__sepal_ui-516",
+    "12rambau__sepal_ui-518",
+    "12rambau__sepal_ui-574",
+    "12rambau__sepal_ui-646",
+    "12rambau__sepal_ui-747",
+    "12rambau__sepal_ui-774",
+    "12rambau__sepal_ui-814",
+    "15five__scim2-filter-parser-13",
+    "15five__scim2-filter-parser-20",
+    "20c__ctl-3",
+    "3YOURMIND__django-migration-linter-113",
+    "3YOURMIND__django-migration-linter-258",
+    "4degrees__clique-26",
+    "AI4S2S__lilio-49",
+    "AI4S2S__lilio-58",
+    "ARMmbed__greentea-263",
+    "ARMmbed__mbed-tools-138",
+    "ARMmbed__mbed-tools-190",
+    "ARMmbed__mbed-tools-207",
+    "ARMmbed__mbed-tools-208",
+    "ARMmbed__mbed-tools-259",
+    "ARMmbed__mbed-tools-285",
+    "ARMmbed__mbed-tools-292",
+    "ARMmbed__mbed-tools-293",
+    "ARMmbed__mbed-tools-91",
+    "ARMmbed__yotta-804",
+    "ASFHyP3__hyp3-sdk-53",
+    "ASFHyP3__hyp3-sdk-71",
+    "ASPP__pelita-696",
+    "ASPP__pelita-798",
+    "ASPP__pelita-863",
+    "ASPP__pelita-875",
+    "Aarhus-Psychiatry-Research__timeseriesflattener-186",
+    "Abjad__abjad-ext-nauert-24",
+    "Alexei-Kornienko__schematics_to_swagger-7",
+    "Algebra8__pyopenapi3-80",
+    "Algebra8__pyopenapi3-83",
+    "Algebra8__pyopenapi3-91",
+    "Algebra8__pyopenapi3-92",
+    "All-Hands-AI__openhands-aci-55",
+    "All-Hands-AI__openhands-resolver-123"
   ],
   "results": {
     "0b01001001__spectree-64": {
@@ -11,14 +52,329 @@
       "total_time": 128.131694
     },
     "12rambau__sepal_ui-411": {
-      "success": false,
+      "success": true,
       "attempts": 1,
-      "total_time": 363.495498
+      "total_time": 751.28919
     },
     "12rambau__sepal_ui-501": {
       "success": true,
       "attempts": 1,
-      "total_time": 771.440568
+      "total_time": 1064.558004
+    },
+    "12rambau__sepal_ui-516": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 558.42083
+    },
+    "12rambau__sepal_ui-518": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 432.468956
+    },
+    "12rambau__sepal_ui-574": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 478.771056
+    },
+    "12rambau__sepal_ui-646": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 413.117994
+    },
+    "12rambau__sepal_ui-747": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 494.516424
+    },
+    "12rambau__sepal_ui-774": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 707.384257
+    },
+    "12rambau__sepal_ui-814": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 548.364386
+    },
+    "15five__scim2-filter-parser-13": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 445.233955
+    },
+    "15five__scim2-filter-parser-20": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 168.792005
+    },
+    "20c__ctl-3": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 616.350158
+    },
+    "3YOURMIND__django-migration-linter-113": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 542.017352
+    },
+    "3YOURMIND__django-migration-linter-258": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 506.540127
+    },
+    "4degrees__clique-26": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 606.492892
+    },
+    "AI4S2S__lilio-49": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 901.86187
+    },
+    "AI4S2S__lilio-58": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 639.292127
+    },
+    "ARMmbed__greentea-263": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 729.958281
+    },
+    "ARMmbed__mbed-tools-138": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 606.988627
+    },
+    "ARMmbed__mbed-tools-190": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 174.659074
+    },
+    "ARMmbed__mbed-tools-207": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 659.189172
+    },
+    "ARMmbed__mbed-tools-208": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 506.425227
+    },
+    "ARMmbed__mbed-tools-259": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 354.150225
+    },
+    "ARMmbed__mbed-tools-285": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 165.846215
+    },
+    "ARMmbed__mbed-tools-292": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 169.636667
+    },
+    "ARMmbed__mbed-tools-293": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 165.647922
+    },
+    "ARMmbed__mbed-tools-91": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 693.451418
+    },
+    "ARMmbed__yotta-804": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 520.597983
+    },
+    "ASFHyP3__hyp3-sdk-53": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 331.883251
+    },
+    "ASFHyP3__hyp3-sdk-71": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 324.629022
+    },
+    "ASPP__pelita-696": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 179.893287
+    },
+    "ASPP__pelita-798": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 771.313871
+    },
+    "ASPP__pelita-863": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 642.290789
+    },
+    "ASPP__pelita-875": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 407.100867
+    },
+    "Aarhus-Psychiatry-Research__timeseriesflattener-186": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 1030.387997
+    },
+    "Abjad__abjad-ext-nauert-24": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 1265.542448
+    },
+    "Alexei-Kornienko__schematics_to_swagger-7": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 160.535921
+    },
+    "Algebra8__pyopenapi3-80": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 1096.222729
+    },
+    "Algebra8__pyopenapi3-83": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 683.975851
+    },
+    "Algebra8__pyopenapi3-91": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 1487.447407
+    },
+    "Algebra8__pyopenapi3-92": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 711.714602
+    },
+    "All-Hands-AI__openhands-aci-55": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 513.520743
+    },
+    "All-Hands-AI__openhands-resolver-123": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 481.073674
+    },
+    "All-Hands-AI__openhands-resolver-137": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 687.229889
+    },
+    "ApptuitAI__apptuit-py-10": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 376.114604
+    },
+    "ApptuitAI__apptuit-py-21": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 356.503445
+    },
+    "ArkEcosystem__python-crypto-116": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 350.877053
+    },
+    "AspenWeb__pando.py-586": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 353.024396
+    },
+    "AzureAD__azure-activedirectory-library-for-python-227": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 338.859704
+    },
+    "AzureAD__microsoft-authentication-library-for-python-186": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 373.689903
+    },
+    "AzureAD__microsoft-authentication-library-for-python-280": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 354.702551
+    },
+    "AzureAD__microsoft-authentication-library-for-python-315": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 371.384153
+    },
+    "AzureAD__microsoft-authentication-library-for-python-530": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 358.927904
+    },
+    "AzureAD__microsoft-authentication-library-for-python-723": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 360.967903
+    },
+    "AzureAD__microsoft-authentication-library-for-python-730": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 380.524294
+    },
+    "AzureAD__microsoft-authentication-library-for-python-77": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 346.892908
+    },
+    "AzureAD__microsoft-authentication-library-for-python-795": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 359.290569
+    },
+    "Azure__autorest.python-475": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 380.611276
+    },
+    "Azure__autorest.python-545": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 402.345242
+    },
+    "Azure__azure-cli-1876": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 432.05993
+    },
+    "Azure__azure-cli-2053": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 416.46954
+    },
+    "Azure__azure-cli-2214": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 396.307023
+    },
+    "Azure__azure-cli-2467": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 410.868895
+    },
+    "Azure__azure-cli-2844": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 427.850848
+    },
+    "Azure__azure-cli-2955": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 424.373511
     }
   }
 }

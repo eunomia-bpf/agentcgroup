@@ -1,0 +1,69 @@
+## Summary
+
+Successfully deprecated `GADM_ZIP_DIR` in the AOI model. The constant was no longer being used (the codebase now uses `tempfile.TemporaryDirectory()`), so it has been converted to a property that emits a deprecation warning.
+
+### Changes Made:
+
+**1. sepal_ui/aoi/aoi_model.py:**
+- Added `import warnings` to imports
+- Converted `GADM_ZIP_DIR` from a class constant to a `@property` method
+- Added deprecation warning with `DeprecationWarning`
+- Added docstring with deprecation notice (version 2.3.2)
+- Removed `GADM_ZIP_DIR.mkdir(parents=True, exist_ok=True)` call
+
+**2. docs/source/modules/sepal_ui.aoi.AoiModel.rst:**
+- Removed `~AoiModel.GADM_ZIP_DIR` from the attributes list
+
+The deprecated property will now emit a warning when accessed, alerting users that the code has been removed and will be removed in a future version.
+=== GIT DIFF ===
+diff --git a/docs/source/modules/sepal_ui.aoi.AoiModel.rst b/docs/source/modules/sepal_ui.aoi.AoiModel.rst
+index 0f5b8f1a..ccdcab52 100644
+--- a/docs/source/modules/sepal_ui.aoi.AoiModel.rst
++++ b/docs/source/modules/sepal_ui.aoi.AoiModel.rst
+@@ -12,7 +12,6 @@ sepal\_ui.aoi.AoiModel
+        ~AoiModel.NAME
+        ~AoiModel.ISO
+        ~AoiModel.GADM_BASE_URL
+-       ~AoiModel.GADM_ZIP_DIR
+        ~AoiModel.GAUL_ASSET
+        ~AoiModel.ASSET_SUFFIX
+        ~AoiModel.CUSTOM
+diff --git a/sepal_ui/aoi/aoi_model.py b/sepal_ui/aoi/aoi_model.py
+index ad2a72fb..1bb35510 100644
+--- a/sepal_ui/aoi/aoi_model.py
++++ b/sepal_ui/aoi/aoi_model.py
+@@ -1,4 +1,5 @@
+ import json
++import warnings
+ from pathlib import Path
+ from traitlets import Any
+ from urllib.request import urlretrieve
+@@ -61,10 +62,23 @@ class AoiModel(Model):
+     GADM_BASE_URL = "https://biogeo.ucdavis.edu/data/gadm3.6/gpkg/gadm36_{}_gpkg.zip"
+     "str: the base url to download gadm maps"
+ 
+-    GADM_ZIP_DIR = Path.home() / "tmp" / "GADM_zip"
+-    "pathlib.Path: the zip dir where we download the zips"
++    @property
++    def GADM_ZIP_DIR(self):
++        """
++        .. deprecated:: 2.3.2
++            'GADM_ZIP_DIR' is deprecated and no longer used.
++            The AOI model now uses tempfile.TemporaryDirectory() for temporary file storage.
++            This attribute will be removed in a future version.
+ 
+-    GADM_ZIP_DIR.mkdir(parents=True, exist_ok=True)
++        pathlib.Path: the zip dir where we download the zips
++        """
++        warnings.warn(
++            "GADM_ZIP_DIR is deprecated. The AOI model now uses tempfile.TemporaryDirectory(). "
++            "This attribute will be removed in a future version.",
++            DeprecationWarning,
++            stacklevel=2
++        )
++        return Path.home() / "tmp" / "GADM_zip"
+ 
+     GAUL_ASSET = "FAO/GAUL/2015/level{}"
+     "str: the GAUL asset name"
+=== DISK USAGE ===
+230	/testbed

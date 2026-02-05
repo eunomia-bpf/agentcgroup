@@ -1,0 +1,157 @@
+Perfect! All tests are passing. Here's the final git diff showing the changes:
+
+```diff
+diff --git a/sepal_ui/mapping/map_btn.py b/sepal_ui/mapping/map_btn.py
+index ab55e1c8..3442e96e 100644
+--- a/sepal_ui/mapping/map_btn.py
++++ b/sepal_ui/mapping/map_btn.py
+@@ -8,25 +8,36 @@ class MapBtn(v.Btn, sw.SepalWidget):
+     """
+     Btn specifically design to be displayed on a map. It matches all the characteristics of
+     the classic leaflet btn but as they are from ipyvuetify we can use them in combination with Menu to produce on-the-map. The MapBtn is responsive to theme changes.
+-    Tiles. It only accept icon as children as the space is very limited.
++    Tiles. It can accept icon or text as children as the space is very limited.
+ 
+     Args:
+-        logo (str): a fas/mdi fully qualified name
++        logo (str): a fas/mdi fully qualified name for icons or a 3-letter uppercase string for text
+     """
+ 
+     logo = None
+-    "(sw.Icon): a sw.Icon"
++    text = None
++    "(sw.Icon or str): a sw.Icon or text string"
+ 
+     def __init__(self, logo, **kwargs):
+ 
+-        # create the icon
+-        self.logo = sw.Icon(small=True, children=[logo])
++        # validate input
++        if len(logo) == 3 and logo.isupper():
++            # use text
++            self.text = logo
++            kwargs["text"] = True
++        else:
++            # use icon
++            self.logo = sw.Icon(small=True, children=[logo])
+ 
+         # some parameters are overloaded to match the map requirements
+         kwargs["color"] = "text-color"
+         kwargs["outlined"] = True
+         kwargs["style_"] = " ".join([f"{k}: {v};" for k, v in map_btn_style.items()])
+-        kwargs["children"] = [self.logo]
+         kwargs["icon"] = False
+ 
++        if self.text:
++            kwargs["children"] = self.text
++        else:
++            kwargs["children"] = [self.logo]
++
+         super().__init__(**kwargs)
+diff --git a/tests/test_MapBtn.py b/tests/test_MapBtn.py
+index 0dd605b8..2e6f55b8 100644
+--- a/tests/test_MapBtn.py
++++ b/tests/test_MapBtn.py
+@@ -2,10 +2,22 @@ from sepal_ui import mapping as sm
+ 
+ 
+ class TestMapBtn:
+-    def test_map_btn(self):
++    def test_map_btn_icon(self):
+ 
+         map_btn = sm.MapBtn("fas fa-folder")
+ 
+         assert isinstance(map_btn, sm.MapBtn)
++        assert map_btn.logo is not None
++        assert map_btn.text is None
+ 
+         return
+ 
++    def test_map_btn_text(self):
++
++        map_btn = sm.MapBtn("ABC")
++
++        assert isinstance(map_btn, sm.MapBtn)
++        assert map_btn.logo is None
++        assert map_btn.text == "ABC"
+ 
+         return
+```
+=== GIT DIFF ===
+diff --git a/sepal_ui/mapping/map_btn.py b/sepal_ui/mapping/map_btn.py
+index ab55e1c8..3442e96e 100644
+--- a/sepal_ui/mapping/map_btn.py
++++ b/sepal_ui/mapping/map_btn.py
+@@ -8,25 +8,36 @@ class MapBtn(v.Btn, sw.SepalWidget):
+     """
+     Btn specifically design to be displayed on a map. It matches all the characteristics of
+     the classic leaflet btn but as they are from ipyvuetify we can use them in combination with Menu to produce on-the-map. The MapBtn is responsive to theme changes.
+-    Tiles. It only accept icon as children as the space is very limited.
++    Tiles. It can accept icon or text as children as the space is very limited.
+ 
+     Args:
+-        logo (str): a fas/mdi fully qualified name
++        logo (str): a fas/mdi fully qualified name for icons or a 3-letter uppercase string for text
+     """
+ 
+     logo = None
+-    "(sw.Icon): a sw.Icon"
++    text = None
++    "(sw.Icon or str): a sw.Icon or text string"
+ 
+     def __init__(self, logo, **kwargs):
+ 
+-        # create the icon
+-        self.logo = sw.Icon(small=True, children=[logo])
++        # validate input
++        if len(logo) == 3 and logo.isupper():
++            # use text
++            self.text = logo
++            kwargs["text"] = True
++        else:
++            # use icon
++            self.logo = sw.Icon(small=True, children=[logo])
+ 
+         # some parameters are overloaded to match the map requirements
+         kwargs["color"] = "text-color"
+         kwargs["outlined"] = True
+         kwargs["style_"] = " ".join([f"{k}: {v};" for k, v in map_btn_style.items()])
+-        kwargs["children"] = [self.logo]
+         kwargs["icon"] = False
+ 
++        if self.text:
++            kwargs["children"] = self.text
++        else:
++            kwargs["children"] = [self.logo]
++
+         super().__init__(**kwargs)
+diff --git a/tests/test_MapBtn.py b/tests/test_MapBtn.py
+index 0dd605b8..2e6f55b8 100644
+--- a/tests/test_MapBtn.py
++++ b/tests/test_MapBtn.py
+@@ -2,10 +2,22 @@ from sepal_ui import mapping as sm
+ 
+ 
+ class TestMapBtn:
+-    def test_map_btn(self):
++    def test_map_btn_icon(self):
+ 
+         map_btn = sm.MapBtn("fas fa-folder")
+ 
+         assert isinstance(map_btn, sm.MapBtn)
++        assert map_btn.logo is not None
++        assert map_btn.text is None
++
++        return
++
++    def test_map_btn_text(self):
++
++        map_btn = sm.MapBtn("ABC")
++
++        assert isinstance(map_btn, sm.MapBtn)
++        assert map_btn.logo is None
++        assert map_btn.text == "ABC"
+ 
+         return
+=== DISK USAGE ===
+229	/testbed
