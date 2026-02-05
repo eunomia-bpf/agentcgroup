@@ -67,7 +67,13 @@
     "Azure__azure-cli-2844",
     "Azure__azure-cli-2955",
     "Azure__azure-cli-3354",
-    "Azure__azure-cli-3643"
+    "Azure__azure-cli-3643",
+    "Azure__azure-cli-3743",
+    "Azure__azure-cli-4265",
+    "Azure__azure-functions-durable-python-494",
+    "Azure__iotedgedev-173",
+    "Azure__iotedgedev-349",
+    "Azure__msrest-for-python-167"
   ],
   "results": {
     "0b01001001__spectree-64": {
@@ -409,6 +415,36 @@
       "success": false,
       "attempts": 1,
       "total_time": 523.488295
+    },
+    "Azure__azure-cli-3743": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 866.270706
+    },
+    "Azure__azure-cli-4265": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 316.13947
+    },
+    "Azure__azure-functions-durable-python-494": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 369.872384
+    },
+    "Azure__iotedgedev-173": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 485.183976
+    },
+    "Azure__iotedgedev-349": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 517.003941
+    },
+    "Azure__msrest-for-python-167": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 387.445671
     }
   }
 }
