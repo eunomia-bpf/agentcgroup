@@ -2,18 +2,20 @@
 """
 Batch SWE-bench Test Runner
 
-Runs 18 sample tasks (6 categories x 3 difficulties) with:
+Runs 36 sample tasks (6 categories x 3 difficulties x 2 tasks each) with:
 - No resource limits
 - Full fix + test cycle prompt
 - Retry mechanism
 - Complete data collection
 
 Usage:
-    python scripts/batch_test_swebench.py                    # Run all 18 tasks
-    python scripts/batch_test_swebench.py --task "SQL/Data,Easy"  # Run single task
+    python scripts/batch_test_swebench.py                    # Run all 36 tasks
+    python scripts/batch_test_swebench.py --task "SQL/Data,Easy,1"  # Run single task
     python scripts/batch_test_swebench.py --category "SQL/Data"   # Run one category
     python scripts/batch_test_swebench.py --difficulty Easy       # Run one difficulty
     python scripts/batch_test_swebench.py --resume                # Resume from progress
+    python scripts/batch_test_swebench.py --model sonnet          # Use specific model
+    python scripts/batch_test_swebench.py --local-model qwen3     # Use local model
 """
 
 import argparse
@@ -28,108 +30,205 @@ from typing import Dict, List, Optional
 from run_swebench import SWEBenchRunner, ResourceMonitor
 from plot_resources import plot_from_attempt_dir
 
-# Sample tasks: 6 categories x 3 difficulties = 18 tasks
+# Sample tasks: 6 categories x 3 difficulties x 2 tasks = 36 tasks
+# Key format: (category, difficulty, task_num)
 SAMPLE_TASKS = {
-    # SQL/Data
-    ('SQL/Data', 'Easy'): {
+    # SQL/Data - Task 1
+    ('SQL/Data', 'Easy', 1): {
         'instance_id': 'sqlfluff__sqlfluff-5362',
         'repo': 'sqlfluff/sqlfluff',
         'docker_image': 'swerebench/sweb.eval.x86_64.sqlfluff_1776_sqlfluff-5362',
     },
-    ('SQL/Data', 'Medium'): {
+    ('SQL/Data', 'Medium', 1): {
         'instance_id': 'tobymao__sqlglot-1177',
         'repo': 'tobymao/sqlglot',
         'docker_image': 'swerebench/sweb.eval.x86_64.tobymao_1776_sqlglot-1177',
     },
-    ('SQL/Data', 'Hard'): {
+    ('SQL/Data', 'Hard', 1): {
         'instance_id': 'reata__sqllineage-438',
         'repo': 'reata/sqllineage',
         'docker_image': 'swerebench/sweb.eval.x86_64.reata_1776_sqllineage-438',
     },
+    # SQL/Data - Task 2
+    ('SQL/Data', 'Easy', 2): {
+        'instance_id': 'sqlfluff__sqlfluff-4994',
+        'repo': 'sqlfluff/sqlfluff',
+        'docker_image': 'swerebench/sweb.eval.x86_64.sqlfluff_1776_sqlfluff-4994',
+    },
+    ('SQL/Data', 'Medium', 2): {
+        'instance_id': 'tobymao__sqlglot-2323',
+        'repo': 'tobymao/sqlglot',
+        'docker_image': 'swerebench/sweb.eval.x86_64.tobymao_1776_sqlglot-2323',
+    },
+    ('SQL/Data', 'Hard', 2): {
+        'instance_id': 'sqlfluff__sqlfluff-5593',
+        'repo': 'sqlfluff/sqlfluff',
+        'docker_image': 'swerebench/sweb.eval.x86_64.sqlfluff_1776_sqlfluff-5593',
+    },
 
-    # DevOps/Build
-    ('DevOps/Build', 'Easy'): {
+    # DevOps/Build - Task 1
+    ('DevOps/Build', 'Easy', 1): {
         'instance_id': 'pre-commit__pre-commit-2524',
         'repo': 'pre-commit/pre-commit',
         'docker_image': 'swerebench/sweb.eval.x86_64.pre-commit_1776_pre-commit-2524',
     },
-    ('DevOps/Build', 'Medium'): {
+    ('DevOps/Build', 'Medium', 1): {
         'instance_id': 'beeware__briefcase-1525',
         'repo': 'beeware/briefcase',
         'docker_image': 'swerebench/sweb.eval.x86_64.beeware_1776_briefcase-1525',
     },
-    ('DevOps/Build', 'Hard'): {
+    ('DevOps/Build', 'Hard', 1): {
         'instance_id': 'iterative__dvc-777',
         'repo': 'iterative/dvc',
         'docker_image': 'swerebench/sweb.eval.x86_64.iterative_1776_dvc-777',
     },
+    # DevOps/Build - Task 2
+    ('DevOps/Build', 'Easy', 2): {
+        'instance_id': 'pre-commit__pre-commit-3217',
+        'repo': 'pre-commit/pre-commit',
+        'docker_image': 'swerebench/sweb.eval.x86_64.pre-commit_1776_pre-commit-3217',
+    },
+    ('DevOps/Build', 'Medium', 2): {
+        'instance_id': 'beeware__briefcase-1298',
+        'repo': 'beeware/briefcase',
+        'docker_image': 'swerebench/sweb.eval.x86_64.beeware_1776_briefcase-1298',
+    },
+    ('DevOps/Build', 'Hard', 2): {
+        'instance_id': 'iterative__dvc-1765',
+        'repo': 'iterative/dvc',
+        'docker_image': 'swerebench/sweb.eval.x86_64.iterative_1776_dvc-1765',
+    },
 
-    # ML/Scientific
-    ('ML/Scientific', 'Easy'): {
+    # ML/Scientific - Task 1
+    ('ML/Scientific', 'Easy', 1): {
         'instance_id': 'dask__dask-5510',
         'repo': 'dask/dask',
         'docker_image': 'swerebench/sweb.eval.x86_64.dask_1776_dask-5510',
     },
-    ('ML/Scientific', 'Medium'): {
+    ('ML/Scientific', 'Medium', 1): {
         'instance_id': 'dask__dask-11628',
         'repo': 'dask/dask',
         'docker_image': 'swerebench/sweb.eval.x86_64.dask_1776_dask-11628',
     },
-    ('ML/Scientific', 'Hard'): {
+    ('ML/Scientific', 'Hard', 1): {
         'instance_id': 'numba__numba-5721',
         'repo': 'numba/numba',
         'docker_image': 'swerebench/sweb.eval.x86_64.numba_1776_numba-5721',
     },
+    # ML/Scientific - Task 2
+    ('ML/Scientific', 'Easy', 2): {
+        'instance_id': 'dask__dask-6818',
+        'repo': 'dask/dask',
+        'docker_image': 'swerebench/sweb.eval.x86_64.dask_1776_dask-6818',
+    },
+    ('ML/Scientific', 'Medium', 2): {
+        'instance_id': 'dask__dask-8578',
+        'repo': 'dask/dask',
+        'docker_image': 'swerebench/sweb.eval.x86_64.dask_1776_dask-8578',
+    },
+    ('ML/Scientific', 'Hard', 2): {
+        'instance_id': 'numba__numba-8548',
+        'repo': 'numba/numba',
+        'docker_image': 'swerebench/sweb.eval.x86_64.numba_1776_numba-8548',
+    },
 
-    # Web/Network
-    ('Web/Network', 'Easy'): {
+    # Web/Network - Task 1
+    ('Web/Network', 'Easy', 1): {
         'instance_id': 'encode__httpx-2701',
         'repo': 'encode/httpx',
         'docker_image': 'swerebench/sweb.eval.x86_64.encode_1776_httpx-2701',
     },
-    ('Web/Network', 'Medium'): {
+    ('Web/Network', 'Medium', 1): {
         'instance_id': 'streamlink__streamlink-3485',
         'repo': 'streamlink/streamlink',
         'docker_image': 'swerebench/sweb.eval.x86_64.streamlink_1776_streamlink-3485',
     },
-    ('Web/Network', 'Hard'): {
+    ('Web/Network', 'Hard', 1): {
         'instance_id': 'streamlink__streamlink-2160',
         'repo': 'streamlink/streamlink',
         'docker_image': 'swerebench/sweb.eval.x86_64.streamlink_1776_streamlink-2160',
     },
+    # Web/Network - Task 2
+    ('Web/Network', 'Easy', 2): {
+        'instance_id': 'encode__httpx-1872',
+        'repo': 'encode/httpx',
+        'docker_image': 'swerebench/sweb.eval.x86_64.encode_1776_httpx-1872',
+    },
+    ('Web/Network', 'Medium', 2): {
+        'instance_id': 'encode__starlette-1147',
+        'repo': 'encode/starlette',
+        'docker_image': 'swerebench/sweb.eval.x86_64.encode_1776_starlette-1147',
+    },
+    ('Web/Network', 'Hard', 2): {
+        'instance_id': 'streamlink__streamlink-5786',
+        'repo': 'streamlink/streamlink',
+        'docker_image': 'swerebench/sweb.eval.x86_64.streamlink_1776_streamlink-5786',
+    },
 
-    # CLI/Tools
-    ('CLI/Tools', 'Easy'): {
+    # CLI/Tools - Task 1
+    ('CLI/Tools', 'Easy', 1): {
         'instance_id': 'asottile__pyupgrade-939',
         'repo': 'asottile/pyupgrade',
         'docker_image': 'swerebench/sweb.eval.x86_64.asottile_1776_pyupgrade-939',
     },
-    ('CLI/Tools', 'Medium'): {
+    ('CLI/Tools', 'Medium', 1): {
         'instance_id': 'Textualize__textual-2987',
         'repo': 'Textualize/textual',
         'docker_image': 'swerebench/sweb.eval.x86_64.textualize_1776_textual-2987',
     },
-    ('CLI/Tools', 'Hard'): {
+    ('CLI/Tools', 'Hard', 1): {
         'instance_id': 'joke2k__faker-1520',
         'repo': 'joke2k/faker',
         'docker_image': 'swerebench/sweb.eval.x86_64.joke2k_1776_faker-1520',
     },
+    # CLI/Tools - Task 2
+    ('CLI/Tools', 'Easy', 2): {
+        'instance_id': 'asottile__pyupgrade-706',
+        'repo': 'asottile/pyupgrade',
+        'docker_image': 'swerebench/sweb.eval.x86_64.asottile_1776_pyupgrade-706',
+    },
+    ('CLI/Tools', 'Medium', 2): {
+        'instance_id': 'Textualize__textual-1682',
+        'repo': 'Textualize/textual',
+        'docker_image': 'swerebench/sweb.eval.x86_64.textualize_1776_textual-1682',
+    },
+    ('CLI/Tools', 'Hard', 2): {
+        'instance_id': 'joke2k__faker-1780',
+        'repo': 'joke2k/faker',
+        'docker_image': 'swerebench/sweb.eval.x86_64.joke2k_1776_faker-1780',
+    },
 
-    # Medical/Bio
-    ('Medical/Bio', 'Easy'): {
+    # Medical/Bio - Task 1
+    ('Medical/Bio', 'Easy', 1): {
         'instance_id': 'pydicom__pydicom-1000',
         'repo': 'pydicom/pydicom',
         'docker_image': 'swerebench/sweb.eval.x86_64.pydicom_1776_pydicom-1000',
     },
-    ('Medical/Bio', 'Medium'): {
+    ('Medical/Bio', 'Medium', 1): {
         'instance_id': 'pydicom__pydicom-1090',
         'repo': 'pydicom/pydicom',
         'docker_image': 'swerebench/sweb.eval.x86_64.pydicom_1776_pydicom-1090',
     },
-    ('Medical/Bio', 'Hard'): {
+    ('Medical/Bio', 'Hard', 1): {
         'instance_id': 'pydicom__pydicom-2065',
         'repo': 'pydicom/pydicom',
         'docker_image': 'swerebench/sweb.eval.x86_64.pydicom_1776_pydicom-2065',
+    },
+    # Medical/Bio - Task 2
+    ('Medical/Bio', 'Easy', 2): {
+        'instance_id': 'pydicom__pydicom-1139',
+        'repo': 'pydicom/pydicom',
+        'docker_image': 'swerebench/sweb.eval.x86_64.pydicom_1776_pydicom-1139',
+    },
+    ('Medical/Bio', 'Medium', 2): {
+        'instance_id': 'pydicom__pydicom-1256',
+        'repo': 'pydicom/pydicom',
+        'docker_image': 'swerebench/sweb.eval.x86_64.pydicom_1776_pydicom-1256',
+    },
+    ('Medical/Bio', 'Hard', 2): {
+        'instance_id': 'pydicom__pydicom-1694',
+        'repo': 'pydicom/pydicom',
+        'docker_image': 'swerebench/sweb.eval.x86_64.pydicom_1776_pydicom-1694',
     },
 }
 
@@ -171,16 +270,27 @@ WHAT DOES NOT COUNT:
 
 
 # Default output directory name (fixed, for auto-resume)
-DEFAULT_OUTPUT_DIR = "batch_swebench_18tasks"
+DEFAULT_OUTPUT_DIR = "batch_swebench_36tasks"
 
 
 class BatchSWEBenchRunner:
     """Run batch SWE-bench tests with retry and progress tracking."""
 
     def __init__(self, max_retries: int = 3, output_base: Optional[Path] = None,
-                 use_timestamp: bool = False):
+                 use_timestamp: bool = False, model: str = "haiku",
+                 local_model: Optional[str] = None):
         self.max_retries = max_retries
         self.home = Path.home()
+        self.model = model
+        self.local_model = local_model
+
+        # Prepare extra environment for local model
+        self.extra_env = None
+        if local_model:
+            self.extra_env = {
+                "ANTHROPIC_BASE_URL": "http://localhost:4000",
+                "ANTHROPIC_MODEL": local_model,
+            }
 
         if output_base:
             self.output_dir = output_base
@@ -202,6 +312,7 @@ class BatchSWEBenchRunner:
 
         completed = self._load_progress()
 
+        model_info = self.local_model if self.local_model else self.model
         print(f"\n{'='*60}")
         print(f"Batch SWE-bench Test Runner")
         print(f"{'='*60}")
@@ -209,23 +320,34 @@ class BatchSWEBenchRunner:
         print(f"Already completed: {len(completed)}")
         print(f"Output directory: {self.output_dir}")
         print(f"Max retries: {self.max_retries}")
+        print(f"Model: {model_info}")
+        if self.local_model:
+            print(f"Local model endpoint: {self.extra_env.get('ANTHROPIC_BASE_URL')}")
         print(f"Resource limits: NONE (unlimited)")
         print(f"{'='*60}\n")
 
-        for i, ((category, difficulty), task) in enumerate(tasks.items(), 1):
-            task_key = f"{category}_{difficulty}".replace("/", "_")
+        for i, (task_key_tuple, task) in enumerate(tasks.items(), 1):
+            # Handle both old (category, difficulty) and new (category, difficulty, task_num) format
+            if len(task_key_tuple) == 3:
+                category, difficulty, task_num = task_key_tuple
+                task_key = f"{category}_{difficulty}_{task_num}".replace("/", "_")
+            else:
+                category, difficulty = task_key_tuple
+                task_num = 1
+                task_key = f"{category}_{difficulty}".replace("/", "_")
 
             if task_key in completed:
                 print(f"[{i}/{len(tasks)}] Skipping {task_key} (already completed)")
                 continue
 
             print(f"\n{'='*60}")
-            print(f"[{i}/{len(tasks)}] Running: {category} - {difficulty}")
+            print(f"[{i}/{len(tasks)}] Running: {category} - {difficulty} - Task {task_num}")
             print(f"Instance: {task['instance_id']}")
             print(f"Image: {task['docker_image']}")
+            print(f"Model: {model_info}")
             print(f"{'='*60}\n")
 
-            result = self._run_with_retry(task, category, difficulty)
+            result = self._run_with_retry(task, category, difficulty, task_num)
             self.results.append(result)
             self._save_progress(task_key, result)
 
@@ -239,18 +361,21 @@ class BatchSWEBenchRunner:
 
         self._generate_report()
 
-    def _run_with_retry(self, task: dict, category: str, difficulty: str) -> dict:
+    def _run_with_retry(self, task: dict, category: str, difficulty: str, task_num: int = 1) -> dict:
         """Run a single task with retry logic (only retry on Claude Code crash)."""
-        task_dir_name = f"{category.replace('/', '_')}_{difficulty}"
+        task_dir_name = f"{category.replace('/', '_')}_{difficulty}_{task_num}"
         task_dir = self.output_dir / task_dir_name
         task_dir.mkdir(parents=True, exist_ok=True)
 
+        model_info = self.local_model if self.local_model else self.model
         result = {
             'category': category,
             'difficulty': difficulty,
+            'task_num': task_num,
             'instance_id': task['instance_id'],
             'repo': task['repo'],
             'docker_image': task['docker_image'],
+            'model': model_info,
             'start_time': datetime.now().isoformat(),
             'attempts': 0,
             'success': False,
@@ -272,7 +397,12 @@ class BatchSWEBenchRunner:
                     output_dir=attempt_dir
                 )
 
-                attempt_result = runner.run(prompt=WORKFLOW_PROMPT, run_tests=True)
+                attempt_result = runner.run(
+                    prompt=WORKFLOW_PROMPT,
+                    run_tests=True,
+                    model=self.model,
+                    extra_env=self.extra_env
+                )
 
                 # Generate resource plot
                 try:
@@ -409,6 +539,7 @@ class BatchSWEBenchRunner:
         with open(self.output_dir / "summary.json", "w") as f:
             json.dump(summary, f, indent=2)
 
+        model_info = self.local_model if self.local_model else self.model
         report = f"""# Batch SWE-bench Test Report
 
 Generated: {datetime.now().isoformat()}
@@ -420,15 +551,17 @@ Generated: {datetime.now().isoformat()}
 - **Failed**: {summary['failed']}
 - **Success Rate**: {summary['successful']/max(summary['total_tasks'], 1)*100:.1f}%
 - **Total Time**: {summary['total_time']:.1f}s
+- **Model**: {model_info}
 
 ## Results by Task
 
-| Category | Difficulty | Instance ID | Success | Attempts | Time (s) |
-|----------|------------|-------------|---------|----------|----------|
+| Category | Difficulty | Task# | Instance ID | Success | Attempts | Time (s) |
+|----------|------------|-------|-------------|---------|----------|----------|
 """
         for r in self.results:
             status = "Yes" if r.get('success') else "No"
-            report += f"| {r.get('category')} | {r.get('difficulty')} | {r.get('instance_id')} | {status} | {r.get('attempts')} | {r.get('total_time', 0):.1f} |\n"
+            task_num = r.get('task_num', 1)
+            report += f"| {r.get('category')} | {r.get('difficulty')} | {task_num} | {r.get('instance_id')} | {status} | {r.get('attempts')} | {r.get('total_time', 0):.1f} |\n"
 
         with open(self.output_dir / "report.md", "w") as f:
             f.write(report)
@@ -443,13 +576,16 @@ Generated: {datetime.now().isoformat()}
 
 def main():
     parser = argparse.ArgumentParser(description="Batch SWE-bench Test Runner")
-    parser.add_argument("--task", help="Run single task, e.g., 'SQL/Data,Easy'")
+    parser.add_argument("--task", help="Run single task, e.g., 'SQL/Data,Easy,1' or 'SQL/Data,Easy'")
     parser.add_argument("--category", help="Run all tasks in category")
     parser.add_argument("--difficulty", help="Run all tasks of difficulty (Easy/Medium/Hard)")
+    parser.add_argument("--task-num", type=int, help="Run only task 1 or task 2")
     parser.add_argument("--max-retries", type=int, default=3, help="Max retries per task")
     parser.add_argument("--output-dir", help="Custom output directory")
     parser.add_argument("--new-run", action="store_true",
                         help="Start fresh with timestamped directory (default: auto-resume)")
+    parser.add_argument("--model", default="haiku", help="Model to use (default: haiku)")
+    parser.add_argument("--local-model", help="Use local model via litellm proxy (e.g., qwen3)")
 
     args = parser.parse_args()
 
@@ -457,11 +593,20 @@ def main():
 
     if args.task:
         parts = args.task.split(",")
-        if len(parts) == 2:
-            key = (parts[0].strip(), parts[1].strip())
+        if len(parts) == 3:
+            key = (parts[0].strip(), parts[1].strip(), int(parts[2].strip()))
             if key in SAMPLE_TASKS:
                 tasks = {key: SAMPLE_TASKS[key]}
             else:
+                print(f"Task not found: {args.task}")
+                print(f"Available: {list(SAMPLE_TASKS.keys())}")
+                return 1
+        elif len(parts) == 2:
+            # Match both task 1 and task 2 for this category/difficulty
+            category, difficulty = parts[0].strip(), parts[1].strip()
+            tasks = {k: v for k, v in SAMPLE_TASKS.items()
+                    if k[0] == category and k[1] == difficulty}
+            if not tasks:
                 print(f"Task not found: {args.task}")
                 print(f"Available: {list(SAMPLE_TASKS.keys())}")
                 return 1
@@ -478,6 +623,12 @@ def main():
             print(f"No tasks found for difficulty: {args.difficulty}")
             return 1
 
+    if args.task_num:
+        tasks = {k: v for k, v in tasks.items() if k[2] == args.task_num}
+        if not tasks:
+            print(f"No tasks found for task_num: {args.task_num}")
+            return 1
+
     output_base = None
     if args.output_dir:
         output_base = Path(args.output_dir)
@@ -486,6 +637,8 @@ def main():
         max_retries=args.max_retries,
         output_base=output_base,
         use_timestamp=args.new_run,
+        model=args.model,
+        local_model=args.local_model,
     )
     runner.run_all(tasks)
 
