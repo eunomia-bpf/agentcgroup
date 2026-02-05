@@ -38,8 +38,8 @@ for attempt_dir in $ATTEMPTS; do
         continue
     fi
 
-    # Run replay
-    python scripts/replay_trace.py "$attempt_dir" \
+    # Run replay (unbuffered output)
+    python -u scripts/replay_trace.py "$attempt_dir" \
         --output-dir "${OUTPUT_BASE}/${task_name}"
 
     echo ""

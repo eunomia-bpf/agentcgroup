@@ -162,37 +162,46 @@ class SWEBenchRunner:
 
         try:
             # Step 1: Pull image
-            print(f"[1/6] Pulling image: {self.image_name}")
+            print(f"[1/7] Pulling image: {self.image_name}")
             self._pull_image()
             results["pull_time"] = time.time() - start_time
 
             # Step 2: Fix permissions (create modified image)
-            print(f"[2/6] Fixing /testbed permissions...")
+            print(f"[2/7] Fixing /testbed permissions...")
             step_start = time.time()
             self._fix_permissions()
             results["permission_fix_time"] = time.time() - step_start
 
-            # Step 3: Prepare output directory
-            print(f"[3/6] Preparing output directory...")
+            # Step 3: Collect image info
+            print(f"[3/7] Collecting image and disk info...")
+            results["image_info"] = self._get_image_info()
+            print(f"  Image size: {results['image_info'].get('size_mb', 'N/A')} MB")
+
+            # Step 4: Prepare output directory
+            print(f"[4/7] Preparing output directory...")
             if self.output_dir is None:
                 self.output_dir = self._prepare_output_dir()
             results["output_dir"] = str(self.output_dir)
 
-            # Step 4: Run Claude Code with monitoring
-            print(f"[4/6] Running Claude Code (haiku) with resource monitoring...")
+            # Step 5: Run Claude Code with monitoring
+            print(f"[5/7] Running Claude Code (haiku) with resource monitoring...")
             step_start = time.time()
             claude_result, resource_samples = self._run_claude_with_monitoring(prompt, run_tests)
             results["claude_time"] = time.time() - step_start
             results["claude_output"] = claude_result
             results["resource_samples"] = resource_samples
 
-            # Step 5: Copy trace logs
-            print(f"[5/6] Collecting trace logs...")
+            # Collect disk usage after run
+            results["disk_usage"] = self._get_disk_usage()
+            print(f"  Disk usage (/testbed): {results['disk_usage'].get('testbed_mb', 'N/A')} MB")
+
+            # Step 6: Copy trace logs
+            print(f"[6/7] Collecting trace logs...")
             traces = self._collect_traces()
             results["traces"] = traces
 
-            # Step 6: Cleanup
-            print(f"[6/6] Cleaning up...")
+            # Step 7: Cleanup
+            print(f"[7/7] Cleaning up...")
             self._cleanup()
             results["cleaned"] = True
 
@@ -212,6 +221,59 @@ class SWEBenchRunner:
             print(f"\nResults saved to: {results_file}")
 
         return results
+
+    def _get_image_info(self) -> dict:
+        """Get Docker image size and info."""
+        info = {}
+        try:
+            result = subprocess.run(
+                ["podman", "image", "inspect", self.fixed_image_name, "--format", "{{.Size}}"],
+                capture_output=True, text=True
+            )
+            if result.returncode == 0:
+                size_bytes = int(result.stdout.strip())
+                info["size_bytes"] = size_bytes
+                info["size_mb"] = round(size_bytes / (1024 * 1024), 2)
+
+            result = subprocess.run(
+                ["podman", "image", "inspect", self.fixed_image_name, "--format", "{{.Id}}"],
+                capture_output=True, text=True
+            )
+            if result.returncode == 0:
+                info["image_id"] = result.stdout.strip()[:12]
+        except Exception as e:
+            info["error"] = str(e)
+        return info
+
+    def _get_disk_usage(self) -> dict:
+        """Get disk usage in the container."""
+        usage = {}
+        if not self.container_id:
+            return usage
+        try:
+            result = subprocess.run(
+                ["podman", "exec", self.container_id, "du", "-sm", "/testbed"],
+                capture_output=True, text=True, timeout=60
+            )
+            if result.returncode == 0:
+                size_mb = int(result.stdout.split()[0])
+                usage["testbed_mb"] = size_mb
+
+            result = subprocess.run(
+                ["podman", "exec", self.container_id, "df", "-m", "/testbed"],
+                capture_output=True, text=True, timeout=30
+            )
+            if result.returncode == 0:
+                lines = result.stdout.strip().split('\n')
+                if len(lines) > 1:
+                    parts = lines[1].split()
+                    if len(parts) >= 4:
+                        usage["filesystem_total_mb"] = int(parts[1])
+                        usage["filesystem_used_mb"] = int(parts[2])
+                        usage["filesystem_avail_mb"] = int(parts[3])
+        except Exception as e:
+            usage["error"] = str(e)
+        return usage
 
     def _pull_image(self):
         """Pull the Docker image."""

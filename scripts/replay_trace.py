@@ -114,20 +114,31 @@ class TraceReplayer:
 
         resource_data = None
         try:
-            print(f"[1/5] Setting up container for image: {self.image_name}")
+            print(f"[1/6] Setting up container for image: {self.image_name}")
             self._setup_container()
 
-            print(f"[2/5] Starting resource monitoring...")
+            # Collect image size
+            print(f"[2/6] Collecting image and disk info...")
+            results["image_info"] = self._get_image_info()
+            results["disk_usage_before"] = self._get_disk_usage()
+            print(f"  Image size: {results['image_info'].get('size_mb', 'N/A')} MB")
+            print(f"  Disk usage (/testbed): {results['disk_usage_before'].get('testbed_mb', 'N/A')} MB")
+
+            print(f"[3/6] Starting resource monitoring...")
             monitor = ResourceMonitor(self.container_id, interval=1.0)
             monitor.start()
 
-            print(f"[3/5] Replaying {len(self.tool_calls)} tool calls (speed: {self.speed}x)...")
+            print(f"[4/6] Replaying {len(self.tool_calls)} tool calls (speed: {self.speed}x)...")
             replay_start = time.time()
             replay_results = self._replay_all(replay_start)
             results["replay_results"] = replay_results
 
-            print(f"[4/5] Collecting results...")
+            print(f"[5/6] Collecting results...")
             monitor.stop()
+
+            # Collect disk usage after replay
+            results["disk_usage_after"] = self._get_disk_usage()
+            print(f"  Disk usage after (/testbed): {results['disk_usage_after'].get('testbed_mb', 'N/A')} MB")
 
             resource_data = {
                 "samples": monitor.samples,
@@ -140,7 +151,7 @@ class TraceReplayer:
             print(f"  Memory: avg={summary['memory_mb']['avg']:.1f}MB, max={summary['memory_mb']['max']:.1f}MB")
             print(f"  CPU: avg={summary['cpu_percent']['avg']:.1f}%, max={summary['cpu_percent']['max']:.1f}%")
 
-            print(f"[5/5] Saving results and generating plot...")
+            print(f"[6/6] Saving results and generating plot...")
             self._save_results(results, resource_data)
             self._generate_plot()
 
@@ -156,6 +167,63 @@ class TraceReplayer:
         results["end_time"] = datetime.now().isoformat()
 
         return results
+
+    def _get_image_info(self) -> dict:
+        """Get Docker image size and info."""
+        info = {}
+        try:
+            # Get image size using podman inspect
+            result = subprocess.run(
+                ["podman", "image", "inspect", self.fixed_image_name, "--format", "{{.Size}}"],
+                capture_output=True, text=True
+            )
+            if result.returncode == 0:
+                size_bytes = int(result.stdout.strip())
+                info["size_bytes"] = size_bytes
+                info["size_mb"] = round(size_bytes / (1024 * 1024), 2)
+
+            # Get image ID
+            result = subprocess.run(
+                ["podman", "image", "inspect", self.fixed_image_name, "--format", "{{.Id}}"],
+                capture_output=True, text=True
+            )
+            if result.returncode == 0:
+                info["image_id"] = result.stdout.strip()[:12]
+
+        except Exception as e:
+            info["error"] = str(e)
+        return info
+
+    def _get_disk_usage(self) -> dict:
+        """Get disk usage in the container."""
+        usage = {}
+        try:
+            # Get /testbed size
+            result = subprocess.run(
+                ["podman", "exec", self.container_id, "du", "-sm", "/testbed"],
+                capture_output=True, text=True, timeout=60
+            )
+            if result.returncode == 0:
+                size_mb = int(result.stdout.split()[0])
+                usage["testbed_mb"] = size_mb
+
+            # Get overall container disk usage
+            result = subprocess.run(
+                ["podman", "exec", self.container_id, "df", "-m", "/testbed"],
+                capture_output=True, text=True, timeout=30
+            )
+            if result.returncode == 0:
+                lines = result.stdout.strip().split('\n')
+                if len(lines) > 1:
+                    parts = lines[1].split()
+                    if len(parts) >= 4:
+                        usage["filesystem_total_mb"] = int(parts[1])
+                        usage["filesystem_used_mb"] = int(parts[2])
+                        usage["filesystem_avail_mb"] = int(parts[3])
+
+        except Exception as e:
+            usage["error"] = str(e)
+        return usage
 
     def _setup_container(self):
         """Setup the container with fixed permissions."""
