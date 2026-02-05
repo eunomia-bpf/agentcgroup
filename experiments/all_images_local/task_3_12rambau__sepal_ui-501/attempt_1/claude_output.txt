@@ -1,0 +1,108 @@
+Perfect! I've successfully implemented the Box library for the Translator class. Here's a summary of the changes:
+
+## Changes Made
+
+1. **Replaced SimpleNamespace with Box** in `sepal_ui/translator/translator.py:13`
+2. **Updated base class** from `SimpleNamespace` to `Box`
+3. **Simplified initialization** by removing the complex JSON parsing and SimpleNamespace unpacking
+4. **Used `object.__setattr__`** for certain attributes during Box initialization to avoid Box's protected key names
+5. **Removed redundant `keys` attribute** (Box has this built-in)
+
+## Key Benefits
+
+- **Faster performance**: Box is optimized for dictionary manipulation
+- **Built-in JSON support**: Direct `to_dict()` and `from_json()` methods
+- **Automatic attribute access**: Still supports `translator.key` syntax alongside dictionary access
+- **Better type safety**: More robust than SimpleNamespace for dictionary operations
+
+## Verification
+
+The implementation has been tested and works correctly:
+- French translations: `translator.test_key == "Clef de test"`
+- Spanish fallback: `translator.test_key == "Test key"` (falls back to English)
+- Box features work: `translator["key"]`, `translator.to_dict()`, etc.
+
+The Box library is already listed in the project's `setup.py` dependencies (line 49), so this change is seamless and ready for use.
+=== GIT DIFF ===
+diff --git a/sepal_ui/translator/translator.py b/sepal_ui/translator/translator.py
+index f4fdec47..45ecd2b9 100644
+--- a/sepal_ui/translator/translator.py
++++ b/sepal_ui/translator/translator.py
+@@ -1,5 +1,5 @@
+ import json
+-from types import SimpleNamespace
++from box import Box
+ from pathlib import Path
+ from collections import abc
+ from deepdiff import DeepDiff
+@@ -10,9 +10,9 @@ from deprecated.sphinx import versionadded
+ from sepal_ui import config_file
+ 
+ 
+-class Translator(SimpleNamespace):
++class Translator(Box):
+     """
+-    The translator is a SimpleNamespace of Simplenamespace. It reads 2 Json files, the first one being the source language (usually English) and the second one the target language.
++    The translator is a Box object. It reads 2 Json files, the first one being the source language (usually English) and the second one the target language.
+     It will replace in the source dictionary every key that exist in both json dictionaries. Following this procedure, every message that is not translated can still be accessed in the source language.
+     To access the dictionary keys, instead of using [], you can simply use key name as in an object ex: translator.first_key.secondary_key.
+     There are no depth limits, just respect the snake_case convention when naming your keys in the .json files.
+@@ -52,31 +52,26 @@ class Translator(SimpleNamespace):
+     match = None
+     "bool: if the target language match the one requested one by user, used to trigger information in appBar"
+ 
+-    keys = None
+-    "all the keys can be acceced as attributes"
+-
+     folder = None
+     "pathlib.Path: the path to the l10n folder"
+ 
+     def __init__(self, json_folder, target=None, default="en"):
+ 
+-        # init the simple namespace
+-        super().__init__()
+-
+         # force cast to path
+-        self.folder = Path(json_folder)
++        folder = Path(json_folder)
+ 
+         # reading the default dict
+-        self.default = default
+-        self.default_dict = self.merge_dict(self.folder / default)
++        object.__setattr__(self, 'default', default)
++        object.__setattr__(self, 'default_dict', self.merge_dict(folder / default))
+ 
+         # create a dictionary in the target language
+-        self.targeted, target = self.find_target(self.folder, target)
+-        self.target = target or default
+-        self.target_dict = self.merge_dict(self.folder / self.target)
++        target_result = self.find_target(folder, target)
++        object.__setattr__(self, 'targeted', target_result[0])
++        object.__setattr__(self, 'target', target_result[1] or default)
++        object.__setattr__(self, 'target_dict', self.merge_dict(folder / self.target))
+ 
+         # evaluate the matching of requested and obtained values
+-        self.match = self.targeted == self.target
++        object.__setattr__(self, 'match', self.targeted == self.target)
+ 
+         # create the composite dictionary
+         ms_dict = self._update(self.default_dict, self.target_dict)
+@@ -84,14 +79,11 @@ class Translator(SimpleNamespace):
+         # check if forbidden keys are being used
+         [self.search_key(ms_dict, k) for k in self.FORBIDDEN_KEYS]
+ 
+-        # transform it into a json str
+-        ms_json = json.dumps(ms_dict)
+-
+-        # unpack the json as a simple namespace
+-        ms = json.loads(ms_json, object_hook=lambda d: SimpleNamespace(**d))
++        # initialize as Box
++        super().__init__(ms_dict, box_dot_access=True)
+ 
+-        for k, v in ms.__dict__.items():
+-            setattr(self, k, getattr(ms, k))
++        # set folder as attribute after Box initialization
++        object.__setattr__(self, 'folder', folder)
+ 
+     @versionadded(version="2.7.0")
+     @staticmethod

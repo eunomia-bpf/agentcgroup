@@ -198,8 +198,8 @@ class SWEBenchRunner:
             results["claude_output"] = claude_result
             results["resource_samples"] = resource_samples
 
-            # Collect disk usage after run
-            results["disk_usage"] = self._get_disk_usage()
+            # Parse disk usage from output (collected in cmd_script)
+            results["disk_usage"] = self._parse_disk_usage(claude_result.get("stdout", ""))
             print(f"  Disk usage (/testbed): {results['disk_usage'].get('testbed_mb', 'N/A')} MB")
 
             # Step 6: Copy trace logs
@@ -252,32 +252,18 @@ class SWEBenchRunner:
             info["error"] = str(e)
         return info
 
-    def _get_disk_usage(self) -> dict:
-        """Get disk usage in the container."""
+    def _parse_disk_usage(self, stdout: str) -> dict:
+        """Parse disk usage from container output."""
         usage = {}
-        if not self.container_id:
-            return usage
         try:
-            result = subprocess.run(
-                ["podman", "exec", self.container_id, "du", "-sm", "/testbed"],
-                capture_output=True, text=True, timeout=60
-            )
-            if result.returncode == 0:
-                size_mb = int(result.stdout.split()[0])
-                usage["testbed_mb"] = size_mb
-
-            result = subprocess.run(
-                ["podman", "exec", self.container_id, "df", "-m", "/testbed"],
-                capture_output=True, text=True, timeout=30
-            )
-            if result.returncode == 0:
-                lines = result.stdout.strip().split('\n')
-                if len(lines) > 1:
-                    parts = lines[1].split()
-                    if len(parts) >= 4:
-                        usage["filesystem_total_mb"] = int(parts[1])
-                        usage["filesystem_used_mb"] = int(parts[2])
-                        usage["filesystem_avail_mb"] = int(parts[3])
+            # Look for "=== DISK USAGE ===" section
+            if "=== DISK USAGE ===" in stdout:
+                lines = stdout.split("=== DISK USAGE ===")[1].strip().split('\n')
+                if lines and lines[0].strip() != "N/A":
+                    # du -sm output: "SIZE /testbed"
+                    parts = lines[0].strip().split()
+                    if parts and parts[0].isdigit():
+                        usage["testbed_mb"] = int(parts[0])
         except Exception as e:
             usage["error"] = str(e)
         return usage
@@ -366,22 +352,29 @@ claude --model {model} --print --dangerously-skip-permissions "{prompt}"
 
 echo "=== GIT DIFF ==="
 git diff
+
+echo "=== DISK USAGE ==="
+du -sm /testbed 2>/dev/null || echo "N/A"
 '''
 
         # Start container
-        # Minimal mounts: claude binary + config, system libs for compatibility
+        # Mount host system for claude binary, libs, SSL certs
+        # Note: Don't mount /etc (conflicts with podman's resolv.conf)
         container_cmd = [
             "podman", "run", "-d",
             "--userns=keep-id",
             "--network=host",
-            "-v", f"{self.home}/.local:{self.home}/.local:ro",  # claude binary
-            "-v", f"{self.home}/.claude:{self.home}/.claude:ro",  # claude config
-            "-v", "/lib:/lib:ro",      # libc for claude binary
-            "-v", "/lib64:/lib64:ro",  # 64-bit libs
-            "-v", "/tmp:/tmp",
+            "-v", "/usr:/usr:ro",      # claude binary, SSL certs, system tools
+            "-v", "/lib:/lib:ro",      # system libraries
+            "-v", "/lib64:/lib64:ro",  # 64-bit libraries
+            "-v", "/bin:/bin:ro",      # basic commands
+            "-v", "/sbin:/sbin:ro",    # system commands
+            "-v", "/home:/home",       # home dir for ~/.claude config
+            "-v", "/tmp:/tmp",         # temp files
+            "-v", "/var:/var",         # var data
             "-w", "/testbed",
             "-e", f"HOME={self.home}",
-            "-e", f"PATH={self.home}/.local/bin:/usr/local/bin:/usr/bin:/bin",
+            "-e", "PATH=/usr/local/bin:/usr/bin:/bin",
         ]
 
         # Add extra environment variables
@@ -481,22 +474,40 @@ git diff
             shutil.copy(latest_trace, dest)
             traces["files"].append(str(dest))
 
-        # Parse trace for tool calls
+        # Parse trace for tool calls with full details
+        pending_tools = {}
         try:
             with open(latest_trace, "r") as f:
                 for line in f:
                     try:
                         entry = json.loads(line)
-                        if entry.get("type") == "assistant" and "message" in entry:
-                            msg = entry["message"]
-                            if "content" in msg:
-                                for block in msg["content"]:
+                        ts = entry.get("timestamp")
+                        msg = entry.get("message", {})
+                        content = msg.get("content", [])
+
+                        if isinstance(content, list):
+                            for block in content:
+                                if isinstance(block, dict):
+                                    # Tool use request
                                     if block.get("type") == "tool_use":
-                                        traces["tool_calls"].append({
-                                            "timestamp": entry.get("timestamp"),
+                                        tool_id = block.get("id")
+                                        pending_tools[tool_id] = {
+                                            "timestamp": ts,
                                             "tool": block.get("name"),
-                                            "id": block.get("id")
-                                        })
+                                            "id": tool_id,
+                                            "input": block.get("input", {})
+                                        }
+                                    # Tool result
+                                    elif block.get("type") == "tool_result":
+                                        tool_id = block.get("tool_use_id")
+                                        if tool_id in pending_tools:
+                                            tool_info = pending_tools.pop(tool_id)
+                                            tool_info["end_timestamp"] = ts
+                                            result = block.get("content", "")
+                                            if isinstance(result, str) and len(result) > 500:
+                                                result = result[:500] + "..."
+                                            tool_info["result_preview"] = result
+                                            traces["tool_calls"].append(tool_info)
                     except json.JSONDecodeError:
                         pass
         except Exception as e:
