@@ -61,7 +61,13 @@
     "Azure__autorest.python-475",
     "Azure__autorest.python-545",
     "Azure__azure-cli-1876",
-    "Azure__azure-cli-2053"
+    "Azure__azure-cli-2053",
+    "Azure__azure-cli-2214",
+    "Azure__azure-cli-2467",
+    "Azure__azure-cli-2844",
+    "Azure__azure-cli-2955",
+    "Azure__azure-cli-3354",
+    "Azure__azure-cli-3643"
   ],
   "results": {
     "0b01001001__spectree-64": {
@@ -373,6 +379,36 @@
       "success": false,
       "attempts": 1,
       "total_time": 388.376274
+    },
+    "Azure__azure-cli-2214": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 461.15355
+    },
+    "Azure__azure-cli-2467": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 403.475524
+    },
+    "Azure__azure-cli-2844": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 593.916294
+    },
+    "Azure__azure-cli-2955": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 373.874942
+    },
+    "Azure__azure-cli-3354": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 281.384097
+    },
+    "Azure__azure-cli-3643": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 523.488295
     }
   }
 }
