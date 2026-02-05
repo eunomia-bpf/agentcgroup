@@ -241,22 +241,13 @@ class TraceReplayer:
         else:
             print(f"  Using existing fixed image: {self.fixed_image_name}")
 
+        # For replay, we don't need claude binary, so no host mounts needed
+        # Container uses its own complete filesystem
         container_cmd = [
             "podman", "run", "-d",
             "--userns=keep-id",
             "--network=host",
-            "-v", "/usr:/usr:ro",
-            "-v", "/lib:/lib:ro",
-            "-v", "/lib64:/lib64:ro",
-            "-v", "/etc:/etc:ro",
-            "-v", "/bin:/bin:ro",
-            "-v", "/sbin:/sbin:ro",
-            "-v", "/home:/home",
-            "-v", "/tmp:/tmp",
-            "-v", "/var:/var",
             "-w", "/testbed",
-            "-e", f"HOME={self.home}",
-            "-e", "PATH=/usr/local/bin:/usr/bin:/bin",
             self.fixed_image_name,
             "sleep", "infinity"
         ]
