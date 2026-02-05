@@ -20,7 +20,7 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict
 
 
 class ResourceMonitor:
@@ -150,7 +150,8 @@ class SWEBenchRunner:
         self.container_id: Optional[str] = None
         self.output_dir: Optional[Path] = output_dir
 
-    def run(self, prompt: Optional[str] = None, run_tests: bool = False) -> dict:
+    def run(self, prompt: Optional[str] = None, run_tests: bool = False, model: str = "haiku",
+              extra_env: Optional[Dict[str, str]] = None) -> dict:
         """Run the complete workflow."""
         start_time = time.time()
         results = {
@@ -158,7 +159,13 @@ class SWEBenchRunner:
             "start_time": datetime.now().isoformat(),
             "memory_limit": self.memory_limit,
             "cpu_limit": self.cpu_limit,
+            "model": model,
         }
+
+        # Set environment variables for local model
+        if extra_env:
+            for key, value in extra_env.items():
+                os.environ[key] = value
 
         try:
             # Step 1: Pull image
@@ -183,10 +190,10 @@ class SWEBenchRunner:
                 self.output_dir = self._prepare_output_dir()
             results["output_dir"] = str(self.output_dir)
 
-            # Step 5: Run Claude Code with monitoring
-            print(f"[5/7] Running Claude Code (haiku) with resource monitoring...")
+            # Step 4: Run Claude Code with monitoring
+            print(f"[4/6] Running Claude Code ({model}) with resource monitoring...")
             step_start = time.time()
-            claude_result, resource_samples = self._run_claude_with_monitoring(prompt, run_tests)
+            claude_result, resource_samples = self._run_claude_with_monitoring(prompt, run_tests, model, extra_env)
             results["claude_time"] = time.time() - step_start
             results["claude_output"] = claude_result
             results["resource_samples"] = resource_samples
@@ -338,7 +345,8 @@ class SWEBenchRunner:
         output_dir.mkdir(parents=True, exist_ok=True)
         return output_dir
 
-    def _run_claude_with_monitoring(self, prompt: Optional[str], run_tests: bool) -> tuple:
+    def _run_claude_with_monitoring(self, prompt: Optional[str], run_tests: bool, model: str,
+                                        extra_env: Optional[Dict[str, str]] = None) -> tuple:
         """Run Claude Code and monitor resources."""
 
         # Build the prompt
@@ -354,7 +362,7 @@ git config user.email "test@test.com"
 git config user.name "Test"
 git config --add safe.directory /testbed
 
-claude --model haiku --print --dangerously-skip-permissions "{prompt}"
+claude --model {model} --print --dangerously-skip-permissions "{prompt}"
 
 echo "=== GIT DIFF ==="
 git diff
@@ -378,6 +386,11 @@ git diff
             "-e", f"HOME={self.home}",
             "-e", "PATH=/usr/local/bin:/usr/bin:/bin",
         ]
+
+        # Add extra environment variables
+        if extra_env:
+            for key, value in extra_env.items():
+                container_cmd.extend(["-e", f"{key}={value}"])
         # Add resource limits only if specified
         if self.memory_limit:
             container_cmd.extend([f"--memory={self.memory_limit}"])
@@ -546,6 +559,7 @@ Examples:
     parser.add_argument("--run-tests", action="store_true", help="Run tests after fixing")
     parser.add_argument("--memory", default="4g", help="Memory limit (default: 4g)")
     parser.add_argument("--cpus", default="2", help="CPU limit (default: 2)")
+    parser.add_argument("--model", default="haiku", help="Model to use (default: haiku)")
 
     args = parser.parse_args()
 
@@ -555,6 +569,7 @@ Examples:
     print(f"Image: {args.image}")
     print(f"Memory limit: {args.memory}")
     print(f"CPU limit: {args.cpus}")
+    print(f"Model: {args.model}")
     print(f"Run tests: {args.run_tests}")
     print("=" * 60)
 
@@ -564,7 +579,7 @@ Examples:
         cpu_limit=args.cpus
     )
 
-    results = runner.run(prompt=args.prompt, run_tests=args.run_tests)
+    results = runner.run(prompt=args.prompt, run_tests=args.run_tests, model=args.model)
 
     print("\n" + "=" * 60)
     print("Summary")
