@@ -211,11 +211,20 @@ def run_single_task(task: dict, task_index: int, output_dir: Path,
                 break
 
         except Exception as e:
+            error_str = str(e)
             print(f"Attempt {attempt} failed with error: {e}")
             with open(attempt_dir / "error.txt", "w") as f:
-                f.write(str(e))
+                f.write(error_str)
+
+            # Check for image compatibility issues (skip retries for these)
+            if "creating an ID-mapped copy of layer" in error_str or "error during chown" in error_str:
+                print(f"  Image has compatibility issues with --userns=keep-id, skipping...")
+                result['error'] = error_str
+                result['skipped'] = True
+                break
+
             if attempt >= max_retries:
-                result['error'] = str(e)
+                result['error'] = error_str
 
     result['end_time'] = datetime.now().isoformat()
     result['total_time'] = (

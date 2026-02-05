@@ -369,6 +369,7 @@ git diff
 '''
 
         # Start container
+        # Note: Don't mount /etc as it conflicts with podman's resolv.conf
         container_cmd = [
             "podman", "run", "-d",
             "--userns=keep-id",
@@ -376,7 +377,6 @@ git diff
             "-v", "/usr:/usr:ro",
             "-v", "/lib:/lib:ro",
             "-v", "/lib64:/lib64:ro",
-            "-v", "/etc:/etc:ro",
             "-v", "/bin:/bin:ro",
             "-v", "/sbin:/sbin:ro",
             "-v", "/home:/home",
