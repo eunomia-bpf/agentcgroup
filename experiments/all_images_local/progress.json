@@ -43,7 +43,13 @@
     "Algebra8__pyopenapi3-91",
     "Algebra8__pyopenapi3-92",
     "All-Hands-AI__openhands-aci-55",
-    "All-Hands-AI__openhands-resolver-123"
+    "All-Hands-AI__openhands-resolver-123",
+    "All-Hands-AI__openhands-resolver-137",
+    "ApptuitAI__apptuit-py-10",
+    "ApptuitAI__apptuit-py-21",
+    "ArkEcosystem__python-crypto-116",
+    "AspenWeb__pando.py-586",
+    "AzureAD__azure-activedirectory-library-for-python-227"
   ],
   "results": {
     "0b01001001__spectree-64": {
@@ -269,112 +275,32 @@
     "All-Hands-AI__openhands-resolver-137": {
       "success": false,
       "attempts": 1,
-      "total_time": 687.229889
+      "total_time": 595.490051
     },
     "ApptuitAI__apptuit-py-10": {
       "success": false,
       "attempts": 1,
-      "total_time": 376.114604
+      "total_time": 459.421297
     },
     "ApptuitAI__apptuit-py-21": {
-      "success": false,
+      "success": true,
       "attempts": 1,
-      "total_time": 356.503445
+      "total_time": 368.411283
     },
     "ArkEcosystem__python-crypto-116": {
-      "success": false,
+      "success": true,
       "attempts": 1,
-      "total_time": 350.877053
+      "total_time": 340.483361
     },
     "AspenWeb__pando.py-586": {
       "success": false,
       "attempts": 1,
-      "total_time": 353.024396
+      "total_time": 802.742533
     },
     "AzureAD__azure-activedirectory-library-for-python-227": {
       "success": false,
       "attempts": 1,
-      "total_time": 338.859704
-    },
-    "AzureAD__microsoft-authentication-library-for-python-186": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 373.689903
-    },
-    "AzureAD__microsoft-authentication-library-for-python-280": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 354.702551
-    },
-    "AzureAD__microsoft-authentication-library-for-python-315": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 371.384153
-    },
-    "AzureAD__microsoft-authentication-library-for-python-530": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 358.927904
-    },
-    "AzureAD__microsoft-authentication-library-for-python-723": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 360.967903
-    },
-    "AzureAD__microsoft-authentication-library-for-python-730": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 380.524294
-    },
-    "AzureAD__microsoft-authentication-library-for-python-77": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 346.892908
-    },
-    "AzureAD__microsoft-authentication-library-for-python-795": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 359.290569
-    },
-    "Azure__autorest.python-475": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 380.611276
-    },
-    "Azure__autorest.python-545": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 402.345242
-    },
-    "Azure__azure-cli-1876": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 432.05993
-    },
-    "Azure__azure-cli-2053": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 416.46954
-    },
-    "Azure__azure-cli-2214": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 396.307023
-    },
-    "Azure__azure-cli-2467": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 410.868895
-    },
-    "Azure__azure-cli-2844": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 427.850848
-    },
-    "Azure__azure-cli-2955": {
-      "success": false,
-      "attempts": 1,
-      "total_time": 424.373511
+      "total_time": 1004.548347
     }
   }
 }
