@@ -49,7 +49,9 @@
     "ApptuitAI__apptuit-py-21",
     "ArkEcosystem__python-crypto-116",
     "AspenWeb__pando.py-586",
-    "AzureAD__azure-activedirectory-library-for-python-227"
+    "AzureAD__azure-activedirectory-library-for-python-227",
+    "AzureAD__microsoft-authentication-library-for-python-186",
+    "AzureAD__microsoft-authentication-library-for-python-280"
   ],
   "results": {
     "0b01001001__spectree-64": {
@@ -301,6 +303,16 @@
       "success": false,
       "attempts": 1,
       "total_time": 1004.548347
+    },
+    "AzureAD__microsoft-authentication-library-for-python-186": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 740.205762
+    },
+    "AzureAD__microsoft-authentication-library-for-python-280": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 241.053997
     }
   }
 }
