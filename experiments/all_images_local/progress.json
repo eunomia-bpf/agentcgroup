@@ -104,7 +104,11 @@
     "wemake-services__wemake-python-styleguide-3117",
     "prefab-cloud__prefab-cloud-python-62",
     "libp2p__py-libp2p-533",
-    "tobymao__sqlglot-1642"
+    "tobymao__sqlglot-1642",
+    "facelessuser__soupsieve-147",
+    "ansible__ansible-builder-486",
+    "tobymao__sqlglot-570",
+    "matrix-org__synapse-6145"
   ],
   "results": {
     "0b01001001__spectree-64": {
@@ -631,6 +635,26 @@
       "success": true,
       "attempts": 1,
       "total_time": 778.165695
+    },
+    "facelessuser__soupsieve-147": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 734.640762
+    },
+    "ansible__ansible-builder-486": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 648.927785
+    },
+    "tobymao__sqlglot-570": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 739.996481
+    },
+    "matrix-org__synapse-6145": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 67.331424
     }
   }
 }
