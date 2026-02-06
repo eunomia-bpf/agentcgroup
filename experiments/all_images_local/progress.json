@@ -108,7 +108,18 @@
     "facelessuser__soupsieve-147",
     "ansible__ansible-builder-486",
     "tobymao__sqlglot-570",
-    "matrix-org__synapse-6145"
+    "matrix-org__synapse-6145",
+    "beeware__briefcase-2212",
+    "python-control__python-control-525",
+    "facelessuser__pymdown-extensions-2576",
+    "tobymao__sqlglot-4415",
+    "biolink__biolink-model-toolkit-43",
+    "simonw__files-to-prompt-16",
+    "pydicom__pynetdicom-362",
+    "networkx__networkx-5394",
+    "mwouts__jupytext-372",
+    "codingedward__flask-sieve-37",
+    "unt-libraries__edtf-validate-29"
   ],
   "results": {
     "0b01001001__spectree-64": {
@@ -655,6 +666,61 @@
       "success": false,
       "attempts": 1,
       "total_time": 67.331424
+    },
+    "beeware__briefcase-2212": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 819.072369
+    },
+    "python-control__python-control-525": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 255.318847
+    },
+    "facelessuser__pymdown-extensions-2576": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 297.713631
+    },
+    "tobymao__sqlglot-4415": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 2766.224407
+    },
+    "biolink__biolink-model-toolkit-43": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 161.460916
+    },
+    "simonw__files-to-prompt-16": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 299.837527
+    },
+    "pydicom__pynetdicom-362": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 565.998673
+    },
+    "networkx__networkx-5394": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 1446.381055
+    },
+    "mwouts__jupytext-372": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 748.772697
+    },
+    "codingedward__flask-sieve-37": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 635.436801
+    },
+    "unt-libraries__edtf-validate-29": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 381.472914
     }
   }
 }
