@@ -17,7 +17,8 @@
     "DevOps_Build_Hard",
     "ML_Scientific_Hard",
     "CLI_Tools_Hard",
-    "Medical_Bio_Hard"
+    "Medical_Bio_Hard",
+    "SQL_Data_Easy_2"
   ],
   "results": {
     "Web_Network_Easy": {
@@ -110,6 +111,11 @@
       "success": true,
       "attempts": 1,
       "total_time": 731.218093
+    },
+    "SQL_Data_Easy_2": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 547.988254
     }
   }
 }
