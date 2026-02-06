@@ -119,7 +119,8 @@
     "networkx__networkx-5394",
     "mwouts__jupytext-372",
     "codingedward__flask-sieve-37",
-    "unt-libraries__edtf-validate-29"
+    "unt-libraries__edtf-validate-29",
+    "PennyLaneAI__pennylane-5455"
   ],
   "results": {
     "0b01001001__spectree-64": {
@@ -721,6 +722,11 @@
       "success": true,
       "attempts": 1,
       "total_time": 381.472914
+    },
+    "PennyLaneAI__pennylane-5455": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 1717.89777
     }
   }
 }
