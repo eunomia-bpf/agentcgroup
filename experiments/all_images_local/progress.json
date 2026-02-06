@@ -88,7 +88,13 @@
     "streamlink__streamlink-3485",
     "iterative__dvc-777",
     "numba__numba-5721",
-    "joke2k__faker-1520"
+    "joke2k__faker-1520",
+    "pydicom__pydicom-1090",
+    "pre-commit__pre-commit-2524",
+    "reata__sqllineage-438",
+    "asottile__pyupgrade-939",
+    "dask__dask-5510",
+    "dask__dask-11628"
   ],
   "results": {
     "0b01001001__spectree-64": {
@@ -535,6 +541,36 @@
       "success": false,
       "attempts": 1,
       "total_time": 141.334133
+    },
+    "pydicom__pydicom-1090": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 1015.218846
+    },
+    "pre-commit__pre-commit-2524": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 484.4589
+    },
+    "reata__sqllineage-438": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 155.461637
+    },
+    "asottile__pyupgrade-939": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 312.71259
+    },
+    "dask__dask-5510": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 420.909631
+    },
+    "dask__dask-11628": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 349.161568
     }
   }
 }
