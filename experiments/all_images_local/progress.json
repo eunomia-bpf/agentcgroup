@@ -87,7 +87,8 @@
     "pydicom__pydicom-2065",
     "streamlink__streamlink-3485",
     "iterative__dvc-777",
-    "numba__numba-5721"
+    "numba__numba-5721",
+    "joke2k__faker-1520"
   ],
   "results": {
     "0b01001001__spectree-64": {
@@ -529,6 +530,11 @@
       "success": false,
       "attempts": 1,
       "total_time": 644.541499
+    },
+    "joke2k__faker-1520": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 141.334133
     }
   }
 }
