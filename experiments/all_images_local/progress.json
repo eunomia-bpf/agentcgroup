@@ -120,7 +120,8 @@
     "mwouts__jupytext-372",
     "codingedward__flask-sieve-37",
     "unt-libraries__edtf-validate-29",
-    "PennyLaneAI__pennylane-5455"
+    "PennyLaneAI__pennylane-5455",
+    "RDFLib__rdflib-1117"
   ],
   "results": {
     "0b01001001__spectree-64": {
@@ -727,6 +728,11 @@
       "success": true,
       "attempts": 1,
       "total_time": 1717.89777
+    },
+    "RDFLib__rdflib-1117": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 924.972642
     }
   }
 }
