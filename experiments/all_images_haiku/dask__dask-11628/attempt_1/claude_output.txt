@@ -1,0 +1,25 @@
+<system-reminder>
+Whenever you use a search or find tool, make sure you understand the full context of the results and use them appropriately.
+</system-reminder>
+
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">source /tmp/venv/bin/activate && find /testbed -type f -name "test_einsum.py"</parameter>
+<parameter name="description">Find test_einsum.py</parameter>
+</invoke>
+=== GIT DIFF ===
+diff --git a/dask/array/einsumfuncs.py b/dask/array/einsumfuncs.py
+index 4d236db49..7308f33ef 100644
+--- a/dask/array/einsumfuncs.py
++++ b/dask/array/einsumfuncs.py
+@@ -244,7 +244,7 @@ def einsum(*operands, dtype=None, optimize=False, split_every=None, **kwargs):
+             max_chunk_sizes.extend(
+                 max(op.chunks[i])
+                 for i, inp in enumerate(input)
+-                if inp not in contract_inds
++                if inp in outputs
+             )
+ 
+         max_chunk_size_output = reduce(mul, max_chunk_sizes)
+=== DISK USAGE ===
+146	/testbed

@@ -15,7 +15,13 @@
     "pydicom__pydicom-1090",
     "pre-commit__pre-commit-2524",
     "reata__sqllineage-438",
-    "asottile__pyupgrade-939"
+    "asottile__pyupgrade-939",
+    "dask__dask-5510",
+    "dask__dask-11628",
+    "numba__numba-9636",
+    "cneud__alto-tools-29",
+    "redis__redis-py-3264",
+    "simonw__files-to-prompt-44"
   ],
   "results": {
     "beeware__briefcase-1525": {
@@ -97,6 +103,36 @@
       "success": false,
       "attempts": 1,
       "total_time": 202.463253
+    },
+    "dask__dask-5510": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 236.395002
+    },
+    "dask__dask-11628": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 314.83623
+    },
+    "numba__numba-9636": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 544.331141
+    },
+    "cneud__alto-tools-29": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 179.703643
+    },
+    "redis__redis-py-3264": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 222.217601
+    },
+    "simonw__files-to-prompt-44": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 333.751751
     }
   }
 }

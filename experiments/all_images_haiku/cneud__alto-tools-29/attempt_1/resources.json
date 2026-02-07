@@ -1,0 +1,88 @@
+{
+  "samples": [
+    {
+      "timestamp": "2026-02-06T18:01:18.606635",
+      "epoch": 1770429678.6066453,
+      "mem_usage": "12.28MB / 134.5GB",
+      "mem_percent": "0.01%",
+      "cpu_percent": "102.90%"
+    },
+    {
+      "timestamp": "2026-02-06T18:01:19.658492",
+      "epoch": 1770429679.6585035,
+      "mem_usage": "183.8MB / 134.5GB",
+      "mem_percent": "0.14%",
+      "cpu_percent": "61.22%"
+    },
+    {
+      "timestamp": "2026-02-06T18:01:20.699625",
+      "epoch": 1770429680.699633,
+      "mem_usage": "191.3MB / 134.5GB",
+      "mem_percent": "0.14%",
+      "cpu_percent": "43.74%"
+    },
+    {
+      "timestamp": "2026-02-06T18:01:21.745979",
+      "epoch": 1770429681.745989,
+      "mem_usage": "191.5MB / 134.5GB",
+      "mem_percent": "0.14%",
+      "cpu_percent": "29.89%"
+    },
+    {
+      "timestamp": "2026-02-06T18:01:22.793732",
+      "epoch": 1770429682.793743,
+      "mem_usage": "191.6MB / 134.5GB",
+      "mem_percent": "0.14%",
+      "cpu_percent": "22.91%"
+    },
+    {
+      "timestamp": "2026-02-06T18:01:23.831040",
+      "epoch": 1770429683.8310504,
+      "mem_usage": "191.7MB / 134.5GB",
+      "mem_percent": "0.14%",
+      "cpu_percent": "18.79%"
+    },
+    {
+      "timestamp": "2026-02-06T18:01:24.880842",
+      "epoch": 1770429684.8808577,
+      "mem_usage": "193.2MB / 134.5GB",
+      "mem_percent": "0.14%",
+      "cpu_percent": "16.46%"
+    },
+    {
+      "timestamp": "2026-02-06T18:01:25.929048",
+      "epoch": 1770429685.9290717,
+      "mem_usage": "193.2MB / 134.5GB",
+      "mem_percent": "0.14%",
+      "cpu_percent": "14.23%"
+    },
+    {
+      "timestamp": "2026-02-06T18:01:26.968993",
+      "epoch": 1770429686.9690106,
+      "mem_usage": "191.2MB / 134.5GB",
+      "mem_percent": "0.14%",
+      "cpu_percent": "13.70%"
+    },
+    {
+      "timestamp": "2026-02-06T18:01:28.014761",
+      "epoch": 1770429688.0147705,
+      "mem_usage": "191.2MB / 134.5GB",
+      "mem_percent": "0.14%",
+      "cpu_percent": "12.32%"
+    }
+  ],
+  "summary": {
+    "sample_count": 10,
+    "duration_seconds": 9.408125162124634,
+    "memory_mb": {
+      "min": 12.28,
+      "max": 193.2,
+      "avg": 173.098
+    },
+    "cpu_percent": {
+      "min": 12.32,
+      "max": 102.9,
+      "avg": 33.616
+    }
+  }
+}
