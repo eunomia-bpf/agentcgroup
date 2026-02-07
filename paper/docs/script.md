@@ -1,6 +1,6 @@
 # Characterization 数据与脚本说明
 
-本文档说明 Section 3 (Characterization) 中使用的原始数据来源、分析脚本和生成的图表之间的对应关系。
+本文档说明 Section 3 (Characterization) 中使用的原始数据来源、分析脚本、生成的图表，以及新旧数据集的逐条对比与混合使用方案。
 
 ## 1. 原始数据
 
@@ -16,184 +16,264 @@
 
 ### 数据集
 
-| 数据集 | 路径 | 模型 | 任务数 | 用途 |
-|--------|------|------|--------|------|
-| batch_swebench_18tasks | `experiments/batch_swebench_18tasks/` | Claude Code + Haiku | 18 (6 类别 × 3 难度) | 主要 characterization 数据 |
-| all_images_local | `experiments/all_images_local/` | Claude Code + GLM 4.7 flash (本地) | 102+ | 扩展数据集、模型对比 |
+| 数据集 | 路径 | 模型 | 有效任务数 | 用途 |
+|--------|------|------|------------|------|
+| batch_swebench_18tasks | `experiments/batch_swebench_18tasks/` | Claude Code + Haiku | 18 (6 类别 × 3 难度) | Category 分析、极端案例 |
+| all_images_haiku | `experiments/all_images_haiku/` | Claude Code + Haiku | 33 (filtered) | 大规模 Haiku 统计 |
+| all_images_local | `experiments/all_images_local/` | Claude Code + GLM 4.7 flash (本地) | 111 (filtered) | 大规模 Local 统计、模型对比 |
 
-18 个任务覆盖：CLI_Tools、DevOps_Build、ML_Scientific、Medical_Bio、SQL_Data、Web_Network，每类别 Easy/Medium/Hard 各一个。
+18 个 curated 任务覆盖：CLI_Tools、DevOps_Build、ML_Scientific、Medical_Bio、SQL_Data、Web_Network，每类别 Easy/Medium/Hard 各一个。分类映射定义在 `scripts/batch_test_swebench.py` 的 `SAMPLE_TASKS` 和 `scripts/verify_sample_tasks.py` 的 `CATEGORY_REPOS`。
 
-## 2. 实验执行脚本
+新数据集中约 54%–64% 的任务可通过 repo 名反推 category（`CATEGORY_REPOS` 映射），其余为未分类的 SWE-bench 随机任务。
 
-### 核心执行流程
+## 2. 新旧数据对比与混合使用方案
 
-```
-run_experiment.sh / run_haiku_experiment.sh   （启动与监控）
-  └─→ run_all_swebench_images.py              （批量任务调度）
-      └─→ run_swebench.py                     （单任务执行 + 资源采集）
-```
+### 2.1 逐条对比
 
-| 脚本 | 路径 | 功能 |
-|------|------|------|
-| `run_swebench.py` | `scripts/run_swebench.py` | 单任务执行器：拉取 Docker 镜像 → 启动 Podman 容器 → 运行 Claude Code → 每 1 秒通过 `podman stats --no-stream` 采样 CPU/内存 → 记录工具调用 trace → 输出 results.json, resources.json, tool_calls.json |
-| `batch_test_swebench.py` | `scripts/batch_test_swebench.py` | 批量执行 36 个预定义任务（6 类别 × 3 难度 × 2 任务），支持重试和断点续传 |
-| `run_all_swebench_images.py` | `scripts/run_all_swebench_images.py` | 大规模执行 SWE-rebench 所有可用 Docker 镜像（102+ 任务），支持 `--model haiku` 或 `--model qwen3` |
-| `run_experiment.sh` | `scripts/run_experiment.sh` | Qwen/GLM 实验自动化：启动 llama-server（GLM-4.7-Flash-GGUF:Q4_K_M，端口 8080）+ 健康检查 + 自动重启 |
-| `run_haiku_experiment.sh` | `scripts/run_haiku_experiment.sh` | Haiku 实验自动化：通过 Anthropic API 执行，健康检查 + 日志轮转 |
-| `plot_resources.py` | `scripts/plot_resources.py` | 根据 resources.json 绘制单任务 CPU/内存时序图 |
+#### 3.1 Experimental Setup
 
-### Trace 回放工具
+| Claim | 旧数据 (18 tasks) | 新数据 (H=Haiku 33, L=Local 111) | 判定 |
+|-------|-------------------|----------------------------------|------|
+| 镜像 2.9–17.7 GB | 2.9–17.7 GB | H: 2.9–17.3, L: 2.9–17.3 | 基本一致 |
+| 平均 4.2GB，中位数 3.5GB | 同左 | H: 4.1/3.4, L: 4.1/3.5 | 基本一致 |
+| 总量 469GB | 115 tasks | L: 456GB (111 tasks) | 基本一致 |
+| 权限修复 avg 28.3s, max 97s | 同左 | H: 24.3/87.9, L: 27.2/97.0 | L 一致，H 略低 |
 
-| 脚本 | 路径 | 功能 |
-|------|------|------|
-| `replay_trace.py` | `scripts/replay_trace.py` | 在容器中回放 trace.jsonl 中的所有工具调用，同时采集资源使用 |
-| `batch_replay.sh` | `scripts/batch_replay.sh` | 批量回放 18 个任务的 trace |
-| `parse_claude_trace.py` | `scripts/parse_claude_trace.py` | 解析 Claude Code trace 文件，提取工具调用和时间戳 |
+**结论：新旧差别不大。用 Local 111 tasks（n 最大）。**
+
+#### 3.2 RQ1: Agent Execution Model
+
+| Claim | 旧数据 | 新数据 | 判定 | 建议数据源 |
+|-------|--------|--------|------|-----------|
+| 平均运行约 10 分钟 | Haiku ~400s (6.7min) | H: 347s (5.8min), L: 646s (10.8min) | L 吻合，H 偏短 | Local 111 |
+| 工具时间 avg 28.2%, 0.1%–73.3% | 同左 | H: 25.9%, 1.2%–113%; L: 25.3%, 0%–73.3% | **L 完全吻合** | Local 111 |
+| 测试 44.1%, Python 26.7%, 安装 10.9% | 旧 18 tasks | 需核实新数据 chart_06 | 需核实 | 取实际值 |
+| Medical_Bio 4GB vs Web_Network 291MB (13.7x) | 有这些 category | 新数据 category 覆盖不全 | 用旧数据更好 | **旧 18 tasks** |
+| Bash 2.64s, Task 66.16s, Read 0.06s, Edit 0.04s | 旧 18 tasks | H: Bash 3.76s, Task 100.47s; L: Bash 5.88s, Edit 0.04s | 量级一致 | Local 111 |
+
+#### 3.3 RQ2: Resource Unpredictability
+
+| Claim | 旧数据 | 新数据 | 判定 | 建议数据源 |
+|-------|--------|--------|------|-----------|
+| 内存变化高达 2.9GB/s | max 2983 MB/s | H: 1619, L: 1756 MB/s | 新弱 (1.6GB vs 2.9GB) | **旧 18 tasks** |
+| CPU 变化率超过 50%/s | 旧 max 41.6%（不到 50%!） | H: 143.9%, L: 50.9% | **新反而更强** | Haiku 33 |
+| 显著变化事件 1.6%–4.1% | 旧 4.1% | H: 3.8%, L: 1.7% | 一致 | 新数据（范围更精确） |
+| Medical_Bio_Hard peak 4060MB, avg 264MB, 15.4x | 有 | 没有此任务 | 丢失 | **旧 18 tasks** |
+| **CPU-Mem 正相关 91–95%** | **旧也是 avg -0.30** | H: -0.41, L: -0.39 | **两组都不支持！必须纠正** | — |
+| 峰值内存 197MB–4GB, CV=147% | 279–4060MB, CV=147% | H: 201–2076MB, CV=111%; L: 220–2041MB, CV=63% | 新弱 | **旧 18 tasks**（category 分析） |
+| Haiku 30.6% vs Qwen 7.9%, 3.9x | 旧 18 tasks | H 13.2% vs L 7.6%, 1.7x | 严重削弱 (3.9x→1.7x) | 新数据（更诚实） |
+| Haiku 400s vs Qwen 607s | 旧 | H 352s vs L 664s | 趋势一致 | 新数据（n 更大） |
+| CPU>50%: Haiku 21.2%, Qwen 0.5% | 旧 | H 8.2%, L 0.5% | Haiku 削弱 | 新数据 |
+| 20–51 个重试组, Bash 密度 61.8% | 旧有极端任务 | H max=5, L max=20 | 严重削弱 | 新数据（更真实） |
+| 并发 Haiku ~3, Qwen ~12 | 旧 | H ~7, L ~12 | L 一致，H 变了 | 新数据 |
+
+#### 3.4 RQ3: Provisioning Efficiency
+
+| Claim | 旧数据 | 新数据 | 判定 | 建议数据源 |
+|-------|--------|--------|------|-----------|
+| Haiku 利用率 24%, waste 76% | CPU: 24% | CPU: 9%, waste 91% | **新更严重（有利）** | 新数据 |
+| Qwen 利用率 7%, waste 93% | 同左 | L: 7%, waste 93% | 完全一致 | 新数据 |
+| CPU 过度供给 4.1x–13.6x | H: 4.1x | H: 11.1x, L: 13.9x | **新更极端（有利）** | 新数据 |
+| Mem 过度供给 1.6x–2.4x | H: 2.4x | H: 1.7x, L: 1.6x | 新略低 | 新数据 |
+
+### 2.2 Category 分类覆盖情况
+
+新数据集的任务可通过 `CATEGORY_REPOS`（`scripts/verify_sample_tasks.py`）将 repo 映射到 6 个 category：
+
+| 数据集 | 可分类 | 不可分类 | Medical_Bio |
+|--------|--------|----------|-------------|
+| Haiku 33 | 21 (64%) | 12 (36%) | **0 个** |
+| Local 111 | 60 (54%) | 51 (46%) | 14 个 |
+
+新数据 category 间资源差异：
+
+| 数据集 | Max category | Min category | 比值 |
+|--------|-------------|-------------|------|
+| 旧 18 tasks | Medical_Bio 4060 MB | Web_Network 291 MB | **13.7x** |
+| 新 Haiku 33 | DevOps_Build 698 MB | Web_Network 235 MB | 3.0x |
+| 新 Local 111 | Medical_Bio 500 MB | Web_Network 286 MB | 1.7x (avg), 7.1x (max/avg) |
+
+原因：旧数据每个 category×difficulty 恰好 1 个任务，最大化多样性；新数据同一 repo 有多个任务（如 pydicom 14 个），极端值被稀释。
+
+### 2.3 必须纠正的 Claim
+
+**CPU-Memory 正相关 91–95%**：旧数据 avg correlation = -0.30（范围 -0.69 到 +0.53），新数据 avg = -0.41（范围 -0.84 到 +0.50）。两组数据均显示**负相关或弱相关**，不支持"强正相关 91–95%"的论述。需要：
+- 删除该 claim，或
+- 改写为"CPU 和内存使用呈现弱负相关或任务依赖的相关性，部分任务正相关、部分负相关"
+- 保留的 insight：资源变化是耦合的（不是独立的），仍需协调管理
+
+### 2.4 混合使用方案
+
+学术论文中混合使用多个数据集是常见做法，关键是**每处明确标注数据来源**。建议方案：
+
+**论文表述方式**：
+> We conduct experiments on two scales: (1) a curated set of 18 representative tasks spanning 6 categories × 3 difficulty levels, used for category-level analysis; (2) a broader set of 111 (GLM local) / 33 (Haiku cloud) SWE-rebench tasks, used for aggregate statistics and cross-architecture comparison. All tasks run in identical sandboxed environments.
+
+**各小节数据源分配**：
+
+| 章节 | 分析内容 | 数据源 | 理由 |
+|------|---------|--------|------|
+| 3.1 实验设置 | 镜像大小、启动开销 | Local 111 tasks | n 最大，数值与旧数据一致 |
+| 3.2 阶段划分 | 工具时间比例、工具执行时间 | Local 111 tasks | n 大，统计更稳 |
+| 3.2 工具类型分布 | Bash category 时间占比 | Local 111 tasks | n 大 |
+| 3.2 工具语义差异 | Medical_Bio vs Web_Network | **旧 18 tasks** | 唯一有完整 category 标签的数据 |
+| 3.3 时间动态性 | 变化率、突发事件 | Local 111 + Haiku 33 | 双数据集交叉验证 |
+| 3.3 瞬态突发 | 极端 peak/avg 案例 | **旧 18 tasks**（Medical_Bio_Hard） | 新数据无此极端案例 |
+| 3.3 CPU-Mem 相关性 | ~~正相关 91–95%~~ | **必须纠正** | 两组数据均为负相关 |
+| 3.3 异构性 (category) | 峰值内存 CV、boxplot | **旧 18 tasks** | Category 分析需要标签 |
+| 3.3 异构性 (agent) | Haiku vs Local CPU/时间 | 新数据 30 common tasks | n 更大，更有说服力 |
+| 3.3 非确定性 | 重试循环 | Local 111 tasks | 新数据真实（max 20 groups） |
+| 3.4 过度供给 | CPU/Mem waste | 新数据 | **新数据更极端，更有利** |
+| 3.4 聚合内存轨迹 | 归一化内存趋势 | Local 111 tasks | n 大，统计更平滑 |
+
+**学术规范要点**：
+1. 每张图表、每个数值必须标注来自哪个数据集（e.g., "n=18 curated" vs "n=111 SWE-rebench"）
+2. 不同数据集的分析结果不能混在同一张图中暗示来自同一来源
+3. 使用旧数据做 category 分析时，明确说明是"representative subset"而非随机样本
+4. 建议在 Experimental Setup 中用一段话说明两级数据集策略
 
 ## 3. 分析脚本与生成图表
 
-### 3.1 analyze_swebench_data.py
+### 3.1 characterization.py（一键生成）
 
-**路径**: `analysis/analyze_swebench_data.py`
-**输入**: `experiments/batch_swebench_18tasks/` 或 `experiments/all_images_local/`
-**输出**: `analysis/haiku_figures/` (28 PNG) 或 `analysis/qwen3_figures/` (28 PNG)
+**路径**: `analysis/characterization.py`
+**功能**: 导入并依次运行所有分析脚本，生成 Section 3 所有图表和数值
 
 ```bash
-python analysis/analyze_swebench_data.py --all                    # Haiku 全部分析
-python analysis/analyze_swebench_data.py --dataset qwen3 --all    # Qwen 全部分析
+python analysis/characterization.py              # 完整运行（Haiku + Local）
+python analysis/characterization.py --haiku-only  # 仅 Haiku
+python analysis/characterization.py --local-only  # 仅 Local
+python analysis/characterization.py --skip-extended --skip-rq  # 快速模式
 ```
 
-**生成图表与论文/文档对应关系：**
+运行顺序：
+1. `analyze_swebench_data.py` → Haiku haiku_figures/ + Local qwen3_figures/
+2. `analyze_tool_time_ratio.py` → chart_01..chart_14
+3. `analyze_haiku_vs_qwen.py` → comparison_figures/
+4. `analyze_extended_insights.py` → 文本分析数据
+5. `analyze_rq_validation.py` → 验证图表
 
-| 生成图表 | 论文 Figure | characterization.md 章节 | 分析内容 |
-|----------|-------------|--------------------------|----------|
-| `rq1_resource_timeseries.png` | Fig. timeseries | 3.3 时间动态性 | ML 任务内存 2.9GB/秒变化 |
-| `rq1_change_rate_distribution.png` | Fig. changerate | 3.3 时间动态性 | 资源变化率分布：最大内存变化 3GB/s，CPU 变化 >50%/s |
-| `rq1_timescale_mismatch.png` | — | 3.3 时间动态性 | 突发事件频率/幅度 |
-| `rq2_category_boxplots.png` | Fig. categories | 3.3 异构性 | 峰值内存 197MB–4GB，CV=147% |
-| `rq2_domain_mismatch.png` | — | 3.3 异构性 | 任务类别间资源差异 |
-| `rq2_category_heatmap.png` | — | 3.3 异构性 | 资源使用热力图 |
-| `rq3_tool_analysis.png` | — | 3.2 RQ1 | 工具调用模式分析 |
-| `rq4_overprovisioning.png` | Fig. overprovisioning | 3.4 RQ3 | CPU 浪费 76%–93%，过度供给 4.1×–13.6× |
+最后输出 **Numerical Values Summary**，列出 characterization.md 中所有数值的最新计算结果。
 
-### 3.2 analyze_tool_time_ratio.py
+### 3.2 analyze_swebench_data.py
+
+**路径**: `analysis/analyze_swebench_data.py`
+**输入**: `experiments/all_images_haiku/` 或 `experiments/all_images_local/`（通过 `--dataset` 选择）
+**输出**: `analysis/haiku_figures/` 或 `analysis/qwen3_figures/`
+
+```bash
+python analysis/analyze_swebench_data.py --all                    # Haiku（默认）
+python analysis/analyze_swebench_data.py --dataset qwen3 --all    # Local/GLM
+```
+
+| 生成图表 | 论文 Figure | characterization.md 章节 | 数据源建议 |
+|----------|-------------|--------------------------|-----------|
+| `rq1_resource_timeseries.png` | Fig. timeseries | 3.3 时间动态性 | Local 111 |
+| `rq1_change_rate_distribution.png` | Fig. changerate | 3.3 时间动态性 | Local 111 |
+| `rq2_category_boxplots.png` | Fig. categories | 3.3 异构性 | **旧 18 tasks**（需 category） |
+| `rq3_tool_analysis.png` | — | 3.2 RQ1 | Local 111 |
+| `rq4_overprovisioning.png` | Fig. overprovisioning | 3.4 RQ3 | 新数据（更有利） |
+
+### 3.3 analyze_tool_time_ratio.py
 
 **路径**: `analysis/analyze_tool_time_ratio.py`
-**输入**: `experiments/all_images_local/` (默认) 或通过 `--data-dir` 指定
+**输入**: `experiments/all_images_local/`（默认）或 `--data-dir`
 **输出**: 14 张 chart 图表
 
 ```bash
-python analysis/analyze_tool_time_ratio.py
-python analysis/analyze_tool_time_ratio.py --data-dir experiments/batch_swebench_18tasks --figures-dir analysis/haiku_figures
+python analysis/analyze_tool_time_ratio.py                          # Local → qwen3_figures
+python analysis/analyze_tool_time_ratio.py --data-dir experiments/all_images_haiku --figures-dir analysis/haiku_figures
 ```
 
-| 生成图表 | characterization.md 章节 | 分析内容 |
-|----------|--------------------------|----------|
-| `chart_01_repo_success_rate.png` | 3.2 RQ1 | 任务成功率 |
-| `chart_02_time_distribution.png` | 3.2 RQ1 | 执行时间分布 |
-| `chart_03_tool_ratio_distribution.png` | 3.2 阶段划分 | 工具执行时间占比：平均 28.2%，范围 0.1%–73.3% |
-| `chart_04_tool_usage_breakdown.png` | 3.2 工具执行时间差异 | Bash 平均 2.64s，Task 平均 66.16s，Read/Edit <0.1s |
-| `chart_05_tool_timeline.png` | 3.2 工具使用时间分布 | Read 集中前 30%，Bash 集中 40%–80% |
-| `chart_06_bash_categories.png` | 3.2 工具类型分布 | 测试 44.1%，Python 26.7%，安装 10.9% |
-| `chart_07_resource_boxplots.png` | 3.3 异构性 | 资源使用箱线图 |
-| `chart_08_time_breakdown.png` | 3.2 RQ1 | 时间分解 |
-| `chart_09_overhead_analysis.png` | 3.2 磁盘与启动开销 | 启动开销分析 |
-| `chart_10_memory_trajectory.png` | 3.4 聚合内存轨迹 | 归一化内存轨迹：前半段稳定 ~200MB，后半段上升 |
-| `chart_11_cpu_utilization.png` | 3.3 时间动态性 | CPU 利用率模式 |
-| `chart_12_bash_time_by_category.png` | 3.2 工具语义决定资源消耗 | Medical_Bio 4GB vs Web_Network 291MB (13.7×) |
-| `chart_13_memory_peak_timing.png` | 3.3 时间动态性 | 内存峰值出现时机（早期/中期/后期） |
-| `chart_14_scatter_time_ratio.png` | 3.2 RQ1 | 工具时间占比散点图 |
+| 生成图表 | characterization.md 章节 | 数据源建议 |
+|----------|--------------------------|-----------|
+| `chart_03_tool_ratio_distribution.png` | 3.2 阶段划分 | Local 111 |
+| `chart_04_tool_usage_breakdown.png` | 3.2 工具执行时间差异 | Local 111 |
+| `chart_05_tool_timeline.png` | 3.2 工具使用时间分布 | Local 111 |
+| `chart_06_bash_categories.png` | 3.2 工具类型分布 | Local 111 |
+| `chart_09_overhead_analysis.png` | 3.2 磁盘与启动开销 | Local 111 |
+| `chart_10_memory_trajectory.png` | 3.4 聚合内存轨迹 | Local 111 |
+| `chart_12_bash_time_by_category.png` | 3.2 工具语义决定资源消耗 | **旧 18 tasks** |
+| `chart_13_memory_peak_timing.png` | 3.3 时间动态性 | Local 111 |
 
-### 3.3 analyze_haiku_vs_qwen.py
+### 3.4 analyze_haiku_vs_qwen.py
 
 **路径**: `analysis/analyze_haiku_vs_qwen.py`
-**输入**: `experiments/batch_swebench_18tasks/` (Haiku) + `experiments/all_images_local/` (Qwen)
-**输出**: `analysis/comparison_figures/` (6 PNG)
+**输入**: `experiments/all_images_haiku/` + `experiments/all_images_local/`
+**输出**: `analysis/comparison_figures/` (6-7 PNG)
 
 ```bash
 python analysis/analyze_haiku_vs_qwen.py
 ```
 
-| 生成图表 | 论文 Figure | characterization.md 章节 | 分析内容 |
-|----------|-------------|--------------------------|----------|
-| `01_success_rate_by_category.png` | — | 3.3 异构性 | Haiku 94.4% vs Qwen 44.4% |
-| `02_execution_time_comparison.png` | — | 3.3 异构性 | Haiku 400s vs Qwen 607s |
-| `03_peak_memory_comparison.png` | — | 3.3 异构性 | 峰值内存对比 |
-| `04_cpu_utilization_comparison.png` | Fig. cpudiff | 3.3 异构性 | CPU 利用率 Haiku 30.6% vs Qwen 7.9% (3.9×) |
-| `05_time_vs_memory_scatter.png` | — | 3.3 异构性 | 时间-内存散点图 |
-| `06_overall_comparison.png` | — | 3.3 异构性 | 总体指标对比 |
+| 生成图表 | characterization.md 章节 | 新数据值 |
+|----------|--------------------------|----------|
+| `04_cpu_utilization_comparison.png` | 3.3 异构性 | Haiku 13.2% vs Local 7.6% (1.7x) |
 
-### 3.4 analyze_extended_insights.py
+### 3.5 analyze_extended_insights.py
 
 **路径**: `analysis/analyze_extended_insights.py`
-**输入**: 同上
-**输出**: 可复用的分析函数（按需调用，不自动生成图表）
 
 ```bash
-python analysis/analyze_extended_insights.py --haiku     # Haiku 数据集
-python analysis/analyze_extended_insights.py --qwen      # Qwen 数据集
-python analysis/analyze_extended_insights.py --compare    # 模型对比
+python analysis/analyze_extended_insights.py --compare
 ```
 
-提供的分析函数及其对应 characterization.md 章节：
+| 函数 | 对应章节 | 数据源建议 |
+|------|----------|-----------|
+| `analyze_disk_and_startup_overhead()` | 3.2 磁盘与启动开销 | Local 111 |
+| `analyze_transient_bursts()` | 3.3 瞬态突发特征 | **旧 18 tasks**（Medical_Bio_Hard 15.4x） |
+| `analyze_cpu_memory_correlation()` | 3.3 CPU 与内存相关性 | **必须纠正**（两组均为负相关） |
+| `analyze_retry_loop_patterns()` | 3.3 重试循环模式 | Local 111（max 20 groups，更真实） |
+| `analyze_local_vs_api_inference()` | 3.3 本地 vs API 推理 | 新数据 30 common tasks |
+| `analyze_concurrency_potential()` | 3.3 异构性 | 新数据 |
+| `analyze_memory_trajectory()` | 3.4 聚合内存轨迹 | Local 111 |
+| `analyze_tool_semantic_variance()` | 3.2 工具语义差异 | **旧 18 tasks** |
 
-| 函数 | 对应章节 | 分析内容 |
-|------|----------|----------|
-| `analyze_disk_and_startup_overhead()` | 3.2 磁盘与启动开销 | 镜像 2.9–17.7GB，权限修复平均 28.3s |
-| `analyze_transient_bursts()` | 3.3 瞬态突发特征 | Medical_Bio_Hard 峰值 4060MB，平均 264MB，过度供给 15.4× |
-| `analyze_cpu_memory_correlation()` | 3.3 CPU 与内存正相关性 | 相关系数 91%–95% |
-| `analyze_retry_loop_patterns()` | 3.3 重试循环模式 | 20–51 个重试组，Bash 密度 61.8% |
-| `analyze_tool_timeline_distribution()` | 3.2 工具使用时间分布 | 10 阶段工具调用分布 |
-| `analyze_local_vs_api_inference()` | 3.3 本地推理 vs API 推理 | CPU>50% 采样点：Haiku 21.2% vs Qwen 0.5% |
-| `analyze_concurrency_potential()` | 3.3 异构性 | 理论并发：Haiku 3 实例 vs Qwen 12 实例 |
-| `analyze_memory_trajectory()` | 3.4 聚合内存轨迹 | 归一化内存使用趋势 |
-| `analyze_tool_semantic_variance()` | 3.2 工具语义决定资源消耗 | 相同 Bash 调用资源差异 13.7× |
-
-### 3.5 analyze_rq_validation.py
+### 3.6 analyze_rq_validation.py
 
 **路径**: `analysis/analyze_rq_validation.py`
-**输入**: 任意实验数据目录
-**输出**: RQ1–RQ4 验证图表 + 统计数据
 
 ```bash
 python analysis/analyze_rq_validation.py --all
-python analysis/analyze_rq_validation.py --data-dir experiments/batch_swebench_18tasks --figures-dir analysis/haiku_figures
 ```
-
-功能与 `analyze_swebench_data.py` 中的 RQ 分析部分重叠，主要用于独立验证论文中的具体数据声明。
 
 ## 4. 论文图表引用一览
 
-论文 `main.tex` 中引用的图表与生成脚本对应关系：
-
-| LaTeX label | 图表文件 | 生成脚本 |
-|-------------|----------|----------|
-| `fig:timeseries` | `rq1_resource_timeseries.png` | `analyze_swebench_data.py --dynamics` |
-| `fig:change_rate` | `rq1_change_rate_distribution.png` | `analyze_swebench_data.py --dynamics` |
-| `fig:categories` | `rq2_category_boxplots.png` | `analyze_swebench_data.py --domain` |
-| `fig:cpu_diff` | `04_cpu_utilization_comparison.png` | `analyze_haiku_vs_qwen.py` |
-| `fig:overprovisioning` | `rq4_overprovisioning.png` | `analyze_swebench_data.py --efficiency` |
-| `fig:tool_ratio` | `chart_03_tool_ratio_distribution.png` | `analyze_tool_time_ratio.py` |
-| `fig:bash_categories` | `chart_06_bash_categories.png` | `analyze_tool_time_ratio.py` |
-| `fig:tool_time` | `chart_04_tool_usage_breakdown.png` | `analyze_tool_time_ratio.py` |
-| `fig:tool_timeline` | `chart_05_tool_timeline.png` | `analyze_tool_time_ratio.py` |
-| `fig:peak_timing` | `chart_13_memory_peak_timing.png` | `analyze_tool_time_ratio.py` |
-| `fig:memory_trajectory` | `chart_10_memory_trajectory.png` | `analyze_tool_time_ratio.py` |
+| LaTeX label | 图表文件 | 生成脚本 | 数据源 |
+|-------------|----------|----------|--------|
+| `fig:timeseries` | `rq1_resource_timeseries.png` | `analyze_swebench_data.py --dynamics` | Local 111 |
+| `fig:change_rate` | `rq1_change_rate_distribution.png` | `analyze_swebench_data.py --dynamics` | Local 111 |
+| `fig:categories` | `rq2_category_boxplots.png` | `analyze_swebench_data.py --domain` | **旧 18 tasks** |
+| `fig:cpu_diff` | `04_cpu_utilization_comparison.png` | `analyze_haiku_vs_qwen.py` | 新 30 common |
+| `fig:overprovisioning` | `rq4_overprovisioning.png` | `analyze_swebench_data.py --efficiency` | Local 111 |
+| `fig:tool_ratio` | `chart_03_tool_ratio_distribution.png` | `analyze_tool_time_ratio.py` | Local 111 |
+| `fig:bash_categories` | `chart_06_bash_categories.png` | `analyze_tool_time_ratio.py` | Local 111 |
+| `fig:tool_time` | `chart_04_tool_usage_breakdown.png` | `analyze_tool_time_ratio.py` | Local 111 |
+| `fig:tool_timeline` | `chart_05_tool_timeline.png` | `analyze_tool_time_ratio.py` | Local 111 |
+| `fig:peak_timing` | `chart_13_memory_peak_timing.png` | `analyze_tool_time_ratio.py` | Local 111 |
+| `fig:memory_trajectory` | `chart_10_memory_trajectory.png` | `analyze_tool_time_ratio.py` | Local 111 |
 
 ## 5. 一键重现
 
 ```bash
-# 1. 生成 Haiku 分析图表
-python analysis/analyze_swebench_data.py --all
-python analysis/analyze_tool_time_ratio.py --data-dir experiments/batch_swebench_18tasks --figures-dir analysis/haiku_figures
+# 全部生成（推荐）
+python analysis/characterization.py
 
-# 2. 生成 Qwen/GLM 分析图表
+# 分步生成
+# 1. Local 大数据集（主要图表）
 python analysis/analyze_swebench_data.py --dataset qwen3 --all
 python analysis/analyze_tool_time_ratio.py
 
-# 3. 生成模型对比图表
+# 2. Haiku 数据集
+python analysis/analyze_swebench_data.py --all
+python analysis/analyze_tool_time_ratio.py --data-dir experiments/all_images_haiku --figures-dir analysis/haiku_figures
+
+# 3. 旧 18 tasks（category 分析）
+python analysis/analyze_tool_time_ratio.py --data-dir experiments/batch_swebench_18tasks --figures-dir analysis/haiku_figures
+
+# 4. 模型对比
 python analysis/analyze_haiku_vs_qwen.py
 
-# 4. 生成扩展分析
+# 5. 扩展分析
 python analysis/analyze_extended_insights.py --compare
 ```
