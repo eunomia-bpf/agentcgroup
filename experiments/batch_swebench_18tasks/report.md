@@ -1,18 +1,17 @@
 # Batch SWE-bench Test Report
 
-Generated: 2026-02-06T22:16:23.919677
+Generated: 2026-02-04T04:54:26.560772
 
 ## Summary
 
 - **Total Tasks**: 1
-- **Successful**: 1
-- **Failed**: 0
-- **Success Rate**: 100.0%
-- **Total Time**: 548.0s
-- **Model**: haiku
+- **Successful**: 0
+- **Failed**: 1
+- **Success Rate**: 0.0%
+- **Total Time**: 2382.0s
 
 ## Results by Task
 
-| Category | Difficulty | Task# | Instance ID | Success | Attempts | Time (s) |
-|----------|------------|-------|-------------|---------|----------|----------|
-| SQL/Data | Easy | 2 | tobymao__sqlglot-1642 | Yes | 1 | 548.0 |
+| Category | Difficulty | Instance ID | Success | Attempts | Time (s) |
+|----------|------------|-------------|---------|----------|----------|
+| DevOps/Build | Easy | pre-commit__pre-commit-2524 | No | 1 | 2382.0 |
