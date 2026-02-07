@@ -1,0 +1,514 @@
+#!/usr/bin/env python3
+"""
+Characterization Analysis Runner
+
+Generates all figures and numerical data for Section 3 (Characterization)
+of the AgentCgroup paper, by importing and orchestrating the individual
+analysis scripts.
+
+Uses:
+- experiments/all_images_haiku  (Haiku / cloud API agent)
+- experiments/all_images_local  (GLM 4.7 flash / local GPU agent)
+
+Outputs:
+- analysis/haiku_figures/       (primary characterization figures)
+- analysis/qwen3_figures/       (local model figures)
+- analysis/comparison_figures/  (Haiku vs Local comparison)
+- Prints all numerical values referenced in characterization.md
+
+Usage:
+    python analysis/characterization.py              # full run
+    python analysis/characterization.py --haiku-only # Haiku dataset only
+    python analysis/characterization.py --local-only # Local dataset only
+    python analysis/characterization.py --skip-extended --skip-rq  # fast
+"""
+
+import argparse
+import os
+import sys
+import statistics
+from pathlib import Path
+
+import numpy as np
+
+# Ensure analysis/ is importable
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+EXPERIMENTS_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "experiments"))
+HAIKU_DIR = os.path.join(EXPERIMENTS_DIR, "all_images_haiku")
+LOCAL_DIR = os.path.join(EXPERIMENTS_DIR, "all_images_local")
+HAIKU_FIGURES = os.path.abspath(os.path.join(SCRIPT_DIR, "haiku_figures"))
+QWEN3_FIGURES = os.path.abspath(os.path.join(SCRIPT_DIR, "qwen3_figures"))
+COMPARISON_FIGURES = os.path.abspath(os.path.join(SCRIPT_DIR, "comparison_figures"))
+
+
+# ============================================================================
+# Step 1: analyze_swebench_data  →  rq1_*, rq2_*, rq3_*, rq4_* figures
+# ============================================================================
+
+def step_swebench_analysis(dataset_name, base_dir, output_dir):
+    """Run analyze_swebench_data.py for one dataset.
+
+    Generates: rq1_resource_timeseries.png, rq1_change_rate_distribution.png,
+               rq2_category_boxplots.png, rq3_tool_analysis.png,
+               rq4_overprovisioning.png, report.md
+    """
+    import analyze_swebench_data as asd
+
+    _section(f"analyze_swebench_data.py  →  {dataset_name}")
+    print(f"  Data:   {base_dir}")
+    print(f"  Output: {output_dir}")
+
+    asd.BASE_DIR = Path(base_dir)
+    asd.OUTPUT_DIR = Path(output_dir)
+    asd.REPORT_PATH = Path(output_dir) / "report.md"
+    asd.DATASET_TYPE = "flat"
+    os.makedirs(output_dir, exist_ok=True)
+
+    tasks, progress = asd.load_all_data()
+    if not tasks:
+        print(f"  WARNING: No tasks loaded for {dataset_name}")
+        return None, {}
+
+    print(f"  Loaded {len(tasks)} tasks")
+
+    dynamics = asd.analyze_dynamics(tasks)
+    categories = asd.analyze_categories(tasks)
+    tools = asd.analyze_tools(tasks)
+    overprov = asd.analyze_overprovisioning(tasks)
+    asd.generate_report(tasks, dynamics, categories, tools, overprov, dataset_name)
+
+    return tasks, {
+        "dynamics": dynamics,
+        "categories": categories,
+        "tools": tools,
+        "overprovisioning": overprov,
+    }
+
+
+# ============================================================================
+# Step 2: analyze_tool_time_ratio  →  chart_01 … chart_14
+# ============================================================================
+
+def step_tool_time_analysis(base_dir, figures_dir):
+    """Run analyze_tool_time_ratio.py (via sys.argv patching).
+
+    Generates: chart_01_repo_success_rate.png … chart_14_scatter_time_ratio.png
+    """
+    _section("analyze_tool_time_ratio.py")
+    print(f"  Data:   {base_dir}")
+    print(f"  Output: {figures_dir}")
+
+    saved_argv = sys.argv
+    sys.argv = [
+        "analyze_tool_time_ratio.py",
+        "--data-dir", base_dir,
+        "--figures-dir", figures_dir,
+    ]
+    try:
+        import analyze_tool_time_ratio as att
+        att.main()
+    finally:
+        sys.argv = saved_argv
+
+
+# ============================================================================
+# Step 3: analyze_haiku_vs_qwen  →  comparison_figures/
+# ============================================================================
+
+def step_comparison():
+    """Run analyze_haiku_vs_qwen.py for Haiku vs Local comparison.
+
+    Generates: 01_duration_comparison.png … 06_overall_comparison.png
+    """
+    import analyze_haiku_vs_qwen as ahq
+
+    _section("analyze_haiku_vs_qwen.py  →  comparison_figures/")
+
+    ahq.HAIKU_DIR = HAIKU_DIR
+    ahq.LOCAL_DIR = LOCAL_DIR
+    ahq.FIGURES_DIR = COMPARISON_FIGURES
+
+    results = ahq.analyze_comparison(60, 10)
+    if not results:
+        print("  WARNING: No valid task pairs found")
+        return [], {}
+
+    stats = ahq.print_report(results, 60)
+    ahq.generate_charts(results)
+    report_path = os.path.join(SCRIPT_DIR, "haiku_vs_qwen_report.md")
+    ahq.generate_markdown_report(results, stats, report_path, 60)
+
+    return results, stats
+
+
+# ============================================================================
+# Step 4: analyze_extended_insights  →  textual insights & data
+# ============================================================================
+
+def step_extended_insights(run_haiku=True, run_local=True):
+    """Run extended insight analyses for paper data.
+
+    Returns a dict keyed by dataset name with sub-analysis results.
+    """
+    import analyze_extended_insights as aei
+
+    _section("analyze_extended_insights.py")
+
+    all_results = {}
+
+    datasets = []
+    if run_haiku:
+        datasets.append(("Haiku", HAIKU_DIR))
+    if run_local:
+        datasets.append(("Local", LOCAL_DIR))
+
+    for name, base_dir in datasets:
+        if not os.path.exists(base_dir):
+            print(f"  WARNING: {name} dir not found: {base_dir}")
+            continue
+
+        print(f"\n  --- {name} ---")
+        all_results[name] = {
+            "disk_overhead": aei.analyze_disk_and_startup_overhead(base_dir),
+            "transient_bursts": aei.analyze_transient_bursts(base_dir),
+            "cpu_memory_correlation": aei.analyze_cpu_memory_correlation(base_dir),
+            "retry_patterns": aei.analyze_retry_loop_patterns(base_dir),
+            "tool_timeline": aei.analyze_tool_timeline_distribution(base_dir),
+            "concurrency": aei.analyze_concurrency_potential(base_dir),
+            "memory_trajectory": aei.analyze_memory_trajectory(base_dir),
+            "tool_semantic_variance": aei.analyze_tool_semantic_variance(base_dir),
+        }
+
+    if run_haiku and run_local and os.path.exists(HAIKU_DIR) and os.path.exists(LOCAL_DIR):
+        all_results["comparison"] = aei.analyze_local_vs_api_inference(HAIKU_DIR, LOCAL_DIR)
+
+    return all_results
+
+
+# ============================================================================
+# Step 5: analyze_rq_validation  →  validation charts
+# ============================================================================
+
+def step_rq_validation(run_haiku=True, run_local=True):
+    """Run RQ validation analysis and generate charts.
+
+    Generates: rq1_timescale_mismatch.png, rq2_domain_mismatch.png,
+               rq4_overprovisioning.png  (per dataset)
+    """
+    import analyze_rq_validation as arv
+
+    _section("analyze_rq_validation.py")
+
+    results = {}
+    datasets = []
+    if run_haiku:
+        datasets.append(("Haiku", HAIKU_DIR, HAIKU_FIGURES))
+    if run_local:
+        datasets.append(("Local", LOCAL_DIR, QWEN3_FIGURES))
+
+    for name, data_dir, figures_dir in datasets:
+        if not os.path.exists(data_dir):
+            continue
+        print(f"\n  --- RQ Validation: {name} ---")
+        results[name] = {
+            "rq1": arv.analyze_timescale_mismatch(data_dir),
+            "rq2": arv.analyze_domain_mismatch(data_dir),
+            "rq4": arv.analyze_overprovisioning(data_dir),
+        }
+        arv.generate_rq_charts(data_dir, figures_dir, name)
+
+    return results
+
+
+# ============================================================================
+# Summary: Print all key numerical values for characterization.md
+# ============================================================================
+
+def print_summary(haiku_tasks, haiku_results, local_tasks, local_results,
+                  comp_results, comp_stats, extended, rq_results):
+    """Print every numerical value referenced in characterization.md."""
+    sep = "=" * 70
+
+    print(f"\n\n{sep}")
+    print("  CHARACTERIZATION NUMERICAL VALUES SUMMARY")
+    print(f"  (Values for characterization.md)")
+    print(f"{sep}")
+
+    # ---- 3.1 Experimental Setup ----
+    _heading("3.1 Experimental Setup")
+    if haiku_tasks:
+        print(f"  Haiku valid tasks: {len(haiku_tasks)}")
+    if local_tasks:
+        print(f"  Local valid tasks: {len(local_tasks)}")
+
+    for ds_name in ["Haiku", "Local"]:
+        disk = extended.get(ds_name, {}).get("disk_overhead", {})
+        img = disk.get("image_size", {})
+        if img:
+            print(f"\n  [{ds_name}] Docker Images (n={img.get('count', 0)}):")
+            print(f"    Range: {img.get('min_mb', 0)/1024:.1f} – {img.get('max_mb', 0)/1024:.1f} GB")
+            print(f"    Avg:   {img.get('avg_mb', 0)/1024:.1f} GB,  Median: {img.get('median_mb', 0)/1024:.1f} GB")
+            print(f"    Total: {img.get('total_gb', 0):.1f} GB")
+        perm = disk.get("permission_fix_time", {})
+        if perm:
+            print(f"    Permission fix:  avg {perm.get('avg_s', 0):.1f}s,  max {perm.get('max_s', 0):.1f}s")
+
+    # ---- 3.2 RQ1: Agent Execution Model ----
+    _heading("3.2 RQ1: Agent Execution Model")
+
+    # Average execution time
+    for ds_name, tasks in [("Haiku", haiku_tasks), ("Local", local_tasks)]:
+        if not tasks:
+            continue
+        durations = [t.claude_time for t in tasks.values() if t.claude_time > 0]
+        if durations:
+            print(f"  [{ds_name}] Avg execution time: {statistics.mean(durations):.0f}s "
+                  f"({statistics.mean(durations)/60:.1f} min)")
+
+    # Tool time ratio
+    for ds_name, res in [("Haiku", haiku_results), ("Local", local_results)]:
+        ratios = res.get("tools", {}).get("tool_vs_thinking_ratio", [])
+        if ratios:
+            print(f"  [{ds_name}] Tool time ratio: avg {statistics.mean(ratios):.1f}%, "
+                  f"range {min(ratios):.1f}%–{max(ratios):.1f}%")
+
+    # Per-tool average execution time
+    for ds_name, res in [("Haiku", haiku_results), ("Local", local_results)]:
+        tool_stats = res.get("tools", {}).get("tool_stats", {})
+        if not tool_stats:
+            continue
+        print(f"\n  [{ds_name}] Tool avg execution times:")
+        sorted_tools = sorted(tool_stats.items(),
+                              key=lambda x: x[1]["total_time"], reverse=True)
+        for tname, tstats in sorted_tools:
+            if tstats["count"] > 0:
+                avg_t = tstats["total_time"] / tstats["count"]
+                print(f"    {tname:<15} avg={avg_t:.2f}s  count={tstats['count']}")
+
+    # ---- 3.3 RQ2: Resource Unpredictability ----
+    _heading("3.3 RQ2: Resource Unpredictability")
+
+    # Dynamics (change rates)
+    for ds_name, res in [("Haiku", haiku_results), ("Local", local_results)]:
+        dyn = res.get("dynamics", {})
+        cpu_rates = dyn.get("cpu_change_rates", [])
+        mem_rates = dyn.get("mem_change_rates", [])
+        if cpu_rates:
+            print(f"  [{ds_name}] CPU change rate:  max {max(cpu_rates):.1f}%/s,  "
+                  f"p95 {np.percentile(cpu_rates, 95):.1f}%/s")
+        if mem_rates:
+            print(f"  [{ds_name}] Mem change rate:  max {max(mem_rates):.1f}MB/s, "
+                  f"p95 {np.percentile(mem_rates, 95):.1f}MB/s")
+        total_samples = len(cpu_rates)
+        burst_total = dyn.get("total_bursts", 0)
+        if total_samples > 0:
+            print(f"  [{ds_name}] Burst events: {burst_total} "
+                  f"({burst_total/total_samples*100:.1f}% of sample pairs)")
+
+    # Transient bursts (peak/avg)
+    for ds_name in ["Haiku", "Local"]:
+        bursts = extended.get(ds_name, {}).get("transient_bursts", {})
+        top = bursts.get("top_bursts", [])
+        if top:
+            b = top[0]
+            print(f"  [{ds_name}] Most extreme burst: {b['task']}")
+            print(f"           Peak={b['peak_mb']:.0f}MB, Avg={b['avg_mb']:.0f}MB, "
+                  f"Factor={b['overprov_factor']:.1f}x, Spike~{b['spike_duration_samples']}s")
+
+    # CPU–memory correlation
+    for ds_name in ["Haiku", "Local"]:
+        corr = extended.get(ds_name, {}).get("cpu_memory_correlation", {}).get("correlation", {})
+        if corr:
+            print(f"  [{ds_name}] CPU-Mem correlation: avg {corr.get('avg', 0):.2f}, "
+                  f"range {corr.get('min', 0):.2f}–{corr.get('max', 0):.2f}")
+
+    # Domain mismatch (peak memory range / CV)
+    for ds_name in ["Haiku", "Local"]:
+        rq2 = rq_results.get(ds_name, {}).get("rq2", {})
+        if rq2:
+            print(f"  [{ds_name}] Peak memory range: "
+                  f"{rq2.get('peak_mem_min', 0):.0f}–{rq2.get('peak_mem_max', 0):.0f}MB, "
+                  f"CV={rq2.get('peak_mem_cv', 0):.1f}%")
+
+    # Haiku vs Local comparison
+    if comp_stats:
+        n = comp_stats.get("n_tasks", 0)
+        print(f"\n  Haiku vs Local ({n} common tasks):")
+        print(f"    Haiku avg CPU: {comp_stats.get('haiku_avg_cpu', 0):.1f}%")
+        print(f"    Local avg CPU: {comp_stats.get('local_avg_cpu', 0):.1f}%")
+        print(f"    CPU ratio:     {comp_stats.get('cpu_ratio', 0):.1f}x")
+        if "haiku_avg_time" in comp_stats:
+            print(f"    Haiku avg exec time: {comp_stats['haiku_avg_time']:.0f}s")
+            print(f"    Local avg exec time: {comp_stats['local_avg_time']:.0f}s")
+            print(f"    Time ratio (Local/Haiku): {comp_stats.get('time_ratio', 0):.2f}x")
+
+    # High-CPU sample percentages
+    comp_ext = extended.get("comparison", {})
+    h_high = comp_ext.get("haiku", {}).get("high_cpu_pct", 0)
+    l_high = comp_ext.get("qwen", {}).get("high_cpu_pct", 0)
+    if h_high or l_high:
+        print(f"    CPU>50% samples:  Haiku {h_high:.1f}%,  Local {l_high:.1f}%")
+
+    # Retry loop patterns
+    for ds_name in ["Haiku", "Local"]:
+        retry = extended.get(ds_name, {}).get("retry_patterns", {})
+        rg = retry.get("retry_groups", {})
+        if rg:
+            print(f"  [{ds_name}] Retry groups: total={rg.get('total', 0)}, "
+                  f"avg={rg.get('avg', 0):.1f}/task, max={rg.get('max', 0)}")
+
+    # Concurrency potential
+    for ds_name in ["Haiku", "Local"]:
+        cpu_info = extended.get(ds_name, {}).get("concurrency", {}).get("cpu", {})
+        if cpu_info:
+            print(f"  [{ds_name}] Concurrency: "
+                  f"theoretical ~{cpu_info.get('theoretical_concurrency', 0):.0f} instances, "
+                  f"practical ~{cpu_info.get('practical_concurrency', 0):.1f} instances, "
+                  f"gap {cpu_info.get('concurrency_gap', 0):.1f}x")
+
+    # ---- 3.4 RQ3: Provisioning Efficiency ----
+    _heading("3.4 RQ3: Provisioning Efficiency")
+
+    for ds_name in ["Haiku", "Local"]:
+        rq4 = rq_results.get(ds_name, {}).get("rq4", {})
+        if rq4:
+            cpu_util = rq4.get("cpu_utilization", 0)
+            mem_util = rq4.get("mem_utilization", 0)
+            print(f"  [{ds_name}] Overprovisioning factor:")
+            print(f"    CPU:  {rq4.get('cpu_overprov_mean', 0):.1f}x "
+                  f"(max {rq4.get('cpu_overprov_max', 0):.1f}x)  "
+                  f"→ utilization {cpu_util:.0f}%, waste {100 - cpu_util:.0f}%")
+            print(f"    Mem:  {rq4.get('mem_overprov_mean', 0):.1f}x "
+                  f"(max {rq4.get('mem_overprov_max', 0):.1f}x)  "
+                  f"→ utilization {mem_util:.0f}%, waste {100 - mem_util:.0f}%")
+
+    print(f"\n{sep}")
+    print("  END OF SUMMARY")
+    print(f"{sep}")
+
+
+# ============================================================================
+# Helpers
+# ============================================================================
+
+def _section(title):
+    print(f"\n{'='*70}")
+    print(f"  [Step] {title}")
+    print(f"{'='*70}")
+
+
+def _heading(title):
+    print(f"\n  ## {title}")
+    print(f"  {'-'*50}")
+
+
+def _list_generated_figures():
+    """List all generated PNG files in output directories."""
+    print(f"\n{'='*70}")
+    print("  Generated figures:")
+    print(f"{'='*70}")
+    for d in [HAIKU_FIGURES, QWEN3_FIGURES, COMPARISON_FIGURES]:
+        if not os.path.exists(d):
+            continue
+        pngs = sorted(f for f in os.listdir(d) if f.endswith(".png"))
+        print(f"\n  {d}/  ({len(pngs)} PNG)")
+        for p in pngs:
+            print(f"    {p}")
+
+
+# ============================================================================
+# Main
+# ============================================================================
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Generate all characterization figures and data for Section 3"
+    )
+    parser.add_argument("--haiku-only", action="store_true",
+                        help="Only analyze Haiku dataset")
+    parser.add_argument("--local-only", action="store_true",
+                        help="Only analyze Local dataset")
+    parser.add_argument("--skip-extended", action="store_true",
+                        help="Skip extended insights analysis")
+    parser.add_argument("--skip-rq", action="store_true",
+                        help="Skip RQ validation analysis")
+    args = parser.parse_args()
+
+    run_haiku = not args.local_only
+    run_local = not args.haiku_only
+
+    print("=" * 70)
+    print("  AgentCgroup Characterization Analysis")
+    print("  Generating all figures & data for Section 3")
+    print("=" * 70)
+    print(f"  Haiku data: {HAIKU_DIR}  {'(skip)' if not run_haiku else ''}")
+    print(f"  Local data: {LOCAL_DIR}  {'(skip)' if not run_local else ''}")
+
+    # ------------------------------------------------------------------
+    # 1. analyze_swebench_data  →  rq1/rq2/rq3/rq4 figures + report
+    # ------------------------------------------------------------------
+    haiku_tasks, haiku_results = None, {}
+    local_tasks, local_results = None, {}
+
+    if run_haiku:
+        haiku_tasks, haiku_results = step_swebench_analysis(
+            "haiku", HAIKU_DIR, HAIKU_FIGURES)
+
+    if run_local:
+        local_tasks, local_results = step_swebench_analysis(
+            "qwen3", LOCAL_DIR, QWEN3_FIGURES)
+
+    # ------------------------------------------------------------------
+    # 2. analyze_tool_time_ratio  →  chart_01 … chart_14
+    # ------------------------------------------------------------------
+    if run_haiku:
+        step_tool_time_analysis(HAIKU_DIR, HAIKU_FIGURES)
+
+    if run_local:
+        step_tool_time_analysis(LOCAL_DIR, QWEN3_FIGURES)
+
+    # ------------------------------------------------------------------
+    # 3. analyze_haiku_vs_qwen  →  comparison_figures/
+    # ------------------------------------------------------------------
+    comp_results, comp_stats = [], {}
+    if run_haiku and run_local:
+        comp_results, comp_stats = step_comparison()
+
+    # ------------------------------------------------------------------
+    # 4. analyze_extended_insights  →  textual insights
+    # ------------------------------------------------------------------
+    extended = {}
+    if not args.skip_extended:
+        extended = step_extended_insights(run_haiku, run_local)
+
+    # ------------------------------------------------------------------
+    # 5. analyze_rq_validation  →  validation charts
+    # ------------------------------------------------------------------
+    rq_results = {}
+    if not args.skip_rq:
+        rq_results = step_rq_validation(run_haiku, run_local)
+
+    # ------------------------------------------------------------------
+    # Summary: all key numerical values for characterization.md
+    # ------------------------------------------------------------------
+    print_summary(
+        haiku_tasks, haiku_results,
+        local_tasks, local_results,
+        comp_results, comp_stats,
+        extended, rq_results,
+    )
+
+    # ------------------------------------------------------------------
+    # List generated figures
+    # ------------------------------------------------------------------
+    _list_generated_figures()
+
+
+if __name__ == "__main__":
+    main()

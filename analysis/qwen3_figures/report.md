@@ -1,19 +1,19 @@
 # AgentCgroup SWE-Bench Experiment Analysis Report (qwen3)
 
-Generated: 2026-02-05 23:48:33
+Generated: 2026-02-07 10:45:59
 
-Data source: `/home/yunwei37/agentcgroup/experiments/all_images_local`
+Data source: `/home/yunwei37/workspace/agentcgroup/experiments/all_images_local`
 
-Total tasks analyzed: 47
+Total tasks analyzed: 111
 
 
 ## Dataset Overview
 
 | Metric | Value |
 |--------|-------|
-| Total tasks | 47 |
-| Successful | 29 (61.7%) |
-| Total execution time | 30111.1s (501.9 min) |
+| Total tasks | 111 |
+| Successful | 60 (54.1%) |
+| Total execution time | 74853.0s (1247.5 min) |
 
 ## RQ1: Resource Usage Dynamics (Time-scale Mismatch)
 
@@ -24,13 +24,13 @@ Total tasks analyzed: 47
 
 ### Findings
 
-- **Total burst events detected**: 352
-- **Tasks with bursts**: 47 / 47
+- **Total burst events detected**: 840
+- **Tasks with bursts**: 111 / 111
 
 **CPU Change Rate Statistics (%/sec)**:
-- Mean: 0.28
-- Max: 40.65
-- 95th percentile: 0.50
+- Mean: 0.24
+- Max: 50.93
+- 95th percentile: 0.39
 
 ![Resource Time Series](rq1_resource_timeseries.png)
 
@@ -47,7 +47,7 @@ Total tasks analyzed: 47
 
 | Category | N | Avg Memory (MB) | Peak Memory (MB) |
 |----------|---|-----------------|------------------|
-| swebench | 47 | 214.8 | 834.4 |
+| swebench | 111 | 214.9 | 2041.0 |
 
 ![Category Box Plots](rq2_category_boxplots.png)
 
@@ -60,17 +60,18 @@ Total tasks analyzed: 47
 
 | Tool | Call Count | Total Time (s) | Avg Time (s) |
 |------|------------|----------------|--------------|
-| Bash | 1200 | 8052.46 | 6.71 |
-| Read | 438 | 20.59 | 0.05 |
-| WebFetch | 1 | 18.47 | 18.47 |
-| Edit | 277 | 15.37 | 0.06 |
-| TodoWrite | 214 | 8.27 | 0.04 |
-| Write | 40 | 5.83 | 0.15 |
-| Grep | 157 | 4.41 | 0.03 |
-| Glob | 109 | 3.36 | 0.03 |
-| ExitPlanMode | 1 | 0.04 | 0.04 |
+| Bash | 3304 | 19434.14 | 5.88 |
+| Read | 1257 | 99.85 | 0.08 |
+| WebFetch | 5 | 77.94 | 15.59 |
+| Task | 1 | 67.47 | 67.47 |
+| TodoWrite | 510 | 50.44 | 0.10 |
+| Grep | 522 | 27.96 | 0.05 |
+| Edit | 643 | 26.85 | 0.04 |
+| Glob | 217 | 14.49 | 0.07 |
+| WebSearch | 2 | 13.59 | 6.79 |
+| Write | 71 | 6.82 | 0.10 |
 
-**Tool Time Ratio**: Mean 26.0%, Median 23.2%
+**Tool Time Ratio**: Mean 25.3%, Median 23.1%
 
 ![Tool Analysis](rq3_tool_analysis.png)
 
@@ -83,10 +84,10 @@ Total tasks analyzed: 47
 
 | Metric | CPU Ratio | Memory Ratio |
 |--------|-----------|--------------|
-| Mean | 12.15x | 1.53x |
-| Median | 10.48x | 1.43x |
-| Max | 26.92x | 3.34x |
-| 95th Percentile | 21.90x | 2.13x |
+| Mean | 13.94x | 1.63x |
+| Median | 12.96x | 1.41x |
+| Max | 46.11x | 11.27x |
+| 95th Percentile | 24.30x | 2.37x |
 
 ![Over-provisioning Analysis](rq4_overprovisioning.png)
 

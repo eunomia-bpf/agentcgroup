@@ -36,6 +36,8 @@ from typing import Dict, List, Tuple, Optional, Any
 
 import numpy as np
 
+from filter_valid_tasks import get_valid_task_names
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -83,15 +85,14 @@ def load_json(path: str) -> Optional[Dict]:
 
 
 def find_attempt_dirs(base_dir: str) -> List[str]:
-    """Find all attempt directories in a dataset."""
+    """Find attempt directories for valid tasks only (filtered by duration/samples)."""
+    valid_names = get_valid_task_names(base_dir)
     attempt_dirs = []
-    for entry in os.listdir(base_dir):
-        full_path = os.path.join(base_dir, entry)
-        if os.path.isdir(full_path) and entry not in ("__pycache__",):
-            # Check for attempt_* subdirectories
-            attempts = sorted(glob.glob(os.path.join(full_path, "attempt_*")))
-            if attempts:
-                attempt_dirs.append(attempts[-1])  # Use latest attempt
+    for name in valid_names:
+        full_path = os.path.join(base_dir, name)
+        attempts = sorted(glob.glob(os.path.join(full_path, "attempt_*")))
+        if attempts:
+            attempt_dirs.append(attempts[-1])
     return attempt_dirs
 
 
@@ -839,7 +840,7 @@ def main():
     parser.add_argument("--output", default=None, help="Output JSON file for results")
     args = parser.parse_args()
 
-    haiku_dir = os.path.join(SCRIPT_DIR, "..", "experiments", "batch_swebench_18tasks")
+    haiku_dir = os.path.join(SCRIPT_DIR, "..", "experiments", "all_images_haiku")
     qwen_dir = os.path.join(SCRIPT_DIR, "..", "experiments", "all_images_local")
 
     all_results = {}

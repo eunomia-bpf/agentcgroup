@@ -37,6 +37,15 @@ MIN_DURATION = 60   # seconds
 MIN_SAMPLES = 10    # minimum resource sample points
 
 
+def get_valid_task_names(base_dir, min_duration=MIN_DURATION, min_samples=MIN_SAMPLES):
+    """Convenience: return a sorted list of valid task directory names.
+
+    This is the primary API for other analysis scripts to filter tasks.
+    """
+    valid, _ = scan_dataset(base_dir, min_duration, min_samples)
+    return sorted(t["task"] for t in valid)
+
+
 def load_json(path):
     try:
         with open(path) as f:

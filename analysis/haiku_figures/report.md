@@ -1,19 +1,19 @@
 # AgentCgroup SWE-Bench Experiment Analysis Report (haiku)
 
-Generated: 2026-02-06 03:28:55
+Generated: 2026-02-07 10:45:57
 
-Data source: `/home/yunwei37/agentcgroup/experiments/batch_swebench_18tasks`
+Data source: `/home/yunwei37/workspace/agentcgroup/experiments/all_images_haiku`
 
-Total tasks analyzed: 18
+Total tasks analyzed: 33
 
 
 ## Dataset Overview
 
 | Metric | Value |
 |--------|-------|
-| Total tasks | 18 |
-| Successful | 15 (83.3%) |
-| Total execution time | 10161.9s (169.4 min) |
+| Total tasks | 33 |
+| Successful | 9 (27.3%) |
+| Total execution time | 12322.0s (205.4 min) |
 
 ## RQ1: Resource Usage Dynamics (Time-scale Mismatch)
 
@@ -24,13 +24,13 @@ Total tasks analyzed: 18
 
 ### Findings
 
-- **Total burst events detected**: 203
-- **Tasks with bursts**: 18 / 18
+- **Total burst events detected**: 231
+- **Tasks with bursts**: 33 / 33
 
 **CPU Change Rate Statistics (%/sec)**:
-- Mean: 0.46
-- Max: 34.05
-- 95th percentile: 1.12
+- Mean: 0.69
+- Max: 143.88
+- 95th percentile: 1.71
 
 ![Resource Time Series](rq1_resource_timeseries.png)
 
@@ -47,12 +47,7 @@ Total tasks analyzed: 18
 
 | Category | N | Avg Memory (MB) | Peak Memory (MB) |
 |----------|---|-----------------|------------------|
-| CLI_Tools | 3 | 236.3 | 452.1 |
-| DevOps_Build | 3 | 243.1 | 633.2 |
-| ML_Scientific | 3 | 255.8 | 1403.0 |
-| Medical_Bio | 3 | 228.3 | 4060.0 |
-| SQL_Data | 3 | 261.1 | 392.5 |
-| Web_Network | 3 | 237.1 | 308.4 |
+| swebench | 33 | 206.0 | 2076.0 |
 
 ![Category Box Plots](rq2_category_boxplots.png)
 
@@ -65,18 +60,18 @@ Total tasks analyzed: 18
 
 | Tool | Call Count | Total Time (s) | Avg Time (s) |
 |------|------------|----------------|--------------|
-| Bash | 559 | 1475.65 | 2.64 |
-| Task | 19 | 1257.07 | 66.16 |
-| TaskOutput | 4 | 210.19 | 52.55 |
-| WebFetch | 2 | 9.98 | 4.99 |
-| Read | 157 | 9.92 | 0.06 |
-| Edit | 76 | 3.35 | 0.04 |
-| TodoWrite | 84 | 2.82 | 0.03 |
-| Grep | 11 | 0.71 | 0.06 |
-| Write | 10 | 0.29 | 0.03 |
-| KillShell | 2 | 0.10 | 0.05 |
+| Task | 17 | 1707.99 | 100.47 |
+| Bash | 410 | 1543.21 | 3.76 |
+| WebSearch | 9 | 108.57 | 12.06 |
+| Read | 222 | 75.19 | 0.34 |
+| WebFetch | 9 | 67.75 | 7.53 |
+| Grep | 159 | 31.98 | 0.20 |
+| Glob | 45 | 26.29 | 0.58 |
+| Edit | 109 | 5.59 | 0.05 |
+| TodoWrite | 94 | 3.46 | 0.04 |
+| Write | 26 | 1.27 | 0.05 |
 
-**Tool Time Ratio**: Mean 37.9%, Median 32.7%
+**Tool Time Ratio**: Mean 25.9%, Median 22.1%
 
 ![Tool Analysis](rq3_tool_analysis.png)
 
@@ -89,10 +84,10 @@ Total tasks analyzed: 18
 
 | Metric | CPU Ratio | Memory Ratio |
 |--------|-----------|--------------|
-| Mean | 4.19x | 2.45x |
-| Median | 4.22x | 1.38x |
-| Max | 6.02x | 15.39x |
-| 95th Percentile | 5.77x | 6.95x |
+| Mean | 11.11x | 1.66x |
+| Median | 10.26x | 1.37x |
+| Max | 22.86x | 6.63x |
+| 95th Percentile | 19.71x | 3.60x |
 
 ![Over-provisioning Analysis](rq4_overprovisioning.png)
 

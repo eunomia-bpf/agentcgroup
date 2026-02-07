@@ -34,24 +34,27 @@ from typing import Any, Dict, List, Optional, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 
+from filter_valid_tasks import get_valid_task_names
+
 # Base paths
-ANALYSIS_DIR = Path("/home/yunwei37/agentcgroup/analysis")
+SCRIPT_DIR_PATH = Path(os.path.dirname(os.path.abspath(__file__)))
+ANALYSIS_DIR = SCRIPT_DIR_PATH
 
 # Dataset configurations
 DATASETS = {
     "haiku": {
-        "base_dir": Path("/home/yunwei37/agentcgroup/experiments/batch_swebench_18tasks"),
+        "base_dir": SCRIPT_DIR_PATH / ".." / "experiments" / "all_images_haiku",
         "output_dir": ANALYSIS_DIR / "haiku_figures",
         "report_path": ANALYSIS_DIR / "haiku_figures" / "report.md",
-        "type": "categorized",  # Has category_difficulty structure
-        "description": "18 tasks with Haiku model (categorized by domain/difficulty)"
+        "type": "flat",  # Plain task directories (repo__name-issue)
+        "description": "SWE-Bench tasks with Haiku model (all_images_haiku)"
     },
     "qwen3": {
-        "base_dir": Path("/home/yunwei37/agentcgroup/experiments/all_images_local"),
+        "base_dir": SCRIPT_DIR_PATH / ".." / "experiments" / "all_images_local",
         "output_dir": ANALYSIS_DIR / "qwen3_figures",
         "report_path": ANALYSIS_DIR / "qwen3_figures" / "report.md",
-        "type": "sequential",  # Has task_N_name structure
-        "description": "SWE-Bench tasks with Qwen3 model"
+        "type": "flat",  # Plain task directories (repo__name-issue)
+        "description": "SWE-Bench tasks with local GLM model (all_images_local)"
     }
 }
 
@@ -338,85 +341,38 @@ def load_task_data(task_dir: Path, task_name: str, task_info: Dict,
     )
 
 
-def load_haiku_data() -> Tuple[Dict[str, TaskData], Dict]:
-    """Load data from haiku dataset (categorized structure)."""
-    progress = load_json(BASE_DIR / "progress.json")
-    if not progress:
-        print("Error: Cannot load progress.json")
-        return {}, {}
+def load_all_data() -> Tuple[Dict[str, TaskData], Dict]:
+    """Load all task data, using filter_valid_tasks for task discovery."""
+    valid_names = get_valid_task_names(str(BASE_DIR))
+    print(f"Valid tasks after filtering: {len(valid_names)}")
 
-    results_map = progress.get("results", {})
+    progress = load_json(BASE_DIR / "progress.json")
+    results_map = {}
+    if progress and "results" in progress:
+        results_map = progress["results"]
+
     tasks = {}
 
-    for task_name in progress.get("completed", []):
-        # Parse category and difficulty from task name
-        parts = task_name.rsplit("_", 1)
-        if len(parts) != 2:
-            continue
-
-        category = parts[0]
-        difficulty = parts[1]
-
-        if category not in CATEGORIES or difficulty not in DIFFICULTIES:
+    for task_name in valid_names:
+        task_dir = BASE_DIR / task_name
+        if not task_dir.is_dir():
             continue
 
         task_info = results_map.get(task_name, {})
-        task_dir = BASE_DIR / task_name
 
-        # Always use attempt_1 for haiku dataset
-        task = load_task_data(task_dir, task_name, task_info, category, difficulty,
-                             force_attempt_1=True)
+        # Infer category/difficulty if it matches the old naming pattern
+        category = "swebench"
+        difficulty = "unknown"
+        parts = task_name.rsplit("_", 1)
+        if len(parts) == 2 and parts[0] in CATEGORIES and parts[1] in DIFFICULTIES:
+            category = parts[0]
+            difficulty = parts[1]
+
+        task = load_task_data(task_dir, task_name, task_info, category, difficulty)
         if task:
             tasks[task_name] = task
 
-    return tasks, progress
-
-
-def load_qwen3_data() -> Tuple[Dict[str, TaskData], Dict]:
-    """Load data from qwen3 dataset (sequential task_N_name structure)."""
-    progress = load_json(BASE_DIR / "progress.json")
-    if not progress:
-        print("Error: Cannot load progress.json")
-        return {}, {}
-
-    results_map = progress.get("results", {})
-    tasks = {}
-
-    # Find all task directories
-    task_dirs = sorted(glob_module.glob(str(BASE_DIR / "task_*")))
-
-    for task_dir_path in task_dirs:
-        task_dir = Path(task_dir_path)
-        dir_name = task_dir.name
-
-        # Extract task name from directory (task_N_repo__name -> repo__name)
-        parts = dir_name.split("_", 2)
-        if len(parts) < 3:
-            continue
-
-        # The task name in progress.json is like "repo__name-issue"
-        task_name_from_dir = parts[2]  # e.g., "12rambau__sepal_ui-814"
-
-        # Find matching task in results
-        task_info = results_map.get(task_name_from_dir, {})
-
-        if not task_info:
-            continue
-
-        task = load_task_data(task_dir, task_name_from_dir, task_info,
-                             category="swebench", difficulty="unknown")
-        if task:
-            tasks[task_name_from_dir] = task
-
-    return tasks, progress
-
-
-def load_all_data() -> Tuple[Dict[str, TaskData], Dict]:
-    """Load all task data based on dataset type."""
-    if DATASET_TYPE == "categorized":
-        return load_haiku_data()
-    else:
-        return load_qwen3_data()
+    return tasks, progress or {}
 
 
 # =============================================================================

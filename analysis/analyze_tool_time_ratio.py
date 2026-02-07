@@ -24,6 +24,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
+from filter_valid_tasks import get_valid_task_names
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CHART_DPI = 150
 COLORS = {"success": "#2ecc71", "failure": "#e74c3c", "neutral": "#3498db"}
@@ -173,17 +175,11 @@ def main():
             success_map[task_name] = info.get("success", False)
 
     # -------------------------------------------------------------------------
-    # 2. Discover all task directories and load data
+    # 2. Discover valid task directories (filtered by duration/samples)
     # -------------------------------------------------------------------------
-    # Support both task_N_* pattern and plain directory names
-    all_entries = sorted(os.listdir(base_dir))
-    task_dirs = []
-    for entry in all_entries:
-        full = os.path.join(base_dir, entry)
-        if os.path.isdir(full) and entry not in ("__pycache__",):
-            # Check if it has an attempt_* subdirectory
-            if glob.glob(os.path.join(full, "attempt_*")):
-                task_dirs.append(full)
+    valid_names = get_valid_task_names(base_dir)
+    task_dirs = [os.path.join(base_dir, name) for name in valid_names]
+    print(f"  Valid tasks after filtering: {len(task_dirs)}")
 
     all_data = []
     tasks_loaded = 0

@@ -27,6 +27,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from filter_valid_tasks import get_valid_task_names
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CHART_DPI = 150
 
@@ -80,8 +82,7 @@ def analyze_timescale_mismatch(base_dir):
     print("RQ1: 时间尺度不匹配 (Timescale Mismatch)")
     print("=" * 70)
 
-    task_dirs = [d for d in os.listdir(base_dir)
-                 if os.path.isdir(os.path.join(base_dir, d)) and d not in ("__pycache__",)]
+    task_dirs = get_valid_task_names(base_dir)
 
     all_cpu_deltas = []
     all_mem_deltas = []
@@ -171,8 +172,7 @@ def analyze_domain_mismatch(base_dir):
     print("RQ2: 域不匹配 (Domain Mismatch)")
     print("=" * 70)
 
-    task_dirs = [d for d in os.listdir(base_dir)
-                 if os.path.isdir(os.path.join(base_dir, d)) and d not in ("__pycache__",)]
+    task_dirs = get_valid_task_names(base_dir)
 
     task_peaks = []
     category_stats = defaultdict(list)
@@ -269,8 +269,7 @@ def analyze_overprovisioning(base_dir):
     print("RQ4: 过度供给分析 (Overprovisioning)")
     print("=" * 70)
 
-    task_dirs = [d for d in os.listdir(base_dir)
-                 if os.path.isdir(os.path.join(base_dir, d)) and d not in ("__pycache__",)]
+    task_dirs = get_valid_task_names(base_dir)
 
     overprov_mem = []
     overprov_cpu = []
@@ -333,8 +332,7 @@ def generate_rq_charts(base_dir, figures_dir, dataset_name):
     """Generate charts for RQ validation."""
     os.makedirs(figures_dir, exist_ok=True)
 
-    task_dirs = [d for d in os.listdir(base_dir)
-                 if os.path.isdir(os.path.join(base_dir, d)) and d not in ("__pycache__",)]
+    task_dirs = get_valid_task_names(base_dir)
 
     # Collect data
     all_samples = []
@@ -474,12 +472,12 @@ def main():
     if args.all:
         datasets = [
             {
-                "name": "Haiku (batch_swebench_18tasks)",
-                "data_dir": os.path.join(SCRIPT_DIR, "..", "experiments", "batch_swebench_18tasks"),
+                "name": "Haiku (all_images_haiku)",
+                "data_dir": os.path.join(SCRIPT_DIR, "..", "experiments", "all_images_haiku"),
                 "figures_dir": os.path.join(SCRIPT_DIR, "haiku_figures")
             },
             {
-                "name": "Qwen (all_images_local)",
+                "name": "Local (all_images_local)",
                 "data_dir": os.path.join(SCRIPT_DIR, "..", "experiments", "all_images_local"),
                 "figures_dir": os.path.join(SCRIPT_DIR, "qwen3_figures")
             }
@@ -491,10 +489,10 @@ def main():
             "figures_dir": args.figures_dir or os.path.join(SCRIPT_DIR, "figures")
         }]
     else:
-        # Default to batch_swebench_18tasks
+        # Default to all_images_haiku
         datasets = [{
-            "name": "batch_swebench_18tasks",
-            "data_dir": os.path.join(SCRIPT_DIR, "..", "experiments", "batch_swebench_18tasks"),
+            "name": "all_images_haiku",
+            "data_dir": os.path.join(SCRIPT_DIR, "..", "experiments", "all_images_haiku"),
             "figures_dir": os.path.join(SCRIPT_DIR, "haiku_figures")
         }]
 
