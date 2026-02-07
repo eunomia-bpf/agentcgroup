@@ -129,7 +129,10 @@
     "pre-commit__pre-commit-mirror-maker-64",
     "xonsh__xonsh-3255",
     "xonsh__xonsh-4610",
-    "cta-observatory__pyirf-106"
+    "cta-observatory__pyirf-106",
+    "joke2k__faker-2151",
+    "dask__dask-2205",
+    "getsentry__sentry-python-1053"
   ],
   "results": {
     "0b01001001__spectree-64": {
@@ -781,6 +784,21 @@
       "success": false,
       "attempts": 1,
       "total_time": 1012.188206
+    },
+    "joke2k__faker-2151": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 569.052677
+    },
+    "dask__dask-2205": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 923.706927
+    },
+    "getsentry__sentry-python-1053": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 834.047087
     }
   }
 }
