@@ -440,21 +440,21 @@ def step_phase_comparison_chart(haiku_results, local_results):
     ax1.bar(x, llm_vals, width, bottom=tool_vals, label="LLM Thinking",
             color="#FF9800", alpha=0.85)
 
-    # percentage labels inside each segment
     for i, (tv, lv) in enumerate(zip(tool_vals, llm_vals)):
         ax1.text(i, tv / 2, f"{tv:.1f}%",
-                 ha="center", va="center", fontsize=13,
+                 ha="center", va="center", fontsize=16,
                  fontweight="bold", color="white")
         ax1.text(i, tv + lv / 2, f"{lv:.1f}%",
-                 ha="center", va="center", fontsize=13,
+                 ha="center", va="center", fontsize=16,
                  fontweight="bold", color="white")
 
-    ax1.set_ylabel("Percentage of Execution Time (%)", fontsize=12)
-    ax1.set_title("(a) Execution Phase Breakdown by Agent", fontsize=13)
+    ax1.set_ylabel("Percentage of Execution Time (%)", fontsize=15)
+    ax1.set_title("(a) Execution Phase Breakdown", fontsize=16)
     ax1.set_xticks(x)
-    ax1.set_xticklabels(agents, fontsize=11)
+    ax1.set_xticklabels(agents, fontsize=14)
     ax1.set_ylim(0, 108)
-    ax1.legend(loc="upper right", fontsize=11)
+    ax1.legend(loc="upper right", fontsize=13)
+    ax1.tick_params(axis="y", labelsize=13)
     ax1.grid(axis="y", alpha=0.3)
 
     # ---- Right: histogram of per-task tool ratio ----
@@ -478,10 +478,11 @@ def step_phase_comparison_chart(haiku_results, local_results):
         ax2.axvline(x=med, color="black", linestyle=":", linewidth=1.5,
                     label=f"Median ({med:.1f}%)")
 
-    ax2.set_xlabel("Tool Time Ratio (%)", fontsize=12)
-    ax2.set_ylabel("Number of Tasks", fontsize=12)
-    ax2.set_title("(b) Per-Task Tool Time Ratio Distribution", fontsize=13)
-    ax2.legend(fontsize=10)
+    ax2.set_xlabel("Tool Time Ratio (%)", fontsize=15)
+    ax2.set_ylabel("Number of Tasks", fontsize=15)
+    ax2.set_title("(b) Per-Task Tool Time Ratio", fontsize=16)
+    ax2.legend(fontsize=13)
+    ax2.tick_params(axis="both", labelsize=13)
     ax2.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax2.grid(alpha=0.3)
 
@@ -572,36 +573,62 @@ def step_tool_and_bash_pie_chart(haiku_results, local_results):
         print("  WARNING: No data — skipping")
         return
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 7))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 8))
     cmap = plt.cm.Set3
+
+    # Helper: group slices < threshold into "Other"
+    def _group_small(names, sizes, threshold=2.0):
+        total = sum(sizes)
+        main_n, main_s, other_s = [], [], 0.0
+        for n, s in zip(names, sizes):
+            if s / total * 100 >= threshold:
+                main_n.append(n)
+                main_s.append(s)
+            else:
+                other_s += s
+        if other_s > 0:
+            main_n.append("Other")
+            main_s.append(other_s)
+        return main_n, main_s
 
     # ---- (a) Tool usage pie ----
     sorted_tools = sorted(merged_tool.items(),
                           key=lambda x: x[1]["total_time"], reverse=True)
-    # Filter out near-zero tools
     sorted_tools = [(n, s) for n, s in sorted_tools if s["total_time"] > 0]
     total_tool_time = sum(s["total_time"] for _, s in sorted_tools)
 
-    tool_names = [n for n, _ in sorted_tools]
-    tool_sizes = [s["total_time"] for _, s in sorted_tools]
-    tool_labels = [
-        f"{n}\n({s['total_time']/total_tool_time*100:.1f}%)"
-        for n, s in sorted_tools
-    ]
-    colors_a = [cmap(i) for i in range(len(tool_names))]
-    ax1.pie(tool_sizes, labels=tool_labels, colors=colors_a, startangle=90,
-            textprops={"fontsize": 9})
-    ax1.set_title("(a) Tool Usage by Time", fontsize=13)
+    t_names = [n for n, _ in sorted_tools]
+    t_sizes = [s["total_time"] for _, s in sorted_tools]
+    t_names, t_sizes = _group_small(t_names, t_sizes, threshold=2.0)
+    colors_a = [cmap(i) for i in range(len(t_names))]
+
+    wedges1, texts1, autotexts1 = ax1.pie(
+        t_sizes, labels=t_names, colors=colors_a, startangle=90,
+        autopct=lambda p: f"{p:.1f}%" if p >= 3 else "",
+        pctdistance=0.75,
+        textprops={"fontsize": 14})
+    for at in autotexts1:
+        at.set_fontsize(13)
+        at.set_fontweight("bold")
+    ax1.set_title("(a) Tool Usage by Time", fontsize=18, pad=15)
 
     # ---- (b) Bash category pie ----
     cats = sorted(merged_bash.keys(), key=lambda c: merged_bash[c], reverse=True)
     total_bash = sum(merged_bash[c] for c in cats)
-    bash_sizes = [merged_bash[c] for c in cats]
-    bash_labels = [f"{c}\n({merged_bash[c]/total_bash*100:.1f}%)" for c in cats]
-    colors_b = [cmap(i) for i in range(len(cats))]
-    ax2.pie(bash_sizes, labels=bash_labels, colors=colors_b, startangle=90,
-            textprops={"fontsize": 9})
-    ax2.set_title("(b) Bash Command Time by Category", fontsize=13)
+    b_names = list(cats)
+    b_sizes = [merged_bash[c] for c in cats]
+    b_names, b_sizes = _group_small(b_names, b_sizes, threshold=2.0)
+    colors_b = [cmap(i) for i in range(len(b_names))]
+
+    wedges2, texts2, autotexts2 = ax2.pie(
+        b_sizes, labels=b_names, colors=colors_b, startangle=90,
+        autopct=lambda p: f"{p:.1f}%" if p >= 3 else "",
+        pctdistance=0.75,
+        textprops={"fontsize": 14})
+    for at in autotexts2:
+        at.set_fontsize(13)
+        at.set_fontweight("bold")
+    ax2.set_title("(b) Bash Command Time by Category", fontsize=18, pad=15)
 
     plt.tight_layout()
     os.makedirs(COMPARISON_FIGURES, exist_ok=True)
@@ -669,12 +696,10 @@ def step_setup_overhead_chart():
         print("  WARNING: No data — skipping")
         return {}
 
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5.5))
 
     # ---- (a) Image size distribution (deduplicated by task name) ----
     ax = axes[0]
-    # Same SWE-bench task uses the same Docker image regardless of agent,
-    # so deduplicate by task name, preferring the first seen value.
     seen_tasks = {}
     for r in haiku + local:
         if r["task"] not in seen_tasks and r["image_mb"] > 0:
@@ -690,11 +715,11 @@ def step_setup_overhead_chart():
                    label=f"Mean ({avg_img:.1f} GB)")
         ax.axvline(med_img, color="black", ls=":", lw=1.5,
                    label=f"Median ({med_img:.1f} GB)")
-    ax.set_xlabel("Image Size (GB)", fontsize=12)
-    ax.set_ylabel("Number of Tasks", fontsize=12)
-    ax.set_title(f"(a) Docker Image Size Distribution (n={len(unique_img)})",
-                 fontsize=13)
-    ax.legend(fontsize=10)
+    ax.set_xlabel("Image Size (GB)", fontsize=15)
+    ax.set_ylabel("Number of Tasks", fontsize=15)
+    ax.set_title(f"(a) Docker Image Size (n={len(unique_img)})", fontsize=16)
+    ax.legend(fontsize=13)
+    ax.tick_params(axis="both", labelsize=13)
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.grid(alpha=0.3)
 
@@ -716,10 +741,11 @@ def step_setup_overhead_chart():
                    label=f"Mean ({statistics.mean(all_time):.1f} min)")
         ax.axvline(statistics.median(all_time), color="black", ls=":", lw=1.5,
                    label=f"Median ({statistics.median(all_time):.1f} min)")
-    ax.set_xlabel("Execution Time (minutes)", fontsize=12)
-    ax.set_ylabel("Number of Tasks", fontsize=12)
-    ax.set_title("(b) Task Execution Time Distribution", fontsize=13)
-    ax.legend(fontsize=10)
+    ax.set_xlabel("Execution Time (minutes)", fontsize=15)
+    ax.set_ylabel("Number of Tasks", fontsize=15)
+    ax.set_title("(b) Task Execution Time", fontsize=16)
+    ax.legend(fontsize=13)
+    ax.tick_params(axis="both", labelsize=13)
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.grid(alpha=0.3)
 
