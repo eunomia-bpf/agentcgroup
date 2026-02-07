@@ -1,6 +1,6 @@
 # Haiku vs Local Model (GLM) Comparison Report
 
-**Generated**: 2026-02-07 10:46:03
+**Generated**: 2026-02-07 15:11:05
 
 ## Overview
 

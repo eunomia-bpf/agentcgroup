@@ -30,6 +30,7 @@ import statistics
 from pathlib import Path
 
 import numpy as np
+import json as _json
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -493,6 +494,134 @@ def step_phase_comparison_chart(haiku_results, local_results):
 
 
 # ============================================================================
+# Step 7: Setup overhead charts (image size + execution time + perm fix)
+# ============================================================================
+
+def _scan_setup_data(base_dir):
+    """Scan a dataset directory, return list of dicts with image/time/perm data."""
+    from filter_valid_tasks import get_valid_task_names
+    valid = get_valid_task_names(base_dir)
+    rows = []
+    for name in valid:
+        attempt = os.path.join(base_dir, name, "attempt_1")
+        rp = os.path.join(attempt, "results.json")
+        if not os.path.exists(rp):
+            continue
+        with open(rp) as f:
+            res = _json.load(f)
+        img_mb = res.get("image_info", {}).get("size_mb", 0)
+        ct = res.get("claude_time", 0)
+        pf = res.get("permission_fix_time")
+        pf = float(pf) if pf else 0
+        if ct > 0:
+            rows.append({"task": name, "image_mb": img_mb, "claude_time": ct,
+                         "perm_fix": pf})
+    return rows
+
+
+def step_setup_overhead_chart():
+    """Generate setup overhead figure (2 subplots).
+
+    (a) Docker image size distribution (deduplicated across datasets)
+    (b) Execution time distribution (Haiku vs GLM)
+
+    Also prints numerical summary for characterization.md.
+    Saved to comparison_figures/setup_overhead.png
+    """
+    _section("Setup Overhead Charts")
+
+    haiku = _scan_setup_data(HAIKU_DIR)
+    local = _scan_setup_data(LOCAL_DIR)
+    print(f"  Haiku: {len(haiku)} tasks,  Local: {len(local)} tasks")
+
+    if not haiku and not local:
+        print("  WARNING: No data — skipping")
+        return {}
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    # ---- (a) Image size distribution (deduplicated by task name) ----
+    ax = axes[0]
+    # Same SWE-bench task uses the same Docker image regardless of agent,
+    # so deduplicate by task name, preferring the first seen value.
+    seen_tasks = {}
+    for r in haiku + local:
+        if r["task"] not in seen_tasks and r["image_mb"] > 0:
+            seen_tasks[r["task"]] = r["image_mb"] / 1024
+    unique_img = list(seen_tasks.values())
+    bins_img = np.linspace(0, 20, 21)
+    if unique_img:
+        ax.hist(unique_img, bins=bins_img, alpha=0.75, color="#2196F3",
+                edgecolor="white")
+        avg_img = statistics.mean(unique_img)
+        med_img = statistics.median(unique_img)
+        ax.axvline(avg_img, color="red", ls="--", lw=1.5,
+                   label=f"Mean ({avg_img:.1f} GB)")
+        ax.axvline(med_img, color="black", ls=":", lw=1.5,
+                   label=f"Median ({med_img:.1f} GB)")
+    ax.set_xlabel("Image Size (GB)", fontsize=12)
+    ax.set_ylabel("Number of Tasks", fontsize=12)
+    ax.set_title(f"(a) Docker Image Size Distribution (n={len(unique_img)})",
+                 fontsize=13)
+    ax.legend(fontsize=10)
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.grid(alpha=0.3)
+
+    # ---- (b) Execution time distribution ----
+    ax = axes[1]
+    h_time = [r["claude_time"] / 60 for r in haiku]
+    l_time = [r["claude_time"] / 60 for r in local]
+    max_min = max((max(h_time) if h_time else 0), (max(l_time) if l_time else 0))
+    bins_time = np.linspace(0, min(max_min + 2, 50), 21)
+    if h_time:
+        ax.hist(h_time, bins=bins_time, alpha=0.55, color="#2196F3",
+                label=f"Haiku (n={len(h_time)})", edgecolor="white")
+    if l_time:
+        ax.hist(l_time, bins=bins_time, alpha=0.55, color="#4CAF50",
+                label=f"GLM (n={len(l_time)})", edgecolor="white")
+    all_time = h_time + l_time
+    if all_time:
+        ax.axvline(statistics.mean(all_time), color="red", ls="--", lw=1.5,
+                   label=f"Mean ({statistics.mean(all_time):.1f} min)")
+        ax.axvline(statistics.median(all_time), color="black", ls=":", lw=1.5,
+                   label=f"Median ({statistics.median(all_time):.1f} min)")
+    ax.set_xlabel("Execution Time (minutes)", fontsize=12)
+    ax.set_ylabel("Number of Tasks", fontsize=12)
+    ax.set_title("(b) Task Execution Time Distribution", fontsize=13)
+    ax.legend(fontsize=10)
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.grid(alpha=0.3)
+
+    plt.tight_layout()
+    os.makedirs(COMPARISON_FIGURES, exist_ok=True)
+    out_path = os.path.join(COMPARISON_FIGURES, "setup_overhead.png")
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  Saved: {out_path}")
+
+    # ---- Print numerical summary ----
+    summary = {}
+    if unique_img:
+        summary["image"] = {
+            "min": min(unique_img), "max": max(unique_img),
+            "mean": statistics.mean(unique_img), "median": statistics.median(unique_img),
+            "total_gb": sum(unique_img), "count": len(unique_img),
+        }
+        print(f"\n  Unique images (n={len(unique_img)}, deduplicated by task):")
+        print(f"    Range: {min(unique_img):.1f} – {max(unique_img):.1f} GB")
+        print(f"    Mean:  {statistics.mean(unique_img):.1f} GB,  Median: {statistics.median(unique_img):.1f} GB")
+        print(f"    Total: {sum(unique_img):.0f} GB")
+    for tag, rows in [("Haiku", haiku), ("Local", local)]:
+        times = [r["claude_time"] for r in rows]
+        if times:
+            print(f"\n  [{tag}] Execution time (n={len(times)}):")
+            print(f"    Mean: {statistics.mean(times):.0f}s ({statistics.mean(times)/60:.1f} min),  "
+                  f"Median: {statistics.median(times):.0f}s")
+            print(f"    Range: {min(times):.0f} – {max(times):.0f}s")
+    return summary
+
+
+# ============================================================================
 # Helpers
 # ============================================================================
 
@@ -568,6 +697,11 @@ def main():
     # ------------------------------------------------------------------
     if haiku_results and local_results:
         step_phase_comparison_chart(haiku_results, local_results)
+
+    # ------------------------------------------------------------------
+    # 1c. Setup overhead charts (image size, exec time, perm fix)
+    # ------------------------------------------------------------------
+    step_setup_overhead_chart()
 
     # ------------------------------------------------------------------
     # 2. analyze_tool_time_ratio  →  chart_01 … chart_14
