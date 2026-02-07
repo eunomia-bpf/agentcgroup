@@ -123,7 +123,13 @@
     "PennyLaneAI__pennylane-5455",
     "RDFLib__rdflib-1117",
     "beetbox__mediafile-64",
-    "scrapy__scrapy-6347"
+    "scrapy__scrapy-6347",
+    "sigmavirus24__github3.py-673",
+    "getsentry__sentry-python-2148",
+    "pre-commit__pre-commit-mirror-maker-64",
+    "xonsh__xonsh-3255",
+    "xonsh__xonsh-4610",
+    "cta-observatory__pyirf-106"
   ],
   "results": {
     "0b01001001__spectree-64": {
@@ -745,6 +751,36 @@
       "success": false,
       "attempts": 1,
       "total_time": 107.289252
+    },
+    "sigmavirus24__github3.py-673": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 934.370827
+    },
+    "getsentry__sentry-python-2148": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 840.47366
+    },
+    "pre-commit__pre-commit-mirror-maker-64": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 233.020584
+    },
+    "xonsh__xonsh-3255": {
+      "success": true,
+      "attempts": 1,
+      "total_time": 740.944655
+    },
+    "xonsh__xonsh-4610": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 159.376725
+    },
+    "cta-observatory__pyirf-106": {
+      "success": false,
+      "attempts": 1,
+      "total_time": 1012.188206
     }
   }
 }
