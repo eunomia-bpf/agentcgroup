@@ -1,0 +1,14 @@
+I apologize, but it seems like the issue description is missing from your message. Could you please provide the specific issue you would like me to fix? I'll be happy to help you follow the full workflow you've outlined, which includes:
+
+1. Thoroughly reading and understanding the issue
+2. Exploring the codebase
+3. Implementing the fix
+4. Running the test suite
+5. Debugging and fixing any test failures
+6. Confirming all tests pass
+7. Showing the final git diff
+
+Please share the details of the issue, and I'll get started right away.
+=== GIT DIFF ===
+=== DISK USAGE ===
+3	/testbed

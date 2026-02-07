@@ -15,6 +15,8 @@ TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 TASK_LIST="$PROJECT_DIR/task_list.json"
 MODEL="haiku"
 PROGRESS_FILE="$PROJECT_DIR/experiments/all_images_haiku/progress.json"
+MONITOR_INTERVAL=60
+MAX_RETRIES=5
 
 # Create log directory
 mkdir -p "$LOG_DIR"
@@ -84,6 +86,43 @@ print(f'Progress: {completed} completed, {success} successful')
     fi
 }
 
+# Monitor loop - auto restart on crash
+monitor_loop() {
+    local retries=0
+
+    log "Starting monitor loop (check every ${MONITOR_INTERVAL}s, max retries: ${MAX_RETRIES})..."
+
+    # Start if not already running
+    if ! check_swebench_running; then
+        start_swebench
+    fi
+
+    while true; do
+        sleep "$MONITOR_INTERVAL"
+
+        if check_swebench_running; then
+            retries=0
+        else
+            show_progress
+            if [ $retries -lt $MAX_RETRIES ]; then
+                retries=$((retries + 1))
+                log "WARNING: swebench crashed. Restarting (retry $retries/$MAX_RETRIES)..."
+                sleep 5
+                start_swebench
+            else
+                log "ERROR: swebench failed after $MAX_RETRIES retries. Giving up."
+                break
+            fi
+        fi
+
+        # Log status periodically
+        local status="RUNNING"
+        check_swebench_running || status="DOWN"
+        log "Status: swebench=$status"
+        show_progress
+    done
+}
+
 # Parse command
 case "${1:-start}" in
     start)
@@ -95,6 +134,9 @@ case "${1:-start}" in
             echo ""
             echo "Log: tail -f $SWEBENCH_LOG"
         fi
+        ;;
+    monitor)
+        monitor_loop
         ;;
     stop)
         stop_swebench
@@ -121,7 +163,7 @@ case "${1:-start}" in
         fi
         ;;
     *)
-        echo "Usage: $0 {start|stop|restart|status|log}"
+        echo "Usage: $0 {start|stop|restart|status|log|monitor}"
         exit 1
         ;;
 esac

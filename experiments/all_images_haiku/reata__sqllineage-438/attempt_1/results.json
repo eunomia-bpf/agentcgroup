@@ -1,0 +1,11 @@
+{
+  "image": "swerebench/sweb.eval.x86_64.reata_1776_sqllineage-438",
+  "start_time": "2026-02-06T17:33:08.414211",
+  "memory_limit": null,
+  "cpu_limit": null,
+  "model": "haiku",
+  "pull_time": 0.9793190956115723,
+  "error": "Command '['podman', 'exec', '56da1ff6f39f36c0a0f536c230f4ff6d99fb97431076a245ccfce505e11665c7', 'chown', '-R', '1000:1000', '/testbed']' returned non-zero exit status 137.",
+  "total_time": 121.82197189331055,
+  "end_time": "2026-02-06T17:35:10.236184"
+}
