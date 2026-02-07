@@ -30,6 +30,10 @@ import statistics
 from pathlib import Path
 
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 
 # Ensure analysis/ is importable
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -394,6 +398,101 @@ def print_summary(haiku_tasks, haiku_results, local_tasks, local_results,
 
 
 # ============================================================================
+# Step 6: Phase breakdown comparison chart
+# ============================================================================
+
+def step_phase_comparison_chart(haiku_results, local_results):
+    """Generate the phase division comparison chart with 2 subplots.
+
+    Left:  Stacked bars — Haiku vs GLM, colored by tool / LLM proportion.
+    Right: Histogram of per-task tool-time ratio across ALL tasks (both datasets).
+
+    Saved to comparison_figures/phase_breakdown_comparison.png
+    """
+    _section("Phase Breakdown Comparison Chart")
+
+    haiku_ratios = haiku_results.get("tools", {}).get("tool_vs_thinking_ratio", [])
+    local_ratios = local_results.get("tools", {}).get("tool_vs_thinking_ratio", [])
+
+    if not haiku_ratios and not local_ratios:
+        print("  WARNING: No tool ratio data available — skipping")
+        return
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+
+    # ---- Left: stacked bar chart ----
+    haiku_tool_avg = statistics.mean(haiku_ratios) if haiku_ratios else 0
+    local_tool_avg = statistics.mean(local_ratios) if local_ratios else 0
+    haiku_llm_avg = 100 - haiku_tool_avg
+    local_llm_avg = 100 - local_tool_avg
+
+    agents = [f"Haiku (Cloud API)\nn={len(haiku_ratios)}",
+              f"GLM (Local GPU)\nn={len(local_ratios)}"]
+    tool_vals = [haiku_tool_avg, local_tool_avg]
+    llm_vals = [haiku_llm_avg, local_llm_avg]
+
+    x = np.arange(len(agents))
+    width = 0.5
+
+    ax1.bar(x, tool_vals, width, label="Tool Execution",
+            color="#2196F3", alpha=0.85)
+    ax1.bar(x, llm_vals, width, bottom=tool_vals, label="LLM Thinking",
+            color="#FF9800", alpha=0.85)
+
+    # percentage labels inside each segment
+    for i, (tv, lv) in enumerate(zip(tool_vals, llm_vals)):
+        ax1.text(i, tv / 2, f"{tv:.1f}%",
+                 ha="center", va="center", fontsize=13,
+                 fontweight="bold", color="white")
+        ax1.text(i, tv + lv / 2, f"{lv:.1f}%",
+                 ha="center", va="center", fontsize=13,
+                 fontweight="bold", color="white")
+
+    ax1.set_ylabel("Percentage of Execution Time (%)", fontsize=12)
+    ax1.set_title("(a) Execution Phase Breakdown by Agent", fontsize=13)
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(agents, fontsize=11)
+    ax1.set_ylim(0, 108)
+    ax1.legend(loc="upper right", fontsize=11)
+    ax1.grid(axis="y", alpha=0.3)
+
+    # ---- Right: histogram of per-task tool ratio ----
+    bins = np.linspace(0, 80, 17)
+
+    if haiku_ratios:
+        ax2.hist(haiku_ratios, bins=bins, alpha=0.55,
+                 color="#2196F3", label=f"Haiku (n={len(haiku_ratios)})",
+                 edgecolor="white")
+    if local_ratios:
+        ax2.hist(local_ratios, bins=bins, alpha=0.55,
+                 color="#4CAF50", label=f"GLM (n={len(local_ratios)})",
+                 edgecolor="white")
+
+    all_ratios = haiku_ratios + local_ratios
+    if all_ratios:
+        avg = statistics.mean(all_ratios)
+        med = statistics.median(all_ratios)
+        ax2.axvline(x=avg, color="red", linestyle="--", linewidth=1.5,
+                    label=f"Mean ({avg:.1f}%)")
+        ax2.axvline(x=med, color="black", linestyle=":", linewidth=1.5,
+                    label=f"Median ({med:.1f}%)")
+
+    ax2.set_xlabel("Tool Time Ratio (%)", fontsize=12)
+    ax2.set_ylabel("Number of Tasks", fontsize=12)
+    ax2.set_title("(b) Per-Task Tool Time Ratio Distribution", fontsize=13)
+    ax2.legend(fontsize=10)
+    ax2.yaxis.set_major_locator(MaxNLocator(integer=True))
+    ax2.grid(alpha=0.3)
+
+    plt.tight_layout()
+    os.makedirs(COMPARISON_FIGURES, exist_ok=True)
+    out_path = os.path.join(COMPARISON_FIGURES, "phase_breakdown_comparison.png")
+    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  Saved: {out_path}")
+
+
+# ============================================================================
 # Helpers
 # ============================================================================
 
@@ -463,6 +562,12 @@ def main():
     if run_local:
         local_tasks, local_results = step_swebench_analysis(
             "qwen3", LOCAL_DIR, QWEN3_FIGURES)
+
+    # ------------------------------------------------------------------
+    # 1b. Phase breakdown comparison chart (needs both datasets)
+    # ------------------------------------------------------------------
+    if haiku_results and local_results:
+        step_phase_comparison_chart(haiku_results, local_results)
 
     # ------------------------------------------------------------------
     # 2. analyze_tool_time_ratio  →  chart_01 … chart_14
