@@ -283,6 +283,96 @@ def print_summary(haiku_tasks, haiku_results, local_tasks, local_results,
             print(f"  [{ds_name}] Tool time ratio: avg {statistics.mean(ratios):.1f}%, "
                   f"range {min(ratios):.1f}%–{max(ratios):.1f}%")
 
+    # End-to-end latency breakdown: perm_fix / container init / tool exec / LLM thinking
+    _heading("End-to-End Latency Breakdown")
+
+    # Load perm_fix times from results.json
+    perm_fix_map = {}  # task_name -> perm_fix_seconds
+    for ds_tag, base_dir in [("Haiku", HAIKU_DIR), ("Local", LOCAL_DIR)]:
+        for name in os.listdir(base_dir):
+            rp = os.path.join(base_dir, name, "attempt_1", "results.json")
+            if os.path.exists(rp):
+                with open(rp) as f:
+                    r = _json.load(f)
+                pf = float(r.get("permission_fix_time", 0) or 0)
+                perm_fix_map[name] = pf
+
+    for ds_name, tasks, res in [("Haiku", haiku_tasks, haiku_results),
+                                 ("Local", local_tasks, local_results)]:
+        if not tasks:
+            continue
+        per_task = res.get("tools", {}).get("per_task_tool_time", [])
+
+        # View 1: denominator = perm_fix + claude_time (full end-to-end)
+        pf_pcts, init_pcts, tool_pcts, llm_pcts = [], [], [], []
+        pf_secs, init_secs, tool_secs, llm_secs = [], [], [], []
+        # View 2: denominator = claude_time (excluding perm_fix)
+        init2_pcts, tool2_pcts, llm2_pcts = [], [], []
+
+        for task in tasks.values():
+            ct = task.claude_time
+            at = task.active_time
+            if ct <= 0 or at <= 0:
+                continue
+            pf = perm_fix_map.get(task.name, 0)
+            container_init = ct - at  # userns + overlay mapping
+            task_ratio = None
+            if per_task:
+                for pt in per_task:
+                    if pt.get("task") == task.name:
+                        task_ratio = pt.get("tool_ratio", 0) / 100.0
+                        break
+            if task_ratio is None:
+                continue
+            tool_time = at * task_ratio
+            llm_time = at * (1 - task_ratio)
+
+            # View 1: full end-to-end = pf + ct
+            total = pf + ct
+            pf_pcts.append(pf / total * 100)
+            init_pcts.append(container_init / total * 100)
+            tool_pcts.append(tool_time / total * 100)
+            llm_pcts.append(llm_time / total * 100)
+            pf_secs.append(pf)
+            init_secs.append(container_init)
+            tool_secs.append(tool_time)
+            llm_secs.append(llm_time)
+
+            # View 2: exclude perm_fix, denominator = claude_time
+            init2_pcts.append(container_init / ct * 100)
+            tool2_pcts.append(tool_time / ct * 100)
+            llm2_pcts.append(llm_time / ct * 100)
+
+        if pf_pcts:
+            n = len(pf_pcts)
+            print(f"\n  [{ds_name}] View 1: Full breakdown (n={n}, denominator=perm_fix+claude_time):")
+            print(f"    Permission fix:    mean {statistics.mean(pf_pcts):.1f}%, "
+                  f"median {statistics.median(pf_pcts):.1f}%  "
+                  f"(mean {statistics.mean(pf_secs):.0f}s)")
+            print(f"    Container init:    mean {statistics.mean(init_pcts):.1f}%, "
+                  f"median {statistics.median(init_pcts):.1f}%  "
+                  f"(mean {statistics.mean(init_secs):.0f}s)")
+            print(f"    Tool execution:    mean {statistics.mean(tool_pcts):.1f}%, "
+                  f"median {statistics.median(tool_pcts):.1f}%  "
+                  f"(mean {statistics.mean(tool_secs):.0f}s)")
+            print(f"    LLM thinking:      mean {statistics.mean(llm_pcts):.1f}%, "
+                  f"median {statistics.median(llm_pcts):.1f}%  "
+                  f"(mean {statistics.mean(llm_secs):.0f}s)")
+            all_infra = [p + i + t for p, i, t in zip(pf_pcts, init_pcts, tool_pcts)]
+            print(f"    Total infra (pf+init+tool): mean {statistics.mean(all_infra):.1f}%, "
+                  f"median {statistics.median(all_infra):.1f}%")
+
+            print(f"\n  [{ds_name}] View 2: Excluding perm_fix (n={n}, denominator=claude_time):")
+            print(f"    Container init:    mean {statistics.mean(init2_pcts):.1f}%, "
+                  f"median {statistics.median(init2_pcts):.1f}%")
+            print(f"    Tool execution:    mean {statistics.mean(tool2_pcts):.1f}%, "
+                  f"median {statistics.median(tool2_pcts):.1f}%")
+            print(f"    LLM thinking:      mean {statistics.mean(llm2_pcts):.1f}%, "
+                  f"median {statistics.median(llm2_pcts):.1f}%")
+            infra2 = [i + t for i, t in zip(init2_pcts, tool2_pcts)]
+            print(f"    Infra (init+tool):  mean {statistics.mean(infra2):.1f}%, "
+                  f"median {statistics.median(infra2):.1f}%")
+
     # Per-tool average execution time
     for ds_name, res in [("Haiku", haiku_results), ("Local", local_results)]:
         tool_stats = res.get("tools", {}).get("tool_stats", {})
