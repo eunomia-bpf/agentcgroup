@@ -136,6 +136,7 @@ def replay_memory_trace(samples: List[Dict], speed_factor: float = 1.0,
                 alloc_size = target_mem - current_mem
                 # 分块分配避免一次性分配太大
                 chunk_size = 64 * 1024 * 1024  # 64MB chunks
+                alloc_start = time.time()
                 while alloc_size > 0:
                     size = min(chunk_size, alloc_size)
                     buf = bytearray(size)
@@ -144,12 +145,14 @@ def replay_memory_trace(samples: List[Dict], speed_factor: float = 1.0,
                         buf[j] = 1
                     allocated_buffers.append(buf)
                     alloc_size -= size
+                alloc_latency_ms = (time.time() - alloc_start) * 1000
 
                 allocation_events.append({
                     'time': time.time() - start_time,
                     'action': 'alloc',
                     'target_mb': target_mem / (1024 * 1024),
-                    'actual_mb': sum(len(b) for b in allocated_buffers) / (1024 * 1024)
+                    'actual_mb': sum(len(b) for b in allocated_buffers) / (1024 * 1024),
+                    'latency_ms': alloc_latency_ms  # 记录分配延迟
                 })
 
             elif target_mem < current_mem:
@@ -182,6 +185,22 @@ def replay_memory_trace(samples: List[Dict], speed_factor: float = 1.0,
     allocated_buffers.clear()
     base_buffers.clear()
 
+    # 计算分配延迟统计
+    alloc_latencies = [e['latency_ms'] for e in allocation_events if e.get('latency_ms')]
+    latency_stats = {}
+    if alloc_latencies:
+        sorted_latencies = sorted(alloc_latencies)
+        n = len(sorted_latencies)
+        latency_stats = {
+            'count': n,
+            'min_ms': sorted_latencies[0],
+            'max_ms': sorted_latencies[-1],
+            'avg_ms': sum(sorted_latencies) / n,
+            'p50_ms': sorted_latencies[n // 2],
+            'p95_ms': sorted_latencies[int(n * 0.95)] if n >= 20 else sorted_latencies[-1],
+            'p99_ms': sorted_latencies[int(n * 0.99)] if n >= 100 else sorted_latencies[-1],
+        }
+
     return {
         'completion_time_sec': completion_time,
         'peak_memory_bytes': peak_mem,
@@ -190,7 +209,9 @@ def replay_memory_trace(samples: List[Dict], speed_factor: float = 1.0,
         'samples_processed': len(samples),
         'speed_factor': speed_factor,
         'base_memory_mb': base_memory_mb,
-        'allocation_events_count': len(allocation_events)
+        'allocation_events_count': len(allocation_events),
+        'latency_stats': latency_stats,
+        'allocation_latencies_ms': alloc_latencies  # 完整延迟列表
     }
 
 
