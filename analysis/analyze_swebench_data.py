@@ -314,9 +314,23 @@ def load_task_data(task_dir: Path, task_name: str, task_info: Dict,
     mem_summary = summary.get("memory_mb", {})
     cpu_summary = summary.get("cpu_percent", {})
 
-    # Extract tool times from trace
+    # Extract tool times from trace, fall back to tool_calls.json
     tool_calls_dict = extract_tool_times_from_trace(trace_records)
     tool_calls = list(tool_calls_dict.values())
+    if not tool_calls:
+        tc_json = load_json(attempt_dir / "tool_calls.json")
+        if tc_json and isinstance(tc_json, list):
+            for entry in tc_json:
+                st = parse_iso(entry.get("timestamp"))
+                et = parse_iso(entry.get("end_timestamp"))
+                dur = (et - st).total_seconds() if st and et else 0.0
+                tool_calls.append(ToolCall(
+                    tool=entry.get("tool", "Unknown"),
+                    tool_id=entry.get("tool_use_id", ""),
+                    start_time=st,
+                    end_time=et,
+                    duration_seconds=max(0, dur),
+                ))
 
     # Detect bursts
     bursts = detect_bursts(samples)
@@ -500,14 +514,25 @@ def _plot_dynamics(tasks: Dict[str, TaskData], results: Dict):
         ax1.plot(times, cpu_vals, 'b-', linewidth=1, label='CPU %')
         ax1.set_ylabel('CPU Usage (%)', fontsize=15)
         ax1.set_title(f'Resource Usage Over Time - {sample_task.name[:50]}', fontsize=16)
-        ax1.legend(fontsize=13)
         ax1.tick_params(axis='both', labelsize=13)
         ax1.grid(True, alpha=0.3)
 
-        # Mark burst events
-        for burst in sample_task.bursts:
-            burst_time = burst.timestamp - samples[0].epoch
-            ax1.axvline(x=burst_time, color='r', linestyle='--', alpha=0.5)
+        # Mark tool call intervals as shaded regions
+        t0_epoch = samples[0].epoch
+        tool_label_added = False
+        for tc in sample_task.tool_calls:
+            if tc.start_time is None:
+                continue
+            tc_start = tc.start_time.timestamp() - t0_epoch
+            tc_end = (tc.end_time.timestamp() - t0_epoch) if tc.end_time else tc_start
+            lbl = 'Tool Call' if not tool_label_added else None
+            ax1.axvspan(tc_start, max(tc_end, tc_start + 0.5),
+                        color='r', alpha=0.10, label=lbl)
+            ax2.axvspan(tc_start, max(tc_end, tc_start + 0.5),
+                        color='r', alpha=0.10)
+            tool_label_added = True
+
+        ax1.legend(fontsize=13)
 
         ax2.plot(times, mem_vals, 'g-', linewidth=1, label='Memory (MB)')
         ax2.set_xlabel('Time (seconds)', fontsize=15)
@@ -515,10 +540,6 @@ def _plot_dynamics(tasks: Dict[str, TaskData], results: Dict):
         ax2.legend(fontsize=13)
         ax2.tick_params(axis='both', labelsize=13)
         ax2.grid(True, alpha=0.3)
-
-        for burst in sample_task.bursts:
-            burst_time = burst.timestamp - samples[0].epoch
-            ax2.axvline(x=burst_time, color='r', linestyle='--', alpha=0.5)
 
     plt.tight_layout()
     plt.savefig(OUTPUT_DIR / "rq1_resource_timeseries.png", dpi=150)

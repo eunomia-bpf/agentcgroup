@@ -50,9 +50,13 @@ Agent 工作负载的资源使用难以预测，这种不可预测性源于三�
 
 Agent 工作负载的资源使用呈现剧烈的时间波动特征。可以观察到，内存使用在单个采样间隔（1 秒）内变化高达 2.9GB，CPU 利用率出现剧烈波动，峰值超过 100%（多核利用）。资源使用呈现明显的"突发"模式，而非平稳变化。
 
-![资源使用时序图](../../analysis/haiku_figures/rq1_resource_timeseries.png)
+![资源使用时序图 - Haiku (Cloud API)](../../analysis/haiku_figures/rq1_resource_timeseries.png)
 
-我们观察到最大内存变化率达到 3GB/秒，最大 CPU 变化率超过 50%/秒。显著变化事件（CPU 变化超过 20% 或内存变化超过 50MB/秒）占所有采样点的 1.7%–3.8%。
+![资源使用时序图 - GLM (Local GPU)](../../analysis/qwen3_figures/rq1_resource_timeseries.png)
+
+上图展示了两个具体任务的资源使用时序作为示例：上方为使用 Haiku agent 执行的 pre-commit/pre-commit#2524 任务，下方为使用 GLM agent 执行的 sigmavirus24/github3.py#673 任务。每张图包含两个子图：上方为 CPU 利用率（蓝色），下方为内存使用（绿色），红色阴影区间标注了工具调用（Bash、Read、Edit 等）的执行时段。可以清晰看到资源突发与工具调用高度对齐——CPU 和内存的尖峰几乎都发生在工具执行期间（如运行测试、安装依赖），而工具调用之间的 LLM 推理阶段资源使用相对平稳。这两个示例也体现了不同推理架构的典型资源差异：Haiku 任务工具调用较为集中，每次执行伴随明显的 CPU 多核突增（峰值超过 175%）；GLM 任务工具调用更加密集频繁，但 CPU 长期维持低水平（~10%），资源波动主要体现在内存维度。尽管具体的资源曲线因任务而异，但这种由工具调用驱动的"突发-静默"交替模式在两个数据集的所有任务中普遍存在。
+
+我们观察到最大内存变化率达到 3GB/秒，最大 CPU 变化率超过 50%/秒。显著变化事件占所有采样点的 1.7%–3.8%。
 
 ![资源变化率分布](../../analysis/haiku_figures/rq1_change_rate_distribution.png)
 
