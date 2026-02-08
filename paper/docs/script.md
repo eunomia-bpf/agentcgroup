@@ -46,7 +46,7 @@
 | Claim | 旧数据 | 新数据 | 判定 | 建议数据源 |
 |-------|--------|--------|------|-----------|
 | 平均运行约 10 分钟 | Haiku ~400s (6.7min) | H: 347s (5.8min), L: 646s (10.8min) | L 吻合，H 偏短 | Local 111 |
-| 工具时间 avg 28.2%, 0.1%–73.3% | 同左 | H: 25.9%, 1.2%–113%; L: 25.3%, 0%–73.3% | **L 完全吻合** | Local 111 |
+| 工具时间 avg 28.2%, 0.1%–73.3% | 同左 | 以 active_time 为分母: H: mean 42.5%, median 34.7%, 3%–86%; L: mean 36.4%, median 36.5%, 0%–86% | 修正后比例更高 | Local 111 |
 | 测试 44.1%, Python 26.7%, 安装 10.9% | 旧 18 tasks | 需核实新数据 chart_06 | 需核实 | 取实际值 |
 | Medical_Bio 4GB vs Web_Network 291MB (13.7x) | 有这些 category | 新数据 category 覆盖不全 | 用旧数据更好 | **旧 18 tasks** |
 | Bash 2.64s, Task 66.16s, Read 0.06s, Edit 0.04s | 旧 18 tasks | H: Bash 3.76s, Task 100.47s; L: Bash 5.88s, Edit 0.04s | 量级一致 | Local 111 |
@@ -104,7 +104,7 @@
 | 1 | **CPU-Mem 相关性（关键纠正）** | "强正相关 91-95%" | "任务依赖性，avg -0.39（-0.84 到 +0.50）" | 新数据 |
 | 2 | 数据集描述 | "18 个任务" | 两级数据集策略（111 Local + 33 Haiku + 18 curated） | — |
 | 3 | Qwen→GLM | 全文 "Qwen" | "GLM" | — |
-| 4 | 工具时间占比 | 28.2% / 71.8% / 0.1%–73.3% | 25.3% / 74.7% / 0%–73.3% | Local 111 |
+| 4 | 工具时间占比（active_time 分母） | 28.2% / 71.8% / 0.1%–73.3% | H: mean 42.5% median 34.7%, L: mean 36.4% median 36.5%, 0%–86% | 新数据 + active_time |
 | 5 | 任务数 | 115 个 | 111 个 | Local 111 |
 | 6 | 显著变化事件 | 1.6%–4.1% | 1.7%–3.8% | 新数据 |
 | 7 | Agent CPU 对比 | 30.6% vs 7.9%, 3.9x | 13.2% vs 7.6%, 1.7x | 新数据 common tasks |
@@ -286,7 +286,93 @@ python analysis/analyze_rq_validation.py --all
 | `fig:peak_timing` | `chart_13_memory_peak_timing.png` | `analyze_tool_time_ratio.py` | Local 111 |
 | `fig:memory_trajectory` | `chart_10_memory_trajectory.png` | `analyze_tool_time_ratio.py` | Local 111 |
 
-## 5. 一键重现
+## 5. 时间指标定义
+
+实验中涉及多个时间指标，定义和计算方式各不相同。以下是完整定义：
+
+### 5.1 各时间指标定义
+
+| 指标 | 起点 | 终点 | 定义 | 来源 |
+|------|------|------|------|------|
+| `total_time` | `podman pull` 之前 | cleanup 完成之后 | 整个实验流程总耗时（pull + perm_fix + claude_time + cleanup） | `run_swebench.py:197→261` |
+| `pull_time` | 开始 pull 镜像 | pull 完成 | `podman pull` 耗时 | `run_swebench.py:215` |
+| `permission_fix_time` | 开始修复 /testbed 权限 | 修复完成 | `podman run chmod` 创建修复镜像的耗时 | `run_swebench.py:219→221` |
+| `claude_time` | `podman run -d` 返回 | `podman wait` 返回 | 容器从创建到退出的全生命周期，**包含容器启动开销** | `run_swebench.py:236→238` |
+| `active_time` | trace.jsonl 第一条记录 | trace.jsonl 最后一条记录 | 实际 agent 对话执行时间（LLM 思考 + 工具执行），**排除容器启动开销** | `analyze_swebench_data.py` 从 trace 计算 |
+| `sampling_duration` | `podman stats` 首次返回有效数据 | 最后一次返回有效数据 | 资源监控有效窗口 | `resources.json` 首末采样点 |
+
+### 5.2 时间线关系
+
+```
+|←────────────────────────── total_time ─────────────────────────────→|
+|← pull →|← perm_fix →|←──────────── claude_time ──────────────────→|← cleanup →|
+                       |← 容器启动开销 →|←──── active_time ────→|← git diff/du →|
+                                        |←── sampling_duration ──→|
+```
+
+**容器启动开销**：`podman run -d` 带 `--userns=keep-id` 需要对所有 overlay 层做用户命名空间 ID 映射，时间与镜像大小成正比。在 `claude` CLI 进程真正启动前，`podman stats` 无法获取有效数据（返回空/失败被 `except` 吞掉），因此 `sampling_duration ≈ active_time`。
+
+### 5.3 容器启动开销的量化
+
+| 数据集 | 平均启动间隙 | 中位数 | 占 claude_time 比例 |
+|--------|-------------|--------|-------------------|
+| Haiku 33 | 158s | 169s | 47.7% |
+| Local 111 | 169s | 172s | 31.3% |
+
+代表性任务对比：
+
+| 任务 | claude_time | active_time | 启动间隙 | perm_fix |
+|------|------------|------------|---------|----------|
+| NVIDIA__nv-ingest-71 | 704s | 347s | 357s | 87.9s |
+| dask__dask-11628 | 291s | 96s | 194s | 22.5s |
+| RDFLib__rdflib-1117 | 198s | 63s | 135s | 53.0s |
+| joke2k__faker-1520 | 126s | 123s | 3s | 0.04s |
+| beeware__briefcase-2212 | 477s | 473s | 4s | 0.04s |
+
+**关键发现**：
+1. **启动间隙是容器初始化开销**（userns ID 映射、overlay 准备），不是 LLM 思考时间
+2. 已缓存的镜像（`perm_fix ≈ 0`）启动仅需 3-5 秒
+3. 未缓存的镜像启动需 135-357+ 秒，与镜像大小相关（r=0.457）
+
+### 5.4 对工具时间比例的影响
+
+旧的 `claude_time` 作分母导致工具执行比例被容器启动开销稀释。改用 `active_time` 后：
+
+| 指标 | Haiku（旧 claude_time） | Haiku（新 active_time） | GLM（旧） | GLM（新） |
+|------|------------------------|------------------------|----------|----------|
+| 工具时间占比（均值） | 25.9% | **42.5%** | 25.3% | **36.4%** |
+| 工具时间占比（中位数） | — | **34.7%** | — | **36.5%** |
+| 范围 | 0%–73% | 3%–86% | 0%–73% | 0%–86% |
+
+RQ2 burst 归因中的 **50.6%**（工具调用占采样时间的比例）与 **~35% 中位数**的差异来源：burst 归因以资源采样点（`sampling_duration`）为分母，而工具时间比以 `active_time` 为分母，两者范围接近但不完全相同（`active_time` 包含首末 trace 之间不在采样范围内的少量时间）。
+
+### 5.5 新增分析脚本
+
+| 脚本 | 路径 | 功能 |
+|------|------|------|
+| `analyze_new_insights.py` | `analysis/analyze_new_insights.py` | Token 分析、工具-burst 归因、重试资源浪费、多租户并发模拟 |
+| `compute_active_time.py` | `analysis/compute_active_time.py` | 计算 active_time 并与 claude_time 对比（辅助验证脚本） |
+
+```bash
+python analysis/analyze_new_insights.py               # 全部运行
+python analysis/analyze_new_insights.py --analysis 1   # 仅 token 分析
+python analysis/analyze_new_insights.py --analysis 2   # 仅工具-burst 归因
+python analysis/analyze_new_insights.py --analysis 3   # 仅重试资源浪费
+python analysis/analyze_new_insights.py --analysis 4   # 仅多租户并发模拟
+python analysis/analyze_new_insights.py --analysis 5   # 仅 token-resource 相关性
+```
+
+新增图表：
+
+| 图表文件 | characterization.md 章节 | 说明 |
+|----------|--------------------------|------|
+| `token_distribution.png` | — | Haiku per-turn context 增长 + output 分布 |
+| `tool_burst_correlation.png` | 3.3 时间动态性 | 工具类型 memory spike + Bash 类别 burst profile |
+| `retry_waste.png` | 3.3 非确定性 | 重试组分布 + 重试时间 vs 内存累积 |
+| `concurrency_simulation.png` | 3.4 RQ3 | 静态 vs 动态分配 + 统计复用增益 |
+| `token_resource_correlation.png` | 3.3 非确定性 | Token vs 峰值内存 + Turns vs 执行时间 |
+
+## 6. 一键重现
 
 ```bash
 # 全部生成（推荐）

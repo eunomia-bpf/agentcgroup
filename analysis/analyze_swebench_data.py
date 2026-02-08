@@ -114,6 +114,7 @@ class TaskData:
     attempts: int
     total_time: float
     claude_time: float
+    active_time: float = 0.0  # Actual agent execution time (first to last trace entry)
     resource_samples: List[ResourceSample] = field(default_factory=list)
     tool_calls: List[ToolCall] = field(default_factory=list)
     bursts: List[BurstEvent] = field(default_factory=list)
@@ -335,6 +336,20 @@ def load_task_data(task_dir: Path, task_name: str, task_info: Dict,
     # Detect bursts
     bursts = detect_bursts(samples)
 
+    # Compute active_time from trace.jsonl timestamps
+    active_time = 0.0
+    trace_timestamps = []
+    for record in trace_records:
+        ts_str = record.get("timestamp")
+        if ts_str:
+            ts = parse_iso(ts_str)
+            if ts:
+                trace_timestamps.append(ts)
+    if len(trace_timestamps) >= 2:
+        active_time = (max(trace_timestamps) - min(trace_timestamps)).total_seconds()
+    elif claude_time > 0:
+        active_time = claude_time  # fallback
+
     return TaskData(
         name=task_name,
         category=category,
@@ -343,6 +358,7 @@ def load_task_data(task_dir: Path, task_name: str, task_info: Dict,
         attempts=attempts,
         total_time=task_info.get("total_time", 0.0),
         claude_time=claude_time,
+        active_time=active_time,
         resource_samples=samples,
         tool_calls=tool_calls,
         bursts=bursts,
@@ -788,12 +804,14 @@ def analyze_tools(tasks: Dict[str, TaskData]) -> Dict[str, Any]:
             results["tool_stats"][tool_name]["durations"].append(call.duration_seconds)
             total_tool_time += call.duration_seconds
 
-        thinking_time = task.claude_time - total_tool_time
-        ratio = (total_tool_time / task.claude_time * 100) if task.claude_time > 0 else 0
+        exec_time = task.active_time if task.active_time > 0 else task.claude_time
+        thinking_time = exec_time - total_tool_time
+        ratio = (total_tool_time / exec_time * 100) if exec_time > 0 else 0
 
         results["per_task_tool_time"].append({
             "task": task.name,
             "claude_time": task.claude_time,
+            "active_time": task.active_time,
             "tool_time": total_tool_time,
             "thinking_time": thinking_time,
             "tool_ratio": ratio,
@@ -819,14 +837,18 @@ def analyze_tools(tasks: Dict[str, TaskData]) -> Dict[str, Any]:
     total_tool_time = sum(s["total_time"] for s in results["tool_stats"].values())
     total_calls = sum(s["count"] for s in results["tool_stats"].values())
     total_claude_time = sum(t["claude_time"] for t in results["per_task_tool_time"])
+    total_active_time = sum(t["active_time"] for t in results["per_task_tool_time"])
 
     print(f"\n{'Overall Tool Time Analysis':^40}")
     print("-" * 40)
     print(f"  Total tool calls:           {total_calls}")
     print(f"  Total tool execution time:  {total_tool_time:.2f}s ({total_tool_time/60:.1f} min)")
     print(f"  Total Claude time:          {total_claude_time:.2f}s ({total_claude_time/60:.1f} min)")
+    print(f"  Total Active time:          {total_active_time:.2f}s ({total_active_time/60:.1f} min)")
+    if total_active_time > 0:
+        print(f"  Tool time ratio (active):   {(total_tool_time/total_active_time*100):.1f}%")
     if total_claude_time > 0:
-        print(f"  Tool time ratio:            {(total_tool_time/total_claude_time*100):.1f}%")
+        print(f"  Tool time ratio (claude):   {(total_tool_time/total_claude_time*100):.1f}%")
 
     if results["tool_vs_thinking_ratio"]:
         print(f"\n{'Per-Task Tool Time Ratio':^40}")

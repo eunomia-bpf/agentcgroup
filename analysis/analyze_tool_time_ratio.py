@@ -55,6 +55,30 @@ def load_json(path):
         return None
 
 
+def compute_active_time(attempt_dir):
+    """Compute active_time from trace.jsonl (first to last entry timestamp)."""
+    trace_path = os.path.join(attempt_dir, "trace.jsonl")
+    timestamps = []
+    try:
+        with open(trace_path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    record = json.loads(line)
+                    ts = parse_iso(record.get("timestamp"))
+                    if ts:
+                        timestamps.append(ts)
+                except json.JSONDecodeError:
+                    continue
+    except (FileNotFoundError, OSError):
+        return 0.0
+    if len(timestamps) >= 2:
+        return (max(timestamps) - min(timestamps)).total_seconds()
+    return 0.0
+
+
 def get_task_name_from_dir(dirname):
     """Extract task identifier from dir name.
     Handles 'task_N_instance_id' -> 'instance_id' and plain dir names like 'CLI_Tools_Easy'.
@@ -208,6 +232,11 @@ def main():
 
         tasks_loaded += 1
 
+        # Compute active_time from trace.jsonl
+        active_time = compute_active_time(attempt_dir)
+        if active_time <= 0:
+            active_time = claude_time  # fallback
+
         # --- Original tool time computation ---
         tool_total_time = 0.0
         valid_calls = 0
@@ -225,9 +254,11 @@ def main():
             tool_total_time += duration
             tool_call_times.append(duration)
 
-        thinking_time = claude_time - tool_total_time
-        tool_ratio = (tool_total_time / claude_time * 100) if claude_time > 0 else 0
-        thinking_ratio = (thinking_time / claude_time * 100) if claude_time > 0 else 0
+        # Use active_time (excludes container startup) for ratio calculation
+        exec_time = active_time
+        thinking_time = exec_time - tool_total_time
+        tool_ratio = (tool_total_time / exec_time * 100) if exec_time > 0 else 0
+        thinking_ratio = (thinking_time / exec_time * 100) if exec_time > 0 else 0
 
         # --- Tool sequence & transitions ---
         tool_sequence = [call.get("tool", "Unknown") for call in tool_calls]
@@ -324,6 +355,7 @@ def main():
             "dir_name": dir_name,
             "task_name": task_name,
             "claude_time": claude_time,
+            "active_time": active_time,
             "tool_time": tool_total_time,
             "thinking_time": thinking_time,
             "tool_ratio": tool_ratio,
@@ -375,18 +407,22 @@ def main():
     # Overall statistics
     # -------------------------------------------------------------------------
     total_claude_time = sum(d["claude_time"] for d in all_data)
+    total_active_time = sum(d["active_time"] for d in all_data)
     total_tool_time = sum(d["tool_time"] for d in all_data)
     total_thinking_time = sum(d["thinking_time"] for d in all_data)
 
     print(sep)
     print("  OVERALL STATISTICS")
     print(sep)
-    print(f"  Total execution time (all tasks):  {total_claude_time:.1f}s ({total_claude_time / 60:.1f} min)")
-    print(f"  Total tool execution time:        {total_tool_time:.1f}s ({total_tool_time / 60:.1f} min)")
-    print(f"  Total thinking time:             {total_thinking_time:.1f}s ({total_thinking_time / 60:.1f} min)")
+    print(f"  Total claude_time (all tasks):     {total_claude_time:.1f}s ({total_claude_time / 60:.1f} min)")
+    print(f"  Total active_time (all tasks):     {total_active_time:.1f}s ({total_active_time / 60:.1f} min)")
+    print(f"  Total tool execution time:         {total_tool_time:.1f}s ({total_tool_time / 60:.1f} min)")
+    print(f"  Total thinking time:               {total_thinking_time:.1f}s ({total_thinking_time / 60:.1f} min)")
+    print(f"  Container startup overhead:        {total_claude_time - total_active_time:.1f}s ({(total_claude_time - total_active_time) / 60:.1f} min)")
     print()
-    print(f"  Tool time ratio:                  {total_tool_time / total_claude_time * 100:.1f}%")
-    print(f"  Thinking time ratio:              {total_thinking_time / total_claude_time * 100:.1f}%")
+    print(f"  Tool time ratio (active_time):     {total_tool_time / total_active_time * 100:.1f}%")
+    print(f"  Thinking time ratio (active_time): {total_thinking_time / total_active_time * 100:.1f}%")
+    print(f"  Tool time ratio (claude_time):     {total_tool_time / total_claude_time * 100:.1f}%  [includes container startup]")
     print()
 
     # -------------------------------------------------------------------------
@@ -468,12 +504,12 @@ def main():
         if not tasks:
             print(f"  {label}: No tasks in this group.")
             return
-        total_ct = sum(d["claude_time"] for d in tasks)
+        total_at = sum(d["active_time"] for d in tasks)
         total_tt = sum(d["tool_time"] for d in tasks)
         avg_tool_ratio = statistics.mean([d["tool_ratio"] for d in tasks])
         median_tool_ratio = statistics.median([d["tool_ratio"] for d in tasks])
         print(f"  {label} ({len(tasks)} tasks):")
-        print(f"    Total execution time:     {total_ct:.1f}s ({total_ct / 60:.1f} min)")
+        print(f"    Total active time:        {total_at:.1f}s ({total_at / 60:.1f} min)")
         print(f"    Total tool time:          {total_tt:.1f}s ({total_tt / 60:.1f} min)")
         print(f"    Avg tool time ratio:      {avg_tool_ratio:.1f}%")
         print(f"    Median tool time ratio:   {median_tool_ratio:.1f}%")
@@ -500,11 +536,11 @@ def main():
     print("  APPENDIX: PER-TASK SUMMARY")
     print(sep)
     all_data_sorted = sorted(all_data, key=lambda d: d["tool_ratio"], reverse=True)
-    print(f"  {'Task':<55} {'Total(s)':>10} {'Tool(s)':>8} {'Think(s)':>9} {'Tool%':>7} {'Status':>7}")
+    print(f"  {'Task':<55} {'Active(s)':>10} {'Tool(s)':>8} {'Think(s)':>9} {'Tool%':>7} {'Status':>7}")
     print(f"  {sep2}")
     for d in all_data_sorted:
         status = "PASS" if d["success"] else ("FAIL" if d["success"] is not None else "???")
-        print(f"  {d['dir_name']:<55} {d['claude_time']:>9.1f} {d['tool_time']:>7.1f} {d['thinking_time']:>8.1f} {d['tool_ratio']:>5.1f}% {status:>7}")
+        print(f"  {d['dir_name']:<55} {d['active_time']:>9.1f} {d['tool_time']:>7.1f} {d['thinking_time']:>8.1f} {d['tool_ratio']:>5.1f}% {status:>7}")
     print()
 
     # =========================================================================
@@ -607,11 +643,16 @@ def main():
                          for d in tasks_with_times if d["total_time"] > 0]
         claude_pcts = [d["claude_time"] / d["total_time"] * 100
                        for d in tasks_with_times if d["total_time"] > 0]
+        active_pcts = [d["active_time"] / d["total_time"] * 100
+                       for d in tasks_with_times if d["total_time"] > 0]
+        startup_gaps = [d["claude_time"] - d["active_time"] for d in tasks_with_times]
 
         print(f"  pull_time:           avg={statistics.mean(pull_times):.1f}s  median={statistics.median(pull_times):.1f}s  max={max(pull_times):.1f}s")
         print(f"  permission_fix_time: avg={statistics.mean(perm_times):.1f}s  median={statistics.median(perm_times):.1f}s  max={max(perm_times):.1f}s")
+        print(f"  container startup:   avg={statistics.mean(startup_gaps):.1f}s  median={statistics.median(startup_gaps):.1f}s  max={max(startup_gaps):.1f}s")
         print(f"  total overhead:      avg={statistics.mean(overheads):.1f}s  ({statistics.mean(overhead_pcts):.1f}% of total)")
-        print(f"  claude_time ratio:   avg={statistics.mean(claude_pcts):.1f}%  (actual work)")
+        print(f"  claude_time ratio:   avg={statistics.mean(claude_pcts):.1f}%  (container lifetime)")
+        print(f"  active_time ratio:   avg={statistics.mean(active_pcts):.1f}%  (actual agent execution)")
     print()
 
     # -------------------------------------------------------------------------
@@ -674,14 +715,14 @@ def main():
     tasks_with_img = [d for d in all_data if d["image_size_mb"] > 0]
     if len(tasks_with_img) >= 3:
         sizes = [d["image_size_mb"] for d in tasks_with_img]
-        times = [d["claude_time"] for d in tasks_with_img]
+        times = [d["active_time"] for d in tasks_with_img]
         successes = [1 if d["success"] else 0 for d in tasks_with_img]
         print(f"  Image sizes: avg={statistics.mean(sizes):.0f}MB  range={min(sizes):.0f}-{max(sizes):.0f}MB")
         # Correlation
         if len(sizes) > 2:
             r_time = np.corrcoef(sizes, times)[0, 1]
             r_success = np.corrcoef(sizes, successes)[0, 1]
-            print(f"  Correlation image_size vs claude_time: r={r_time:.3f}")
+            print(f"  Correlation image_size vs active_time: r={r_time:.3f}")
             print(f"  Correlation image_size vs success:     r={r_success:.3f}")
     print()
 
@@ -739,11 +780,11 @@ def generate_charts(all_data, successful_tasks, failed_tasks, chart_dir):
 
     # --- Chart 2: Time Distribution ---
     try:
-        s_times = [d["claude_time"] for d in successful_tasks]
-        f_times = [d["claude_time"] for d in failed_tasks]
+        s_times = [d["active_time"] for d in successful_tasks]
+        f_times = [d["active_time"] for d in failed_tasks]
 
         fig, ax = plt.subplots(figsize=(10, 6))
-        bins = np.linspace(0, max(d["claude_time"] for d in all_data) + 50, 20)
+        bins = np.linspace(0, max(d["active_time"] for d in all_data) + 50, 20)
         if s_times:
             ax.hist(s_times, bins=bins, alpha=0.6, color=COLORS["success"], label=f"Success (n={len(s_times)})", edgecolor="white")
         if f_times:
@@ -1128,16 +1169,16 @@ def generate_charts(all_data, successful_tasks, failed_tasks, chart_dir):
         for d in all_data:
             color = COLORS["success"] if d["success"] else COLORS["failure"]
             size = max(20, min(200, d["peak_mem_mb"] / 3))
-            ax.scatter(d["claude_time"], d["tool_ratio"], c=color, s=size, alpha=0.6, edgecolors="gray", linewidth=0.5)
+            ax.scatter(d["active_time"], d["tool_ratio"], c=color, s=size, alpha=0.6, edgecolors="gray", linewidth=0.5)
 
         # Legend
         ax.scatter([], [], c=COLORS["success"], s=60, label="Success", edgecolors="gray")
         ax.scatter([], [], c=COLORS["failure"], s=60, label="Failure", edgecolors="gray")
         ax.scatter([], [], c="gray", s=30, alpha=0.5, label="Size = Peak Mem")
         ax.legend(fontsize=10)
-        ax.set_xlabel("Claude Time (seconds)", fontsize=12)
+        ax.set_xlabel("Active Time (seconds)", fontsize=12)
         ax.set_ylabel("Tool Time Ratio (%)", fontsize=12)
-        ax.set_title("Execution Time vs Tool Ratio (size = peak memory)", fontsize=14)
+        ax.set_title("Active Time vs Tool Ratio (size = peak memory)", fontsize=14)
         ax.grid(alpha=0.3)
         save_chart(fig, "chart_14_scatter_time_ratio.png", chart_dir)
     except Exception as e:
