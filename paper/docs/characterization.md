@@ -12,7 +12,7 @@
 
 **数据集。** 我们采用两级数据集策略。首先，从 SWE-rebench 数据集中收集 111 个任务（GLM 本地模型）和 33 个任务（Haiku 云端模型），用于大规模统计分析。此外，我们精选 18 个代表性任务，覆盖六个类别（CLI_Tools、DevOps_Build、ML_Scientific、Medical_Bio、SQL_Data、Web_Network）和三个难度级别（Easy、Medium、Hard），用于类别级分析。这些任务涵盖了 AI coding agent 的典型使用场景，包括命令行工具修复、构建系统配置、机器学习代码调试、生物医学数据处理、数据库查询优化和 Web 服务修复。
 
-**Agent 实现。** 我们使用两个不同的 agent 实现执行任务：（1）Claude Code with Haiku，基于云端 API 的生产级 AI coding agent，LLM 推理在 Anthropic 云端执行；（2）Claude Code 连接本地模型 GLM 4.7 flash，LLM 推理通过 GPU 在本地设备上执行。选择这两个 agent 是为了观察不同架构（远程 API 推理 vs 本地 GPU 推理）和推理策略对资源使用的影响。
+**Agent 实现。** 所有任务均使用同一 agent 框架——Claude Code 执行，配合两个不同的底层模型：（1）Haiku（云端 API），LLM 推理在 Anthropic 云端执行；（2）GLM 4.7 flash（本地 GPU），LLM 推理通过 GPU 在本地设备上执行。Agent 框架本身（工具调用逻辑、沙箱环境、Node.js 运行时）完全相同，差异仅在于底层模型及其推理位置。选择这两个模型是为了观察不同模型（及其推理位置：远程 API vs 本地 GPU）对容器内资源使用的影响。
 
 **数据收集。** 对于每个任务执行，我们通过 `podman stats`（`--no-stream` 模式）以 1 秒间隔采样每个容器的 CPU 利用率和内存使用量，并记录每个工具调用的类型、开始时间和结束时间。所有任务在相同的沙箱环境中执行，以确保测量的可比性。
 
@@ -20,7 +20,7 @@
 
 Agent 的执行过程与传统容器化工作负载存在根本差异。与 serverless/FaaS 处理短暂无状态请求（100ms–2s）不同，每个 agent 任务平均运行约 10 分钟（GLM 平均 10.8 分钟，Haiku 平均 5.8 分钟，中位数 8.1 分钟；见 Fig-exec (a)），并执行有状态的多轮推理和工具调用循环。此外，容器启动存在不可忽视的固定开销，平均需要 26.5 秒（中位数 23.0 秒），最长可达 97 秒。
 
-**阶段划分。** Agent 执行由 LLM 推理和工具调用两个阶段交替组成。如 Fig-exec (b) 所示，在全部 144 个任务（Haiku 33 + GLM 111）中，工具执行时间平均占总执行时间的 25.5%，LLM 思考时间占 74.5%。值得注意的是，两种 agent 架构的比例几乎一致（Haiku 25.9% vs GLM 25.3%），表明约 3/4 时间用于 LLM 思考、1/4 时间用于工具执行的阶段划分是 agent 工作负载的固有特征，与推理架构（云端 API vs 本地 GPU）无关。然而，这一比例在不同任务间差异巨大，范围从 0% 到 73.3%（中位数 23.1%），如 Fig-tool-time (a) 所示。
+**阶段划分。** Agent 执行由 LLM 推理和工具调用两个阶段交替组成。如 Fig-exec (b) 所示，在全部 144 个任务（Haiku 33 + GLM 111）中，工具执行时间平均占总执行时间的 25.5%，LLM 思考时间占 74.5%。值得注意的是，两个模型的比例几乎一致（Haiku 25.9% vs GLM 25.3%），表明约 3/4 时间用于 LLM 思考、1/4 时间用于工具执行的阶段划分是 agent 工作负载的固有特征，与底层模型及其推理位置无关。然而，这一比例在不同任务间差异巨大，范围从 0% 到 73.3%（中位数 23.1%），如 Fig-tool-time (a) 所示。
 
 ![Fig-exec: 任务执行时间分布 (a) 与执行阶段划分 (b)](../../analysis/comparison_figures/exec_overview.png)
 
@@ -28,7 +28,7 @@ Agent 的执行过程与传统容器化工作负载存在根本差异。与 serv
 
 ![Fig-tool-type: 工具执行时间分布 (a) 与 Bash 命令语义类别占比 (b)，Haiku vs GLM](../../analysis/comparison_figures/tool_bash_breakdown.png)
 
-**工具执行时间差异。** Haiku 的 Task 子 agent 平均执行时间高达 100.47 秒（n=17），Bash 命令平均 3.76 秒（n=410）；GLM 的 Bash 命令平均 5.93 秒（n=3304）。相比之下，Read（Haiku avg 0.34s / GLM avg 0.08s）和 Edit（Haiku avg 0.05s / GLM avg 0.04s）操作的执行时间快三个数量级。这种差异表明，不同工具类型需要不同的资源配置策略。两种 agent 的工具策略差异也具有资源管理启示：Haiku 通过 Task 子 agent 和 Web 搜索将部分工作分发到外部服务，而 GLM 将所有计算集中在本地 Bash 执行，导致更高的本地资源消耗（Bash 总时间 19598s vs Haiku 1543s）。
+**工具执行时间差异。** Haiku 的 Task 子 agent 平均执行时间高达 100.47 秒（n=17），Bash 命令平均 3.76 秒（n=410）；GLM 的 Bash 命令平均 5.93 秒（n=3304）。相比之下，Read（Haiku avg 0.34s / GLM avg 0.08s）和 Edit（Haiku avg 0.05s / GLM avg 0.04s）操作的执行时间快三个数量级。这种差异表明，不同工具类型需要不同的资源配置策略。两个模型的工具策略差异也具有资源管理启示：Haiku 模型通过 Task 子 agent 和 Web 搜索将部分工作分发到外部服务，而 GLM 模型将所有计算集中在本地 Bash 执行，导致更高的本地资源消耗（Bash 总时间 19598s vs Haiku 1543s）。
 
 **工具使用的时间分布。** 如 Fig-tool-time (b) 所示，将执行过程划分为 10 个等长阶段后分析工具调用分布，我们发现 Read 操作集中在执行早期（前 30%），对应代码理解阶段；Bash 调用在中后期（40-80%）最为密集，对应测试和验证阶段；Edit 操作分布相对均匀，贯穿整个执行过程。这种阶段性特征与软件工程的"理解-修改-验证"工作流吻合，为相位感知资源控制提供了依据。
 
@@ -80,7 +80,7 @@ Fig-timeseries-haiku 和 Fig-timeseries-glm 展示了两个具体任务的资源
 
 Haiku 和 GLM agent 在相同任务上表现出显著的 CPU 利用率差异（Haiku 平均 13.2%，GLM 平均 7.6%，差异 1.7 倍）。平均执行时间也存在显著差异（Haiku 352 秒，GLM 664 秒）。这一结果表明，资源需求不仅取决于任务本身，还取决于 agent 的架构和实现。
 
-**本地推理 vs API 推理的资源特征差异。** 这种 CPU 利用率差异揭示了一个重要的架构性区别。Haiku 通过 API 调用远程模型，LLM 推理在云端执行，但 API 调用、响应解析和上下文管理仍消耗本地 CPU 资源。相比之下，GLM 作为本地部署的模型，LLM 推理主要在 GPU 上执行，容器内的 CPU 负载仅来自工具调用。这导致 GLM 容器内仅有 0.5% 的采样点 CPU 利用率超过 50%，而 Haiku 达到 8.2%。对于资源管理而言，这意味着：API-based agent 需要更多 CPU 配额来处理网络 I/O 和协议开销；本地推理 agent 的瓶颈转移到 GPU，但 GPU 资源目前不在 cgroup 控制范围内。这种架构异构性进一步增加了统一资源管理的难度。
+**不同模型的资源特征差异。** 这种 CPU 利用率差异反映的本质问题是：即使 agent 框架完全相同（均为 Claude Code），仅更换底层模型就会产生截然不同的资源画像。Haiku 通过云端 API 推理，API 调用、响应解析和上下文管理消耗较多本地 CPU；GLM 的推理在本地 GPU 上执行，容器内 CPU 负载几乎仅来自工具调用——GLM 容器内仅有 0.5% 的采样点 CPU 利用率超过 50%，而 Haiku 达到 8.2%。即使执行相同任务，两个模型的 CPU 分布、执行时长和内存轨迹也显著不同。这意味着资源管理策略无法基于"agent 工作负载"这一单一类别做静态假设，而必须适配不同模型带来的资源特征差异。
 
 ## 3.4 RQ3: Provisioning Efficiency
 
