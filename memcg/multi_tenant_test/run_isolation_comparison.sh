@@ -130,7 +130,11 @@ setup_static_isolation() {
 # 策略 3: BPF 动态隔离
 setup_bpf_isolation() {
     local total_mb=$1
-    local high_threshold_mb=$((total_mb / 4))  # 较低的 high 阈值触发 BPF
+    # HIGH 可以 burst 到更高，设置为总内存的 80%
+    local high_session_threshold=$((total_mb * 8 / 10))
+    # LOW 设置较低的阈值，让 BPF 更早触发延迟
+    local low_session_threshold=$((total_mb / 8))
+
     log_info "Setting up BPF DYNAMIC ISOLATION"
 
     setup_cgroups_base
@@ -138,11 +142,16 @@ setup_bpf_isolation() {
     # 设置父 cgroup 的总内存限制
     echo "${total_mb}M" > $CGROUP_ROOT/memory.max
 
-    # 子 cgroup 使用 memory.high 触发 BPF，不使用 memory.max
-    for name in high_session low_session_1 low_session_2; do
+    # HIGH session: 高 memory.high，允许 burst
+    echo "max" > $CGROUP_ROOT/high_session/memory.max 2>/dev/null || true
+    echo "${high_session_threshold}M" > $CGROUP_ROOT/high_session/memory.high
+    log_info "  high_session: memory.high=${high_session_threshold}MB (can burst)"
+
+    # LOW sessions: 低 memory.high，触发 BPF 延迟
+    for name in low_session_1 low_session_2; do
         echo "max" > $CGROUP_ROOT/$name/memory.max 2>/dev/null || true
-        echo "${high_threshold_mb}M" > $CGROUP_ROOT/$name/memory.high
-        log_info "  $name: memory.high=${high_threshold_mb}MB (no max limit)"
+        echo "${low_session_threshold}M" > $CGROUP_ROOT/$name/memory.high
+        log_info "  $name: memory.high=${low_session_threshold}MB (BPF will delay)"
     done
 }
 
