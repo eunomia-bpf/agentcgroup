@@ -592,8 +592,90 @@ get_high_delay_ms() Triggers
 | Trace 回放不准确 | 结果不可信 | 增加真实 agent 运行实验 |
 | 内存竞争不充分 | 效果不明显 | 减少总内存限制或增加并发数 |
 
-## 10. 参考资料
+## 10. 并发 Replay 测试候选镜像
+
+基于 `experiments/all_images_haiku` 中的实验数据，选择以下镜像进行并发 replay 测试。
+
+### 10.1 选择标准
+
+- 镜像大小 < 5GB（节省磁盘空间）
+- **内存波动明显**（max/avg 比值高，有明显的突发模式）
+- Tool calls > 15（足够的工具调用复现工作负载）
+
+### 10.2 候选镜像列表（按波动程度排序）
+
+| 任务 | 镜像大小 | 时长 | 内存 avg | 内存 max | 波动幅度 | max/avg | Tool Calls | 状态 |
+|------|---------|------|---------|---------|---------|---------|------------|------|
+| pre-commit__pre-commit-2524 | 3.2 GB | 327s | 306 MB | **1862 MB** | 1850 MB | **6.08x** | 24 | ⭐最明显 |
+| dask__dask-11628 | 4.4 GB | 98s | 198 MB | 321 MB | 309 MB | 1.62x | 26 | 已缓存 |
+| sigmavirus24__github3.py-673 | 3.4 GB | 103s | 213 MB | 306 MB | 293 MB | 1.43x | 18 | 阶梯式 |
+| joke2k__faker-1520 | 3.2 GB | 123s | 190 MB | 273 MB | 271 MB | 1.44x | 26 | 已缓存 |
+| prefab-cloud__prefab-cloud-python-62 | 3.6 GB | 87s | 191 MB | 279 MB | 268 MB | 1.47x | 20 | 多峰值 |
+
+### 10.3 推荐并发测试方案
+
+**方案 A: 最大波动（验证 BPF 效果最明显）**
+
+```bash
+# pre-commit 有 6x 内存波动，非常适合验证内存压力控制
+python scripts/replay_trace.py --concurrent \
+  experiments/all_images_haiku/pre-commit__pre-commit-2524/attempt_1 \
+  experiments/all_images_haiku/dask__dask-11628/attempt_1 \
+  experiments/all_images_haiku/joke2k__faker-1520/attempt_1
+```
+
+预计时间: ~327s（取最长），需下载 ~3.2GB
+
+**方案 B: 快速验证（已缓存镜像 + 1 个新镜像）**
+
+```bash
+python scripts/replay_trace.py --concurrent \
+  experiments/all_images_haiku/dask__dask-11628/attempt_1 \
+  experiments/all_images_haiku/joke2k__faker-1520/attempt_1 \
+  experiments/all_images_haiku/sigmavirus24__github3.py-673/attempt_1
+```
+
+预计时间: ~123s，需下载 ~3.4GB
+
+### 10.4 磁盘空间估算
+
+| 项目 | 大小 |
+|------|------|
+| 当前可用空间 | ~18 GB |
+| 已缓存镜像 (dask 4.4GB, faker 3.2GB) | ~7.6 GB |
+| 方案 A 需下载 (pre-commit) | ~3.2 GB |
+| 方案 B 需下载 (sigmavirus24) | ~3.4 GB |
+
+### 10.5 候选镜像 Resource Plot 预览
+
+#### pre-commit__pre-commit-2524 (327s, **1850MB 波动, 6.08x**) ⭐推荐
+![pre-commit resource plot](../experiments/all_images_haiku/pre-commit__pre-commit-2524/attempt_1/resource_plot.png)
+
+**特点**: 内存从 ~200MB 多次突发到 1000-1800MB，有非常明显的尖峰模式，最适合验证 memcg BPF 的内存压力控制效果。
+
+#### dask__dask-11628 (98s, 309MB 波动, 1.62x) - 已缓存
+![dask resource plot](../experiments/all_images_haiku/dask__dask-11628/attempt_1/resource_plot.png)
+
+**特点**: 在 40s 左右有一个明显的内存突发到 320MB，适合作为中等负载。
+
+#### joke2k__faker-1520 (123s, 271MB 波动, 1.44x) - 已缓存
+![faker resource plot](../experiments/all_images_haiku/joke2k__faker-1520/attempt_1/resource_plot.png)
+
+**特点**: 有多个小的内存突发峰值，呈现周期性波动模式。
+
+#### sigmavirus24__github3.py-673 (103s, 293MB 波动, 1.43x)
+![github3 resource plot](../experiments/all_images_haiku/sigmavirus24__github3.py-673/attempt_1/resource_plot.png)
+
+**特点**: 内存呈现阶梯式增长，从 150MB 逐步增加到 300MB，适合测试渐进式内存压力。
+
+#### prefab-cloud__prefab-cloud-python-62 (87s, 268MB 波动, 1.47x)
+![prefab resource plot](../experiments/all_images_haiku/prefab-cloud__prefab-cloud-python-62/attempt_1/resource_plot.png)
+
+**特点**: 后半段有多个内存突发峰值到 280MB。
+
+## 11. 参考资料
 
 - memcg BPF struct_ops RFC: https://lore.kernel.org/all/cover.1738292406.git.teawater@antgroup.com/
 - cgroup v2 文档: https://docs.kernel.org/admin-guide/cgroup-v2.html
 - SWE-rebench 数据集: experiments/batch_swebench_18tasks/
+- all_images_haiku 实验数据: experiments/all_images_haiku/
