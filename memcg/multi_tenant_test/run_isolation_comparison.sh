@@ -22,15 +22,16 @@ TRACES_DIR="/home/yunwei37/agentcgroup/experiments/all_images_haiku"
 TOTAL_MEMORY_MB=1024       # 总内存限制 1GB
 SPEED_FACTOR=10            # 10倍速回放
 NUM_RUNS=1                 # 每组运行次数
-BPF_DELAY_MS=2000          # BPF 延迟
+BPF_DELAY_MS=100           # BPF 延迟 (100ms 更合理)
 BASE_MEMORY_MB=100         # 模拟 Claude Code 进程的基线内存
 
 # Traces 配置 (可修改)
-# HIGH 优先级使用高波动 trace
-HIGH_TRACE="pre-commit__pre-commit-2524"
-# LOW 优先级使用中等波动 traces
-LOW1_TRACE="dask__dask-11628"
-LOW2_TRACE="joke2k__faker-1520"
+# 使用更平衡的 trace 组合，让所有进程可以并行运行
+# HIGH 优先级使用中等波动 trace (峰值 321MB)
+HIGH_TRACE="dask__dask-11628"
+# LOW 优先级使用低波动 traces (峰值 273MB, 306MB)
+LOW1_TRACE="joke2k__faker-1520"
+LOW2_TRACE="sigmavirus24__github3.py-673"
 
 # 颜色输出
 RED='\033[0;31m'
@@ -132,8 +133,9 @@ setup_bpf_isolation() {
     local total_mb=$1
     # HIGH 可以 burst 到更高，设置为总内存的 80%
     local high_session_threshold=$((total_mb * 8 / 10))
-    # LOW 设置较低的阈值，让 BPF 更早触发延迟
-    local low_session_threshold=$((total_mb / 8))
+    # LOW 设置较高阈值 - 高于峰值使用量，只在极端情况时触发
+    # LOW traces: peak=421MB (with 100MB base), 设置为 600MB
+    local low_session_threshold=$((total_mb / 4))  # ~640MB for 2560MB total
 
     log_info "Setting up BPF DYNAMIC ISOLATION"
 
@@ -147,11 +149,11 @@ setup_bpf_isolation() {
     echo "${high_session_threshold}M" > $CGROUP_ROOT/high_session/memory.high
     log_info "  high_session: memory.high=${high_session_threshold}MB (can burst)"
 
-    # LOW sessions: 低 memory.high，触发 BPF 延迟
+    # LOW sessions: 合理 memory.high，只在峰值时触发 BPF 延迟
     for name in low_session_1 low_session_2; do
         echo "max" > $CGROUP_ROOT/$name/memory.max 2>/dev/null || true
         echo "${low_session_threshold}M" > $CGROUP_ROOT/$name/memory.high
-        log_info "  $name: memory.high=${low_session_threshold}MB (BPF will delay)"
+        log_info "  $name: memory.high=${low_session_threshold}MB (BPF delay on peak)"
     done
 }
 
@@ -285,7 +287,7 @@ EOF
                 --low "$CGROUP_ROOT/low_session_1" \
                 --low "$CGROUP_ROOT/low_session_2" \
                 --delay-ms $BPF_DELAY_MS \
-                --threshold 1 \
+                --threshold 10000 \
                 --below-low \
                 --verbose \
                 > "$exp_dir/bpf_loader.log" 2>&1 &

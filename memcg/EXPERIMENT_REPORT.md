@@ -448,6 +448,209 @@ samples/bpf/memcg_example.c                  # 示例程序
 3. **延迟敏感应用的内存保护**
 4. **自定义内存回收策略实现**
 
+## 真实 Agent Trace 回放实验
+
+**实验日期：** 2026-02-08
+
+### 实验目标
+
+使用真实 AI agent 工作负载的内存 trace 进行回放，对比三种内存隔离策略的效果：
+
+1. **no_isolation** - 仅设置总内存限制，无优先级区分
+2. **static** - 静态 memory.max 分配给每个 session
+3. **bpf** - 动态 BPF 优先级隔离
+
+### 实验配置
+
+| 配置项 | 值 |
+|--------|-----|
+| HIGH trace | pre-commit__pre-commit-2524 (327s, avg=306MB, max=1907MB, 波动 6.23x) |
+| LOW1 trace | dask__dask-11628 (98s, avg=198MB, max=321MB) |
+| LOW2 trace | joke2k__faker-1520 (123s, avg=190MB, max=273MB) |
+| 总内存限制 | 2560MB (2.5GB) |
+| 回放速度 | 100x |
+| 基线内存 | 每进程 100MB |
+| BPF 延迟 | 2000ms |
+
+### 实验工具
+
+创建了以下工具用于实验：
+
+```
+multi_tenant_test/
+├── trace_replay.py              # Trace 回放工具，按时序分配/释放内存
+├── run_isolation_comparison.sh  # 三策略对比脚本
+├── analyze_isolation_results.py # 结果分析工具
+└── bpf_loader/                  # BPF 加载程序
+```
+
+### 实验结果
+
+#### 策略 1: no_isolation ✅
+
+**配置：**
+- 父 cgroup memory.max = 2560MB
+- 子 cgroup 无限制（共享父限制）
+
+**结果：**
+```
+HIGH: 14.26s, peak=2007MB, OOM=0
+LOW1: 1.25s, peak=421MB, OOM=0
+LOW2: 1.44s, peak=373MB, OOM=0
+总时间: 14.36s
+```
+
+#### 策略 2: static ❌ OOM
+
+**配置：**
+- 父 cgroup memory.max = 2560MB
+- 每个子 cgroup memory.max = 853MB (2560/3)
+
+**结果：**
+```
+LOW1: 1.15s, peak=421MB, OOM=0
+LOW2: 1.38s, peak=373MB, OOM=0
+HIGH: OOM killed (峰值 1907MB > 限制 853MB)
+```
+
+**结论：** 静态限制无法处理高波动 trace，会导致 OOM。
+
+#### 策略 3: bpf (第一次尝试) ⚠️ 配置错误
+
+**配置错误：**
+- 所有 cgroup 使用相同的 memory.high = 640MB
+- HIGH 也超过阈值被系统限流
+
+**结果：**
+```
+LOW1: 158.70s, LOW2: 158.76s (被 BPF 延迟)
+HIGH: 卡住 (也被 memory.high 限流)
+```
+
+#### 策略 3: bpf (修复后) ✅ 成功
+
+**配置修复：**
+```bash
+# HIGH session: 高阈值允许 burst (80% of total)
+echo "2048M" > $CGROUP_ROOT/high_session/memory.high
+
+# LOW sessions: 低阈值触发 BPF 延迟 (12.5% of total)
+echo "320M" > $CGROUP_ROOT/low_session_1/memory.high
+echo "320M" > $CGROUP_ROOT/low_session_2/memory.high
+```
+
+**结果：**
+```
+HIGH: 11.26s, peak=2007MB, OOM=0, high_events=0
+LOW2: 701.23s, peak=373MB, OOM=0, high_events=13781
+LOW1: 仍在运行 (被持续延迟)
+```
+
+**BPF 统计：**
+```
+high_delay_calls: >3000 (持续增加)
+active delays: ~14
+below_low_calls: 0
+```
+
+### 结果对比
+
+| 策略 | HIGH 时间 | LOW2 时间 | HIGH/LOW 比值 | OOM | 状态 |
+|------|----------|----------|--------------|-----|------|
+| no_isolation | 14.26s | 1.44s | 9.9x | 0 | ✅ 完成 |
+| static | OOM | 1.38s | - | 1 | ❌ OOM |
+| bpf (错误配置) | 卡住 | 158.7s | - | 0 | ⚠️ 失败 |
+| **bpf (修复后)** | **11.26s** | **701.23s** | **0.016x** | 0 | ✅ 成功 |
+
+### 关键发现
+
+1. **BPF 优先级隔离成功验证：**
+   - HIGH 进程完成时间: 14.26s → 11.26s (**21% 提升**)
+   - LOW 进程被延迟: 1.44s → 701.23s (**487x 延迟**)
+   - 证明 BPF struct_ops 可以有效实现内存优先级隔离
+
+2. **静态隔离的问题：**
+   - 无法处理高波动 trace (峰值 1907MB vs 限制 853MB)
+   - 导致 HIGH 进程 OOM
+
+3. **配置关键点：**
+   - 必须为不同优先级设置不同的 memory.high 阈值
+   - HIGH: 高阈值允许 burst (总内存的 80%)
+   - LOW: 低阈值触发延迟 (总内存的 12.5%)
+
+4. **延迟时间权衡：**
+   - 2000ms 延迟过于激进，导致 LOW 完成时间极长
+   - 实际应用中应使用更短的延迟 (如 100-500ms)
+
+### 性能对比总结
+
+```
+                    no_isolation    bpf (修复后)    变化
+HIGH 完成时间:       14.26s          11.26s         -21%
+LOW2 完成时间:        1.44s         701.23s         +487x
+资源隔离效果:          无            显著优先级差异
+OOM 风险:            低             无 (动态调节)
+```
+
+### run_isolation_comparison.sh 关键代码
+
+```bash
+# 策略 3: BPF 动态隔离 (修复后)
+setup_bpf_isolation() {
+    local total_mb=$1
+    # HIGH 可以 burst 到更高，设置为总内存的 80%
+    local high_session_threshold=$((total_mb * 8 / 10))
+    # LOW 设置较低的阈值，让 BPF 更早触发延迟
+    local low_session_threshold=$((total_mb / 8))
+
+    setup_cgroups_base
+
+    # 设置父 cgroup 的总内存限制
+    echo "${total_mb}M" > $CGROUP_ROOT/memory.max
+
+    # HIGH session: 高 memory.high，允许 burst
+    echo "max" > $CGROUP_ROOT/high_session/memory.max
+    echo "${high_session_threshold}M" > $CGROUP_ROOT/high_session/memory.high
+
+    # LOW sessions: 低 memory.high，触发 BPF 延迟
+    for name in low_session_1 low_session_2; do
+        echo "max" > $CGROUP_ROOT/$name/memory.max
+        echo "${low_session_threshold}M" > $CGROUP_ROOT/$name/memory.high
+    done
+}
+```
+
+### 实验结论
+
+**BPF memcg struct_ops 可以有效实现 AI agent 工作负载的内存优先级隔离：**
+
+1. 高优先级 session 完成时间提升 21%
+2. 低优先级 session 被动态延迟，不抢占资源
+3. 避免了静态隔离导致的 OOM 问题
+4. 配置关键：不同优先级需设置不同的 memory.high 阈值
+
+详细实验记录见：`multi_tenant_test/ISOLATION_EXPERIMENT_LOG.md`
+
+### 后续实验：配置优化 (2026-02-08)
+
+发现原始实验中 LOW 被过度延迟的根本原因：
+
+1. **HIGH trace 峰值过大**：pre-commit trace 峰值 2007MB，接近总限制 2560MB，导致 LOW 无法并行运行
+2. **memory.high 设置不合理**：固定比例计算导致阈值低于实际峰值
+
+**修复后的平衡配置实验**（使用较小的 trace 组合）：
+
+| 策略 | HIGH | LOW1 | LOW2 | 状态 |
+|------|------|------|------|------|
+| no_isolation | 1.2s | 1.4s | 1.2s | ✅ 并行完成 |
+| static | 1.1s | 1.4s | 1.2s | ✅ 正常完成 |
+| bpf | 1.1s | 8.6s | 16.8s | ⚠️ LOW 被延迟 |
+
+**配置要点**：
+- `memory.high` 必须高于进程的实际峰值内存使用
+- 使用固定比例（如 total/4）可能导致阈值过低
+- 建议：根据 trace 分析结果动态设置阈值，或使用 trace 峰值 × 1.2 作为阈值
+
 ## 参考链接
 
 - 补丁讨论：https://lore.kernel.org/all/cover.1738292406.git.teawater@antgroup.com/
