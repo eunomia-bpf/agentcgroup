@@ -45,3 +45,17 @@ memcg/multi_tenant_test/bpf_loader/bpf/
 scx_flatcg/scx_flatcg
 scx_flatcg/*.bpf.o
 scx_flatcg/*.bpf.skel.h
+
+# agentcg build artifacts
+agentcg/scheduler/scx_flatcg
+agentcg/scheduler/*.bpf.o
+agentcg/scheduler/*.bpf.skel.h
+agentcg/memcg/memcg_priority
+agentcg/memcg/*.bpf.o
+agentcg/memcg/*.bpf.skel.h
+agentcg/memcg/vmlinux.h
+agentcg/process/process
+agentcg/process/*.bpf.o
+agentcg/process/*.bpf.o.tmp
+agentcg/process/*.skel.h
+agentcg/process/vmlinux.h
