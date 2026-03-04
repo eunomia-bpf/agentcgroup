@@ -271,12 +271,19 @@ ebpf_trace.jsonl         # 新增：eBPF 内核级追踪（所有事件）
    - eBPF 数据提供精确数字（vs 旧数据的估算）
    - 这直接 motivate R4
 
+4. **量化文件系统 CoW 收益**：
+   - 从 eBPF WRITE 事件的 total_bytes 汇总每次探索的实际写入量
+   - 对比工作空间总大小（SWE-bench 平均 4.1GB）
+   - CoW 收益 = 1 - (实际写入量 / 工作空间总大小)
+   - 预期：探索路径实际写入 <100MB，CoW 共享 >97% 的文件系统状态
+
 **预期产出**：
 - 饼图/柱状图：文件变更类型分布（源代码编辑 vs 包安装 vs 构建产物 vs 测试缓存）
 - 关键数字：例如 "N% 的文件系统变更不在 git 追踪范围内"
 - eBPF 精确数据：如 "`pip install flask` 产生 47 个 DIR_CREATE + 203 个 FILE_RENAME + 4.5MB WRITE"
+- **CoW 收益**：文件系统层面，探索路径间共享 X% 的数据，CoW 节省 Y GB 磁盘/内存
 
-**Motivate 目标**：R4（完整文件系统覆盖）、Section 2.1（git stashing 的局限性）
+**Motivate 目标**：R4（完整文件系统覆盖）、R5（CoW 高效性）
 
 ---
 
@@ -284,11 +291,13 @@ ebpf_trace.jsonl         # 新增：eBPF 内核级追踪（所有事件）
 
 **目标**：量化 agent 在多次探索尝试中产生的内存积累和进程残留，证明需要 branch-level 的资源回收。
 
-**数据来源**：已有 144 个任务的 `resources.json`（1 秒粒度 CPU/内存采样）+ `tool_calls.json`（工具调用时序）
+**数据来源**：
+- **旧数据**：144 个任务的 `resources.json`（1 秒粒度容器级 CPU/内存）+ `tool_calls.json`
+- **新数据**：重跑任务的 eBPF 追踪（EXEC/EXIT 事件 + PROC_FORK）+ `/proc/pid/statm` per-process 内存
 
 **方法**：
 
-1. **内存积累分析**：
+1. **内存积累分析**（旧数据）：
    - 已有发现：重试循环导致内存逐次积累，最极端案例 502MB 不释放
    - 扩展分析：
      - 对每个任务，识别所有重试组（连续 Bash 调用）
@@ -296,28 +305,27 @@ ebpf_trace.jsonl         # 新增：eBPF 内核级追踪（所有事件）
      - 计算累积的内存"泄漏"：每次重试后基线升高了多少
      - 这些泄漏的内存就是 branch context 在 abort 时应该回收的
 
-2. **内存突发与探索路径的对齐分析**：
-   - 已有发现：98.5% 的内存突发发生在工具调用期间，峰均比 15.4×
-   - 新分析：
-     - 将内存突发按"探索尝试"分组（而非按单个工具调用）
-     - 计算每个探索尝试的峰值内存——这就是 branch context 需要隔离的内存量
-     - 如果 N 条路径并行，总内存需求 = N × 单路径峰值，而非所有路径共享一个峰值
+2. **per-process 内存分解**（新数据，弥补旧数据的关键缺陷）：
+   - 旧数据只有容器级总内存，不知道哪个进程是"大户"
+   - 新方案：在 agentsight 的 EXEC/EXIT 事件处理中，读 `/proc/<pid>/statm` 记录每个进程的 RSS
+   - 或用 eBPF 追踪 `mm_struct` 的 RSS 变化（更精确）
+   - 分析：pytest 进程 vs pip 进程 vs python 解释器的内存占比
+   - **预期发现**：pytest 是内存大户（加载测试数据+fixtures），每次重试都重新加载
 
-3. **进程残留分析**：
-   - 从 Bash 调用中识别会产生后台进程的命令（如 `nohup`、`&`、daemon 启动）
-   - 分析 agent 是否在重试时清理了之前的后台进程
-   - 检查是否有 agent 因前一轮残留的进程（如仍在运行的 test server）导致错误
+3. **进程残留分析**（新旧数据结合）：
+   - 旧数据：从 Bash 命令中识别后台进程启动（`nohup`、`&`、daemon）
+   - 新数据：eBPF EXEC/EXIT 事件精确追踪——有哪些进程在 agent 放弃后仍未退出
+   - eBPF SIGNAL_SEND 事件：agent 是否在重试时手动 kill 之前的进程
+   - 检查是否有 agent 因前一轮残留进程（如 test server 占用端口）导致错误
 
-4. **并行探索的资源倍增估算**：
-   - 基于已有数据，假设 agent 的 K 次串行重试改为 K 路并行探索
-   - 估算并行时的总内存需求：K × 单路径峰值内存
-   - 与当前机器内存（128GB）对比，计算可支撑的最大并行度
-   - 这 motivate 了 branch context 需要在 abort 时**立即**释放内存的重要性
+4. **内存突发与探索路径的对齐**：
+   - 将内存突发按"探索尝试"分组（而非按单个工具调用）
+   - 计算每个探索尝试的峰值内存——这是 branch context 需要隔离的内存量
 
 **预期产出**：
 - 图表：重试循环中内存基线的逐步升高（"阶梯状"内存曲线），标注每次重试的增量
+- **per-process 内存分解**：pytest 占 X%，pip 占 Y%，框架基线占 Z%
 - 数字：平均每个任务因重试累积 XMB 未释放内存
-- 数字：若并行探索 3 条路径，峰值内存需求增加 Y 倍
 - 关键结论：**没有 branch-level 的资源回收，失败的探索路径会持续占用内存，限制并行探索的可行性**
 
 **Motivate 目标**：R2（abort 时释放资源）、R1（并行探索的资源隔离）
@@ -410,62 +418,7 @@ ebpf_trace.jsonl         # 新增：eBPF 内核级追踪（所有事件）
 
 ---
 
-### 实验 2.2：文件系统覆盖范围对比
-
-**目标**：证明 git 基方案无法捕获 agent 产生的全部文件系统变更。
-
-**实验设置**：
-
-1. **准备工作空间**：一个包含以下内容的项目目录
-   - git 仓库（有 .gitignore）
-   - `node_modules/`（200MB+，被 .gitignore 忽略）
-   - `.cache/`（构建缓存）
-   - `build/`（构建产物）
-   - `.env`（环境配置）
-
-2. **模拟一个 agent 探索路径**：执行以下操作序列
-   ```bash
-   # 源代码编辑（git 可追踪）
-   echo "fix" >> src/main.py
-
-   # 包安装（git 不追踪）
-   pip install requests
-   npm install lodash
-
-   # 构建（git 不追踪）
-   python setup.py build
-
-   # 测试（产生缓存，git 不追踪）
-   pytest --cache-clear
-
-   # 环境修改（git 不追踪）
-   echo "NEW_VAR=1" >> .env
-   ```
-
-3. **用每种机制尝试"回滚"**：
-   - `git checkout -- .` + `git clean -fd`：检查哪些变更被恢复、哪些遗漏
-   - `git stash` + `git stash pop`：同上
-   - OverlayFS：discard upper layer，检查是否完全恢复
-   - BranchFS：abort branch，检查是否完全恢复
-
-4. **对比方法**：操作前后用 `find . -newer <timestamp>` 或 `diff -r` 对比文件系统快照
-
-**预期产出**：
-
-| 变更类型 | git stash | git worktree | cp -r | OverlayFS | BranchFS |
-|----------|-----------|-------------|-------|-----------|----------|
-| 源文件编辑 | ✓ | ✓ | ✓ | ✓ | ✓ |
-| pip install | ✗ | ✗ | ✓ | ✓ | ✓ |
-| npm install | ✗ | ✗ | ✓ | ✓ | ✓ |
-| 构建产物 | ✗ | ✗ | ✓ | ✓ | ✓ |
-| 测试缓存 | ✗ | ✗ | ✓ | ✓ | ✓ |
-| .env 修改 | ✗ | ✗ | ✓ | ✓ | ✓ |
-
-**Motivate 目标**：R4（完整文件系统覆盖）、Table 1
-
----
-
-### 实验 2.3：进程隔离对比
+### 实验 2.2：进程隔离对比
 
 **目标**：用具体测试用例验证 Table 2 中各进程管理机制的隔离缺陷。
 
@@ -543,95 +496,7 @@ else:
 
 ---
 
-### 实验 2.4：权限需求验证
-
-**目标**：验证各机制对 root 权限的依赖。
-
-**方法**：以普通用户（无 root、无 CAP_SYS_ADMIN）身份尝试各操作：
-
-```bash
-# 1. OverlayFS
-mkdir lower upper work merged
-mount -t overlay overlay -o lowerdir=lower,upperdir=upper,workdir=work merged
-# 预期：mount: permission denied
-
-# 2. Btrfs snapshot
-btrfs subvolume snapshot /path/to/subvol /path/to/snap
-# 预期：permission denied
-
-# 3. Device-mapper snapshot
-dmsetup create snap ...
-# 预期：permission denied
-
-# 4. Cgroup 创建
-mkdir /sys/fs/cgroup/user.slice/test_cgroup
-# 预期：permission denied（除非 systemd 已委派）
-
-# 5. PID namespace
-unshare --pid --fork bash
-# 预期：需 CAP_SYS_ADMIN 或 user namespace 支持
-
-# 6. BranchFS（FUSE）
-branchfs mount /path/to/workspace /path/to/mountpoint
-# 预期：成功（FUSE 允许普通用户挂载）
-```
-
-**预期产出**：表格对比各机制是否需要 root 权限
-
-**Motivate 目标**：R5（无需特权）、Table 1 & 2
-
----
-
-## 第三部分：端到端演示——展示问题的实际影响
-
-**总目标**：通过具体案例展示没有 branch context 时会出什么问题，以及有了之后如何解决。
-
-### 实验 3.1：状态污染演示
-
-**目标**：直观展示并发探索在没有隔离的情况下导致状态污染。
-
-**实验设置**：
-
-1. 创建一个简单的 Python 项目，包含 `main.py` 和 `test_main.py`
-2. `main.py` 有一个 bug 需要修复
-3. 同时启动两个"探索路径"（两个 shell 进程）：
-   - **Path A**：应用修复策略 1（修改 `main.py` 的第 10 行），然后运行 `pytest`
-   - **Path B**：应用修复策略 2（修改 `main.py` 的第 10 行为不同内容），然后运行 `pytest`
-
-**无隔离场景**：
-```
-时间线：
-T0: Path A 写入 main.py (策略1)
-T1: Path B 写入 main.py (策略2) ← 覆盖了 Path A 的修改！
-T2: Path A 运行 pytest ← 实际测试的是策略2，不是策略1！
-T3: Path B 运行 pytest
-结果：Path A 报告"策略1成功"，但实际测试的是策略2的代码 → 错误的结论
-```
-
-**有 BranchFS 隔离场景**：
-```
-T0: 创建 Branch A 和 Branch B（各自有独立的 CoW 视图）
-T1: Branch A 写入 main.py (策略1) ← 仅影响 Branch A
-T2: Branch B 写入 main.py (策略2) ← 仅影响 Branch B
-T3: Branch A 运行 pytest ← 正确测试策略1
-T4: Branch B 运行 pytest ← 正确测试策略2
-T5: Branch A 测试通过 → commit → Branch B 自动失效
-```
-
-**实现方式**：
-- 用简单的 shell 脚本模拟两个并发路径
-- 无隔离版本：两个进程操作同一目录
-- 有隔离版本：两个进程分别操作 BranchFS 的两个分支
-
-**预期产出**：
-- 终端日志对比：无隔离时的状态污染 vs 有隔离时的正确执行
-- 可用于论文中的示例/figure
-
-**Motivate 目标**：R1（隔离并行执行）、R2（原子提交 + 单赢者）
-
----
-
-### 实验 3.2：真实 Agent Trace 重放
+### 实验 2.3：真实 Agent Trace 重放
 
 **目标**：用真实 SWE-bench 任务的 trace 展示 branch context 能带来的加速。
 
@@ -665,64 +530,11 @@ T5: Branch A 测试通过 → commit → Branch B 自动失效
 
 ---
 
-### 实验 3.3：包安装副作用演示
-
-**目标**：具体展示 git 无法回滚包安装等副作用。
-
-**实验步骤**：
-
-```bash
-# 1. 初始化工作空间
-mkdir workspace && cd workspace
-git init
-npm init -y
-npm install express  # 安装基础依赖
-git add . && git commit -m "initial"
-
-# 记录初始状态
-find . | wc -l  # 例如：5000 个文件
-du -sh .         # 例如：50MB
-
-# 2. 模拟 agent 探索路径
-npm install lodash moment axios webpack  # 安装新包
-echo "import lodash" >> src/main.js       # 编辑源文件
-npm run build                              # 生成构建产物
-
-# 记录变更后状态
-find . | wc -l  # 例如：8000 个文件（+3000）
-du -sh .         # 例如：120MB（+70MB）
-
-# 3. 尝试用 git 回滚
-git checkout -- .
-git clean -fd
-
-# 检查残留
-find . -newer /tmp/timestamp | wc -l  # 仍有大量未被 git 追踪的文件
-du -sh node_modules/                   # node_modules 中的新包仍然存在
-ls build/                               # 构建产物仍然存在
-```
-
-**对比方案**：
-
-| 回滚方式 | 耗时 | 回滚完整性 | 残留文件 |
-|----------|------|-----------|---------|
-| git checkout + clean | <1s | 仅源文件 | node_modules 新包、build/、.cache/ |
-| cp -r 恢复 | 数秒~数十秒 | 完整 | 无（但创建备份时已付出 O(n) 代价） |
-| BranchFS abort | <1ms | 完整 | 无（CoW 丢弃即可） |
-
-**预期产出**：
-- 数据：git 回滚后残留了 N 个文件、M MB 的"泄漏"状态
-- 关键结论：git 基方案在包安装场景下遗漏 >90% 的文件变更
-
-**Motivate 目标**：R4（完整文件系统覆盖）
-
----
-
-## 第四部分：内存与进程状态隔离——超越文件系统
+## 第三部分：内存与进程状态隔离——超越文件系统
 
 **总目标**：证明 branch context 需要隔离的不仅仅是文件系统，还包括进程内存、共享状态和临时资源。文件系统隔离是必要的但不充分的。
 
-### 实验 4.1：内存状态污染演示
+### 实验 3.1：内存状态污染演示
 
 **目标**：展示并发探索路径之间通过共享内存/tmpfs/环境变量产生的状态干扰。
 
@@ -789,7 +601,7 @@ python manage.py runserver 0.0.0.0:$PORT &  # Address already in use
 
 ---
 
-### 实验 4.2：内存回收延迟——失败探索路径的资源成本
+### 实验 3.2：内存回收延迟——失败探索路径的资源成本
 
 **目标**：测量当探索路径失败/abort 时，各种机制释放进程内存的速度和完整性。
 
@@ -827,7 +639,7 @@ python manage.py runserver 0.0.0.0:$PORT &  # Address already in use
 
 ---
 
-### 实验 4.3：从 Trace 数据量化多维状态副作用
+### 实验 3.3：从 Trace 数据量化多维状态副作用
 
 **目标**：量化 agent 产生的非文件系统状态副作用的频率和规模。
 
@@ -881,48 +693,187 @@ python manage.py runserver 0.0.0.0:$PORT &  # Address already in use
 
 ---
 
-### 实验 4.4：并发探索的资源扩展性分析
+### 实验 3.4：并发探索的资源扩展性分析
 
-**目标**：估算如果 agent 从串行探索改为并行探索，对系统资源（特别是内存）的影响。
+**目标**：估算如果 agent 从串行探索改为并行探索，对系统资源（特别是内存）的影响。用 CoW 感知的模型取代简单的 K×peak 估算。
 
 **方法**：
 
-1. **基于已有数据建模**：
+1. **基于已有数据 + 新实验数据建模**：
    - 从 144 个任务的资源数据中，提取每个任务的：
      - 峰值内存（P_mem）
      - 平均内存（A_mem）
      - 重试次数（N_retry）
      - 框架基线内存（~185MB）
+   - 从实验 3.5（内存重叠分析）获取 CoW 共享率
 
-2. **并行探索资源需求模型**：
+2. **CoW 感知的并行探索资源需求模型**：
    ```
-   串行模式内存需求 = P_mem（单路径峰值）
-   并行 K 路模式内存需求 = K × (P_mem - baseline) + baseline
-                          ≈ K × tool_spike + 185MB
+   简单模型（无 CoW）：并行 K 路 = K × P_mem
+   容器模型：并行 K 路 = K × (P_mem + 容器开销)
+   CoW 模型：并行 K 路 = shared_base + K × private_delta
+
+   其中：
+     shared_base = 共享内存（Python runtime + 库 + 基础数据）
+     private_delta = 每条探索路径的独有内存（CoW 脏页）
+
+   若 CoW 共享率 = 90%（来自实验 3.5）：
+     private_delta = 0.1 × P_mem
+     并行 3 路 = shared_base + 3 × 0.1 × P_mem
+               ≈ 0.9 × P_mem + 0.3 × P_mem = 1.2 × P_mem
+
+   vs 简单模型：3 × P_mem（2.5 倍的浪费）
    ```
-   - 以 Medical_Bio_Hard 任务为例：P_mem = 4060MB，baseline = 264MB
-     - 并行 2 路：264 + 2 × (4060-264) = 7856MB
-     - 并行 3 路：264 + 3 × (4060-264) = 11652MB
-   - 但如果用 branch context，abort 的路径**立即释放**，实际峰值远小于理论值
 
 3. **对比资源回收策略**：
 
    | 策略 | 并行 3 路峰值内存 | abort 后内存 | 说明 |
    |------|-----------------|-------------|------|
-   | 无隔离（共享内存空间） | 混乱——不可预测 | 不可控 | 状态污染 |
-   | 独立容器 | 3 × (P_mem + 容器开销) | 需等待容器销毁 | 每个容器额外 200-500MB |
-   | branch context | K × tool_spike + baseline | 立即释放 | CoW 共享基线 |
+   | 无隔离 | 混乱——不可预测 | 不可控 | 状态污染 |
+   | 独立容器 | 3 × (P_mem + 开销) | 需等待容器销毁 | 无共享，完全冗余 |
+   | CoW branch context | shared + 3 × delta | 立即丢弃脏页 | 共享 90%+ 基线内存 |
 
 4. **可支撑的并行探索数**：
    - 在 128GB 机器上，不同方案能支持多少并行探索路径
-   - branch context 的 CoW 优势：共享基线，仅隔离增量
+   - 容器方案：128GB / P_mem ≈ 128GB / 500MB ≈ 256 路（但每路完整复制）
+   - CoW 方案：(128GB - shared) / delta ≈ 远更多路（共享 90%+ 基线）
+   - **关键数字**：CoW 比容器方案支持 N 倍的并行探索
 
 **预期产出**：
-- 图表：不同并行度下的内存需求（串行 vs 独立容器 vs branch context）
+- 图表：不同并行度下的内存需求（简单复制 vs 容器 vs CoW branch）
 - 表格：128GB 机器上各方案支持的最大并行探索数
-- 关键结论：branch context 通过 CoW + 快速 abort 回收，可支撑 N 倍于容器方案的并行探索
+- 关键结论：CoW 共享基线内存 + abort 立即释放脏页，可支撑 N 倍于容器方案的并行探索
+- **与实验 3.5 联动**：CoW 共享率直接决定并行效率
 
 **Motivate 目标**：R1（资源高效的并行探索）、R5（轻量级）
+
+---
+
+### 实验 3.5：探索路径间的内存重叠率（CoW 收益度量）
+
+**目标**：量化两条并行探索路径之间内存页面的重叠比例。这是 CoW 设计的核心论据——重叠越高，CoW 节省越多。
+
+**为什么这比文件系统分析更重要**：文件系统 CoW 的收益很显然（4GB workspace 改 10MB = 99.7% 共享），reviewer 不会被打动。但**内存 CoW 的收益不直观**——两条探索路径的 Python 进程到底共享多少内存？这需要实验数据。
+
+**方法**：
+
+1. **实验设计**：
+   ```
+   T0: 启动 Python 进程，加载项目 + 依赖（模拟 agent 初始状态）
+   T1: fork() → 创建两个子进程（模拟 branch context 的 fork 语义）
+   T2: 子进程 A 执行探索策略 1（编辑文件 + 运行 pytest）
+       子进程 B 执行探索策略 2（编辑不同文件 + 运行 pytest）
+   T3: 定期采样两个进程的内存页面状态
+   ```
+
+2. **测量方式**：
+   - **`/proc/<pid>/smaps`**：读取每个 VMA 的 PSS（Proportional Set Size）、Shared_Clean、Shared_Dirty、Private_Clean、Private_Dirty
+     ```
+     overlap_ratio = (Shared_Clean + Shared_Dirty) / RSS
+     cow_unique = Private_Dirty / RSS   ← fork 后被写脏的页面
+     ```
+   - **`/proc/<pid>/pagemap`**（需 root）：读取物理页帧号（PFN），直接比较两个进程的页面映射，计算完全相同的物理页面数量
+   - **Minor page faults**：fork 后的 minor fault 数量 = CoW 触发次数 = 被写脏的页面数
+     ```
+     cow_write_ratio = minor_faults_after_fork / (RSS / PAGE_SIZE)
+     ```
+
+3. **测试工作负载**（来自真实 SWE-bench 任务）：
+   - **轻量级**：编辑 1 个源文件 + 运行 pytest（大部分 SWE-bench 任务）
+   - **中等**：pip install 一个包 + 运行 pytest
+   - **重量级**：编译 C 扩展 + 加载大型测试数据 + 运行 pytest
+
+4. **时序采样**：
+   - fork 后每 1 秒采样一次 smaps，记录 overlap 随时间的变化
+   - 预期：初始 overlap ~100%（刚 fork），逐渐下降到稳态
+
+**预期产出**：
+- **核心数字**：探索路径间 X% 的内存页面是共享的（预期 80-95%）
+- 图表：overlap_ratio 随时间变化的曲线（fork 后快速下降然后稳定）
+- 按工作负载类型的 CoW 收益对比：轻量级 95%+ 共享 vs 重量级 70-80% 共享
+- 关键结论：**即使两条路径执行完全不同的策略，仍然共享 X% 的内存——CoW 是正确的设计选择**
+
+**Motivate 目标**：核心设计决策（fork + CoW），R1（内存高效的并行探索）
+
+---
+
+### 实验 3.6：eBPF page fault 追踪——CoW 开销的精确度量
+
+**目标**：用 eBPF 在内核层面追踪 page fault，精确量化 CoW 的实际开销。
+
+**方法**：
+
+1. **eBPF 追踪 page fault**：
+   ```c
+   // 追踪 handle_mm_fault / do_wp_page（CoW 的核心路径）
+   SEC("kprobe/do_wp_page")   // 或 tp/exceptions/page_fault_user
+   int trace_cow_fault(struct pt_regs *ctx) {
+       u32 pid = bpf_get_current_pid_tgid() >> 32;
+       // 按 pid 聚合 minor fault 计数
+       // 记录 fault 发生的虚拟地址范围（text/data/heap/stack/mmap）
+   }
+   ```
+
+2. **度量指标**：
+   - 每个进程的 minor fault 计数（= CoW 页面复制次数）
+   - fault 的内存区域分布：text（只读，不触发 CoW）vs heap（频繁触发）vs stack vs mmap
+   - CoW fault 率随时间的变化（初始高，稳态低）
+   - 总 CoW 开销 = minor_faults × page_copy_cost（~1-4μs per page）
+
+3. **与 smaps 数据交叉验证**：
+   - minor_faults 应约等于 smaps 中 Private_Dirty 的页面数
+   - 两种方法互相印证
+
+**预期产出**：
+- 精确的 CoW fault 计数和时序分布
+- 按内存区域的 fault 分布（heap 主导 vs text 为零）
+- CoW 总开销估算：N 个 fault × Mμs = 总 Xms（预期很小）
+
+**Motivate 目标**：证明 CoW 开销可接受，R5（轻量级）
+
+**注意**：此实验可以集成到 agentsight 的 process tracer 中（新增 `--trace-cow` flag），或作为独立的 eBPF 程序。
+
+---
+
+### 实验 3.7：per-process 内存分解（agentsight 增强）
+
+**目标**：补充现有数据的关键缺陷——从容器级总内存细化到 per-process 内存分解。
+
+**方法**：
+
+1. **在 agentsight 的 EXEC/EXIT 事件处理中增加内存采集**：
+   ```c
+   // 用户空间：在 handle_event 中，对 EXEC/EXIT 事件读 /proc/pid/statm
+   case EVENT_TYPE_PROCESS:
+       if (!e->exit_event) {
+           // EXEC：记录新进程的初始内存
+           read_proc_statm(e->pid, &rss, &shared, &text, &data);
+       } else {
+           // EXIT：记录进程退出前的峰值内存（从 /proc/pid/status 的 VmHWM）
+           read_proc_status(e->pid, &vm_hwm);
+       }
+   ```
+
+2. **输出格式**：
+   ```jsonl
+   {"timestamp":123,"event":"EXEC","pid":1234,"comm":"pytest","rss_kb":15360,"shared_kb":12800,"text_kb":2048,"data_kb":512}
+   {"timestamp":456,"event":"EXIT","pid":1234,"comm":"pytest","vm_hwm_kb":524288,"duration_ms":5000}
+   ```
+
+3. **分析**：
+   - 每种进程类型（pytest/pip/python/bash/gcc）的内存分布
+   - 内存大户排名：哪些进程消耗了最多内存
+   - 进程退出后内存是否被回收（通过 EXIT 时的 VmHWM 对比容器总内存变化）
+   - **Shared 比例**：每个进程的 shared/rss 比值——高 shared 意味着 CoW 收益大
+
+**预期产出**：
+- per-process 内存分解图：pytest 占 X%，pip 占 Y%，框架占 Z%
+- 内存大户 top-10 排名
+- 每种进程的 shared/private 比例——直接预测 CoW 收益
+
+**Motivate 目标**：R2（精确的内存回收需求量化）、支撑实验 3.5 的结论
+
+**实现**：可集成到 agentsight process tracer 的用户空间代码中，无需新 eBPF 程序。
 
 ---
 
@@ -930,21 +881,20 @@ python manage.py runserver 0.0.0.0:$PORT &  # Address already in use
 
 | 优先级 | 实验 | 工作量 | 论文影响 | 说明 |
 |--------|------|--------|---------|------|
-| **P0** | 1.1（探索频率分析） | 低（已有数据） | 高 — 量化核心声明 | 基于已有 trace 数据编写分析脚本 |
-| **P0** | 2.1（分支创建基准测试） | 中 | 高 — Table 1 的核心数据 | 需编写 benchmark 脚本 |
-| **P0** | 1.2（文件变更范围） | 低（已有数据） | 高 — motivate R4 | 基于已有 trace 数据 |
-| **P0** | 1.3（内存积累分析） | 低（已有数据） | 高 — motivate 内存隔离 | 扩展已有内存 + 重试分析 |
-| **P0** | 4.3（多维状态副作用频率） | 低（已有数据） | 高 — 证明不只是文件系统 | 扫描 trace 中的命令模式 |
-| **P1** | 2.3（进程隔离对比） | 中 | 高 — Table 2 的核心数据 | 需编写 C/Python 测试程序 |
-| **P1** | 4.1（内存状态污染演示） | 中 | 高 — 核心论点扩展 | 3 个具体场景的脚本 |
-| **P1** | 4.4（并行资源扩展性） | 低（已有数据） | 高 — 量化 CoW 优势 | 基于已有数据建模 |
-| **P1** | 3.1（文件系统状态污染演示） | 低 | 中 — 论文中的直观示例 | 简单 shell 脚本 |
-| **P1** | 2.2（文件系统覆盖对比） | 中 | 中 — 验证 Table 1 | 需设置多种环境 |
-| **P2** | 4.2（内存回收延迟） | 中 | 中 — 量化 abort 效率 | 需编写内存密集测试 |
-| **P2** | 3.3（包安装副作用） | 低 | 中 — R4 的具体案例 | 简单脚本 |
-| **P2** | 2.4（权限需求验证） | 低 | 低 — 定性验证 | 运行几条命令即可 |
-| **P2** | 1.4（探索树深度） | 中 | 中 — motivate R3 | 需分析 Task 嵌套关系 |
-| **P3** | 3.2（真实 trace 重放） | 高 | 高 — 但需 BranchFS 集成 | 可先做理论分析 |
+| **P0** | 1.1（探索频率分析） | 低（已有数据） | 高 — 量化核心声明 | 基于已有 trace 数据 |
+| **P0** | 2.1（分支创建基准测试） | 中 | 高 — Table 1 核心数据 | 需编写 benchmark 脚本 |
+| **P0** | **3.5（内存重叠率）** | 中 | **极高 — CoW 设计的核心论据** | fork + smaps/pagemap 采样 |
+| **P0** | 1.3（内存积累 + per-process 分解） | 中 | 高 — motivate 内存隔离 | 旧数据 + 新 eBPF 数据 |
+| **P0** | 3.3（多维状态副作用频率） | 低（已有数据） | 高 — 证明不只是文件系统 | eBPF 精确追踪 |
+| **P1** | 2.2（进程隔离对比） | 中 | 高 — Table 2 核心数据 | C/Python 测试程序 |
+| **P1** | **3.7（per-process 内存分解）** | 低 | 高 — 填补数据缺口 | agentsight 用户空间增强 |
+| **P1** | 3.4（并行资源扩展性） | 低 | 高 — CoW 感知模型 | 依赖 3.5 的共享率数据 |
+| **P1** | 1.2（文件变更范围 + CoW 收益） | 低 | 中 — motivate R4 | 基于已有 + eBPF 数据 |
+| **P1** | 3.1（内存/端口/IPC 污染演示） | 中 | 中 — 论点扩展 | 3 个具体场景 |
+| **P2** | **3.6（eBPF page fault 追踪）** | 中 | 中 — CoW 精确开销 | 可集成到 agentsight |
+| **P2** | 3.2（内存回收延迟） | 中 | 中 — 量化 abort 效率 | 内存密集测试 |
+| **P2** | 1.4（探索树深度） | 中 | 中 — motivate R3 | Task 嵌套分析 |
+| **P3** | 2.3（真实 trace 重放） | 高 | 高 — 但需 BranchFS 集成 | 可先做理论分析 |
 
 > 调研类和文档分析类任务见 `docs/RESEARCH_branchcontext_survey.md`
 
@@ -966,33 +916,32 @@ python manage.py runserver 0.0.0.0:$PORT &  # Address already in use
 
 | 论文实验 | 需要的 eBPF 事件 | agentsight flag |
 |----------|-----------------|----------------|
-| 1.2（文件变更范围） | DIR_CREATE + FILE_DELETE + FILE_RENAME + WRITE | `--trace-fs` |
-| 2.2（文件系统覆盖对比） | 同上 | `--trace-fs` |
-| 2.3（进程隔离对比/Table 2） | PGRP_CHANGE + SESSION_CREATE + SIGNAL_SEND | `--trace-signals` |
-| 3.1（状态污染演示） | NET_BIND（端口冲突） | `--trace-net` |
-| 3.3（包安装副作用） | DIR_CREATE + FILE_RENAME + WRITE | `--trace-fs` |
-| 4.1（多维状态污染） | NET_BIND + SIGNAL_SEND + MMAP_SHARED | `--trace-net --trace-signals --trace-mem` |
-| 4.3（多维副作用频率） | 全部事件 | `--trace-all` |
+| 1.2（文件变更范围 + CoW 收益） | DIR_CREATE + FILE_DELETE + FILE_RENAME + WRITE | `--trace-fs` |
+| 1.3（内存积累 + per-process） | EXEC/EXIT + /proc/pid/statm | 现有 + 用户空间增强 |
+| 2.2（进程隔离对比/Table 2） | PGRP_CHANGE + SESSION_CREATE + SIGNAL_SEND | `--trace-signals` |
+| 3.1（内存/端口/IPC 污染） | NET_BIND + SIGNAL_SEND + MMAP_SHARED | `--trace-net --trace-signals --trace-mem` |
+| 3.3（多维副作用频率） | 全部事件 | `--trace-all` |
+| 3.5（内存重叠率） | — | 独立实验（fork + smaps） |
+| 3.6（page fault 追踪） | kprobe/do_wp_page | `--trace-cow`（新增）或独立程序 |
+| 3.7（per-process 内存分解） | EXEC/EXIT + /proc/pid/statm | 用户空间增强 |
 
 ## 验证标准
 
 1. **P0 实验**产出可直接引用在 Section 2 中的具体数字
-2. **基准测试**结果用实测数据替代 Table 1 & 2 中的纯定性对比（✓/✗）
-3. **至少一个端到端演示**（3.1 或 4.1）提供令人信服的 "before/after" 对比叙事
-4. **内存/进程维度**的实验（第四部分）必须有至少 2 个产出，证明 branch context 的价值超越纯文件系统隔离
+2. **内存重叠实验（3.5）**必须产出 CoW 共享率——这是论文设计决策的核心数据支撑
+3. **基准测试**结果用实测数据替代 Table 1 & 2 中的纯定性对比
+4. **内存分析（3.5 + 3.7 + 1.3）**必须完整回答：agent 探索路径的内存有多少可以被 CoW 共享
 5. 所有实验可复现，脚本和原始数据一并保存在 `experiments/branchfs_motivation/` 目录下
 
-## 第五部分：补充分析方向
+## 补充分析方向
 
 调研类和纯文档分析类的内容已移至 `docs/RESEARCH_branchcontext_survey.md`，包括：
-- 5.1 正确性影响量化
-- 5.2 首次成功率 / 投机成功率（需从 trace 数据分析）
-- 5.3 现有 Agent 框架隔离机制调研
-- 5.4 组合竞态窗口演示
-- 5.5 跨工作空间修改分析（需从 trace 数据分析）
-- 5.6 存储放大分析
-- 5.7 不可逆外部副作用边界讨论
-- 5.8 数据库事务类比分析
+- 正确性影响量化
+- 首次成功率 / 投机成功率（需从 trace 数据分析）
+- 现有 Agent 框架隔离机制调研
+- 跨工作空间修改分析
+- 存储放大分析
+- 不可逆外部副作用边界讨论
 
 ---
 
@@ -1001,16 +950,16 @@ python manage.py runserver 0.0.0.0:$PORT &  # Address already in use
 建议 Section 2 的 motivation 按以下逻辑组织：
 
 1. **Agent 确实在做多路径探索**（实验 1.1 的数据）
-2. **每条探索路径产生多维状态副作用**（实验 1.2 文件系统 + 1.3 内存 + 4.3 其他状态）
+2. **每条探索路径产生多维状态副作用**（实验 1.2 文件系统 + 1.3 内存 + 3.3 其他状态）
    - 不只是文件修改，还有内存积累、进程残留、临时资源
-3. **现有机制各自覆盖部分维度，但没有统一方案**（实验 2.x + 4.1 的对比表）
+3. **现有机制各自覆盖部分维度，但没有统一方案**（实验 2.x + 3.1 的对比表）
    - git 只管文件的子集
    - OverlayFS 管文件系统但需 root
    - PID namespace 管进程但有 init 开销
    - 没有一个方案同时覆盖文件系统 + 内存 + 进程 + 临时资源
-4. **组合现有机制是脆弱的**（实验 4.1 的具体故障场景）
-   - 步骤间存在竞态窗口
-   - 部分失败时的清理容易出错
-5. **并行探索对资源的影响是可管理的**（实验 4.4 的资源模型）
-   - CoW 共享基线，abort 立即释放
-   - 相比容器方案支持更高并行度
+4. **CoW 是正确的设计选择**（实验 3.5 的内存重叠数据）
+   - 探索路径间共享 X% 的内存页面
+   - CoW 使并行探索的内存开销远低于完全复制
+5. **并行探索对资源的影响是可管理的**（实验 3.4 的 CoW 感知模型）
+   - CoW 共享基线内存，abort 立即丢弃脏页
+   - 相比容器方案支持 N 倍的并行探索
