@@ -7,3 +7,6 @@
 [submodule "paper-repo"]
 	path = paper-repo
 	url = https://github.com/yunwei37/agentcgroup-paper
+[submodule "agentsight"]
+	path = agentsight
+	url = https://github.com/eunomia-bpf/agentsight
