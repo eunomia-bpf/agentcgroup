@@ -1,0 +1,61 @@
+{
+  "start_time": "2026-03-04T23:17:21.350636",
+  "image": "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+  "model": "haiku",
+  "task_name": "pilotA_r3_231721",
+  "output_root": "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642",
+  "trace_bin": "./agentsight/bpf/process_new",
+  "trace_mode": 2,
+  "trace_commands": "python,node,bash,sh,pip,pytest,git,claude",
+  "argv": [
+    "/home/yunwei37/workspace/agentcgroup/scripts/run_swebench_new.py",
+    "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+    "--task-name",
+    "pilotA_r3_231721",
+    "--output-root",
+    "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642",
+    "--model",
+    "haiku",
+    "--prompt",
+    "Use bash to run: echo PILOT_A_R3_OK && pwd && ls -1 | head -5 . Then reply DONE.",
+    "--trace-all",
+    "--trace-cgroup-children"
+  ],
+  "container_id": "850f3e69c7a8a7da02c0fe8520fbcd8411d52e61dd99eb1778539a2203c1b1bf",
+  "container_cgroup_path": "/user.slice/user-1000.slice/user@1000.service/user.slice/libpod-850f3e69c7a8a7da02c0fe8520fbcd8411d52e61dd99eb1778539a2203c1b1bf.scope",
+  "trace_cgroup_filter_effective": "/user.slice/user-1000.slice/user@1000.service/user.slice/libpod-850f3e69c7a8a7da02c0fe8520fbcd8411d52e61dd99eb1778539a2203c1b1bf.scope",
+  "trace_cgroup_filter_source": "auto",
+  "trace_cgroup_children": true,
+  "trace_ready_timeout": 8.0,
+  "trace_ready_elapsed_s": 0.3004872798919678,
+  "trace_cmd": [
+    "sudo",
+    "./agentsight/bpf/process_new",
+    "-m",
+    "2",
+    "-c",
+    "python,node,bash,sh,pip,pytest,git,claude",
+    "--trace-all",
+    "--cgroup-filter",
+    "/user.slice/user-1000.slice/user@1000.service/user.slice/libpod-850f3e69c7a8a7da02c0fe8520fbcd8411d52e61dd99eb1778539a2203c1b1bf.scope",
+    "--cgroup-filter-children"
+  ],
+  "trace_pid": 973046,
+  "trace_pid_file": "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642/pilotA_r3_231721/ebpf_trace.pid",
+  "trace_stop": {
+    "pid": 973046,
+    "stop_method": "sigint",
+    "exit_code": 0,
+    "timeout": false
+  },
+  "swebench": {
+    "output_dir": "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642/pilotA_r3_231721/swebench",
+    "error": null,
+    "total_time": 19.794073581695557,
+    "tool_calls": 1,
+    "claude_exit_code": 0
+  },
+  "error": null,
+  "end_time": "2026-03-04T23:17:41.144866",
+  "total_time": 19.79443860054016
+}

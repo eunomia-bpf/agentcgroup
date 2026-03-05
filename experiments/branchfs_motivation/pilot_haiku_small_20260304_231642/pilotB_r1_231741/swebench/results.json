@@ -1,0 +1,101 @@
+{
+  "image": "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+  "start_time": "2026-03-04T23:17:41.234839",
+  "memory_limit": "4g",
+  "cpu_limit": "2",
+  "model": "haiku",
+  "model_requested": "haiku",
+  "output_dir": "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642/pilotB_r1_231741/swebench",
+  "pull_time": 0.7610180377960205,
+  "permission_fix_time": 0.06641888618469238,
+  "image_info": {
+    "size_bytes": 3662855836,
+    "size_mb": 3493.17,
+    "image_id": "77c3f1078bbf"
+  },
+  "claude_time": 7.516882419586182,
+  "model_actual": "haiku",
+  "claude_output": {
+    "stdout": "[Runner] Claude binary: /home/yunwei37/.local/bin/claude\nI can't run that command. It appears to be malformed\u2014there are incomplete redirection operators and missing arguments (e.g., `echo FS_MARK_1 >` with no target file, `mkdir -p` with no directory name, `rmdir` with no directory).\n\nCould you clarify what you're trying to accomplish? If you have a legitimate task, I'm happy to help with:\n- File operations\n- Directory management\n- Testing scripts\n- Or other bash commands\n\nJust let me know what you're working on!\n=== GIT DIFF ===\n=== DISK USAGE ===\n9\t/testbed\n=== TOOL CALL LOG ===\nNo tool call log\n",
+    "stderr": "",
+    "exit_code": 0
+  },
+  "resource_samples": {
+    "samples": [
+      {
+        "timestamp": "2026-03-04T23:17:42.961992",
+        "epoch": 1772695062.9620092,
+        "mem_usage": "557.1kB / 4.295GB",
+        "mem_percent": "0.01%",
+        "cpu_percent": "7.00%"
+      },
+      {
+        "timestamp": "2026-03-04T23:17:44.012125",
+        "epoch": 1772695064.0121377,
+        "mem_usage": "321.3MB / 4.295GB",
+        "mem_percent": "7.48%",
+        "cpu_percent": "95.74%"
+      },
+      {
+        "timestamp": "2026-03-04T23:17:45.066111",
+        "epoch": 1772695065.066128,
+        "mem_usage": "290.7MB / 4.295GB",
+        "mem_percent": "6.77%",
+        "cpu_percent": "66.18%"
+      },
+      {
+        "timestamp": "2026-03-04T23:17:46.128917",
+        "epoch": 1772695066.1289303,
+        "mem_usage": "293.4MB / 4.295GB",
+        "mem_percent": "6.83%",
+        "cpu_percent": "49.03%"
+      },
+      {
+        "timestamp": "2026-03-04T23:17:47.195323",
+        "epoch": 1772695067.1953406,
+        "mem_usage": "297.3MB / 4.295GB",
+        "mem_percent": "6.92%",
+        "cpu_percent": "39.34%"
+      },
+      {
+        "timestamp": "2026-03-04T23:17:48.261991",
+        "epoch": 1772695068.2620068,
+        "mem_usage": "300.2MB / 4.295GB",
+        "mem_percent": "6.99%",
+        "cpu_percent": "33.33%"
+      },
+      {
+        "timestamp": "2026-03-04T23:17:49.328717",
+        "epoch": 1772695069.3287342,
+        "mem_usage": "302.8MB / 4.295GB",
+        "mem_percent": "7.05%",
+        "cpu_percent": "29.13%"
+      }
+    ],
+    "summary": {
+      "sample_count": 7,
+      "duration_seconds": 6.366724967956543,
+      "memory_mb": {
+        "min": 0.5571,
+        "max": 321.3,
+        "avg": 258.03672857142857
+      },
+      "cpu_percent": {
+        "min": 7.0,
+        "max": 95.74,
+        "avg": 45.67857142857143
+      }
+    }
+  },
+  "disk_usage": {
+    "testbed_mb": 9
+  },
+  "traces": {
+    "files": [
+      "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642/pilotB_r1_231741/swebench/trace.jsonl"
+    ],
+    "tool_calls": []
+  },
+  "total_time": 20.9004487991333,
+  "end_time": "2026-03-04T23:18:02.135044"
+}

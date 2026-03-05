@@ -1,0 +1,94 @@
+{
+  "image": "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+  "start_time": "2026-03-04T23:18:22.015534",
+  "memory_limit": "4g",
+  "cpu_limit": "2",
+  "model": "haiku",
+  "model_requested": "haiku",
+  "output_dir": "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642/pilotB_r3_231821/swebench",
+  "pull_time": 0.7595469951629639,
+  "permission_fix_time": 0.058699846267700195,
+  "image_info": {
+    "size_bytes": 3662855836,
+    "size_mb": 3493.17,
+    "image_id": "77c3f1078bbf"
+  },
+  "claude_time": 6.520726680755615,
+  "model_actual": "haiku",
+  "claude_output": {
+    "stdout": "[Runner] Claude binary: /home/yunwei37/.local/bin/claude\nI notice this bash command appears to be incomplete or malformed. It has several missing arguments:\n\n- `echo FS_MARK_3 > ` - missing file path\n- `mkdir -p ` - missing directory path  \n- `mv  /moved.txt` - missing source path\n- `rmdir ` - missing directory path\n\nCould you clarify what you'd like me to run? Please provide the complete command with all necessary arguments filled in.\n=== GIT DIFF ===\n=== DISK USAGE ===\n9\t/testbed\n=== TOOL CALL LOG ===\nNo tool call log\n",
+    "stderr": "",
+    "exit_code": 0
+  },
+  "resource_samples": {
+    "samples": [
+      {
+        "timestamp": "2026-03-04T23:18:23.756408",
+        "epoch": 1772695103.756423,
+        "mem_usage": "114.7kB / 4.295GB",
+        "mem_percent": "0.00%",
+        "cpu_percent": "3.60%"
+      },
+      {
+        "timestamp": "2026-03-04T23:18:24.931009",
+        "epoch": 1772695104.9310234,
+        "mem_usage": "286.6MB / 4.295GB",
+        "mem_percent": "6.67%",
+        "cpu_percent": "85.87%"
+      },
+      {
+        "timestamp": "2026-03-04T23:18:25.984491",
+        "epoch": 1772695105.9845037,
+        "mem_usage": "293.1MB / 4.295GB",
+        "mem_percent": "6.82%",
+        "cpu_percent": "60.83%"
+      },
+      {
+        "timestamp": "2026-03-04T23:18:27.050724",
+        "epoch": 1772695107.0507376,
+        "mem_usage": "293MB / 4.295GB",
+        "mem_percent": "6.82%",
+        "cpu_percent": "46.45%"
+      },
+      {
+        "timestamp": "2026-03-04T23:18:28.148506",
+        "epoch": 1772695108.1485205,
+        "mem_usage": "297.3MB / 4.295GB",
+        "mem_percent": "6.92%",
+        "cpu_percent": "37.91%"
+      },
+      {
+        "timestamp": "2026-03-04T23:18:29.213544",
+        "epoch": 1772695109.213556,
+        "mem_usage": "301.8MB / 4.295GB",
+        "mem_percent": "7.03%",
+        "cpu_percent": "32.99%"
+      }
+    ],
+    "summary": {
+      "sample_count": 6,
+      "duration_seconds": 5.457133054733276,
+      "memory_mb": {
+        "min": 0.1147,
+        "max": 301.8,
+        "avg": 245.31911666666667
+      },
+      "cpu_percent": {
+        "min": 3.6,
+        "max": 85.87,
+        "avg": 44.60833333333333
+      }
+    }
+  },
+  "disk_usage": {
+    "testbed_mb": 9
+  },
+  "traces": {
+    "files": [
+      "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642/pilotB_r3_231821/swebench/trace.jsonl"
+    ],
+    "tool_calls": []
+  },
+  "total_time": 20.144037008285522,
+  "end_time": "2026-03-04T23:18:42.159125"
+}

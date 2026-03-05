@@ -1,0 +1,106 @@
+{
+  "image": "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+  "start_time": "2026-03-04T23:20:05.124070",
+  "memory_limit": "4g",
+  "cpu_limit": "2",
+  "model": "haiku",
+  "model_requested": "haiku",
+  "output_dir": "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642/pilotBfix_r3_232005/swebench",
+  "pull_time": 0.7532453536987305,
+  "permission_fix_time": 0.05455303192138672,
+  "image_info": {
+    "size_bytes": 3662855836,
+    "size_mb": 3493.17,
+    "image_id": "77c3f1078bbf"
+  },
+  "claude_time": 6.45138955116272,
+  "model_actual": "haiku",
+  "claude_output": {
+    "stdout": "[Runner] Claude binary: /home/yunwei37/.local/bin/claude\nDONE\n=== GIT DIFF ===\n=== DISK USAGE ===\n9\t/testbed\n=== TOOL CALL LOG ===\nNo tool call log\n",
+    "stderr": "",
+    "exit_code": 0
+  },
+  "resource_samples": {
+    "samples": [
+      {
+        "timestamp": "2026-03-04T23:20:06.830820",
+        "epoch": 1772695206.8308325,
+        "mem_usage": "446.5kB / 4.295GB",
+        "mem_percent": "0.01%",
+        "cpu_percent": "8.97%"
+      },
+      {
+        "timestamp": "2026-03-04T23:20:07.896477",
+        "epoch": 1772695207.8964949,
+        "mem_usage": "287.6MB / 4.295GB",
+        "mem_percent": "6.70%",
+        "cpu_percent": "91.56%"
+      },
+      {
+        "timestamp": "2026-03-04T23:20:08.944665",
+        "epoch": 1772695208.9446754,
+        "mem_usage": "290MB / 4.295GB",
+        "mem_percent": "6.75%",
+        "cpu_percent": "60.71%"
+      },
+      {
+        "timestamp": "2026-03-04T23:20:10.012405",
+        "epoch": 1772695210.0124166,
+        "mem_usage": "294.7MB / 4.295GB",
+        "mem_percent": "6.86%",
+        "cpu_percent": "44.91%"
+      },
+      {
+        "timestamp": "2026-03-04T23:20:11.081512",
+        "epoch": 1772695211.0815263,
+        "mem_usage": "334.3MB / 4.295GB",
+        "mem_percent": "7.78%",
+        "cpu_percent": "40.45%"
+      },
+      {
+        "timestamp": "2026-03-04T23:20:12.143188",
+        "epoch": 1772695212.1432047,
+        "mem_usage": "312.9MB / 4.295GB",
+        "mem_percent": "7.28%",
+        "cpu_percent": "35.25%"
+      }
+    ],
+    "summary": {
+      "sample_count": 6,
+      "duration_seconds": 5.312372207641602,
+      "memory_mb": {
+        "min": 0.4465,
+        "max": 334.3,
+        "avg": 253.32441666666668
+      },
+      "cpu_percent": {
+        "min": 8.97,
+        "max": 91.56,
+        "avg": 46.975
+      }
+    }
+  },
+  "disk_usage": {
+    "testbed_mb": 9
+  },
+  "traces": {
+    "files": [
+      "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642/pilotBfix_r3_232005/swebench/trace.jsonl"
+    ],
+    "tool_calls": [
+      {
+        "timestamp": "2026-03-05T07:20:10.754Z",
+        "tool": "Bash",
+        "id": "toolu_01HUGVK7GwavR6wES8Fm9GSm",
+        "input": {
+          "command": "echo FS_MARK_3 > /tmp/pilot_bfix_r3_8503.txt && mkdir -p /tmp/pilot_bfix_r3_8503_dir && mv /tmp/pilot_bfix_r3_8503.txt /tmp/pilot_bfix_r3_8503_dir/moved.txt && rm -f /tmp/pilot_bfix_r3_8503_dir/moved.txt && rmdir /tmp/pilot_bfix_r3_8503_dir && echo pilot_bfix_r3_8503_OK",
+          "description": "Run verification test script"
+        },
+        "end_timestamp": "2026-03-05T07:20:11.134Z",
+        "result_preview": "pilot_bfix_r3_8503_OK"
+      }
+    ]
+  },
+  "total_time": 19.997584581375122,
+  "end_time": "2026-03-04T23:20:25.121401"
+}

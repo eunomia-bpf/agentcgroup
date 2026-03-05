@@ -1,0 +1,99 @@
+{
+  "image": "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+  "start_time": "2026-03-04T23:16:42.553775",
+  "memory_limit": "4g",
+  "cpu_limit": "2",
+  "model": "haiku",
+  "model_requested": "haiku",
+  "output_dir": "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642/pilotA_r1_231642/swebench",
+  "pull_time": 0.8875539302825928,
+  "permission_fix_time": 0.06856417655944824,
+  "image_info": {
+    "size_bytes": 3662855836,
+    "size_mb": 3493.17,
+    "image_id": "77c3f1078bbf"
+  },
+  "claude_time": 5.324436902999878,
+  "model_actual": "haiku",
+  "claude_output": {
+    "stdout": "[Runner] Claude binary: /home/yunwei37/.local/bin/claude\nDONE\n=== GIT DIFF ===\n=== DISK USAGE ===\n9\t/testbed\n=== TOOL CALL LOG ===\nNo tool call log\n",
+    "stderr": "",
+    "exit_code": 0
+  },
+  "resource_samples": {
+    "samples": [
+      {
+        "timestamp": "2026-03-04T23:16:44.474558",
+        "epoch": 1772695004.4745708,
+        "mem_usage": "114.7kB / 4.295GB",
+        "mem_percent": "0.00%",
+        "cpu_percent": "3.70%"
+      },
+      {
+        "timestamp": "2026-03-04T23:16:45.557946",
+        "epoch": 1772695005.557962,
+        "mem_usage": "371.8MB / 4.295GB",
+        "mem_percent": "8.66%",
+        "cpu_percent": "39.90%"
+      },
+      {
+        "timestamp": "2026-03-04T23:16:46.617511",
+        "epoch": 1772695006.6175241,
+        "mem_usage": "287.4MB / 4.295GB",
+        "mem_percent": "6.69%",
+        "cpu_percent": "67.89%"
+      },
+      {
+        "timestamp": "2026-03-04T23:16:47.664844",
+        "epoch": 1772695007.6648557,
+        "mem_usage": "291.1MB / 4.295GB",
+        "mem_percent": "6.78%",
+        "cpu_percent": "51.52%"
+      },
+      {
+        "timestamp": "2026-03-04T23:16:48.743479",
+        "epoch": 1772695008.7434926,
+        "mem_usage": "308.8MB / 4.295GB",
+        "mem_percent": "7.19%",
+        "cpu_percent": "47.08%"
+      }
+    ],
+    "summary": {
+      "sample_count": 5,
+      "duration_seconds": 4.268921852111816,
+      "memory_mb": {
+        "min": 0.1147,
+        "max": 371.8,
+        "avg": 251.84294
+      },
+      "cpu_percent": {
+        "min": 3.7,
+        "max": 67.89,
+        "avg": 42.018
+      }
+    }
+  },
+  "disk_usage": {
+    "testbed_mb": 9
+  },
+  "traces": {
+    "files": [
+      "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642/pilotA_r1_231642/swebench/trace.jsonl"
+    ],
+    "tool_calls": [
+      {
+        "timestamp": "2026-03-05T07:16:48.051Z",
+        "tool": "Bash",
+        "id": "toolu_01CYg7B9CxpAwRGbiFXhHZzv",
+        "input": {
+          "command": "echo PILOT_A_R1_OK && pwd && ls -1 | head -5",
+          "description": "Run pilot command to echo text, show working directory, and list first 5 items"
+        },
+        "end_timestamp": "2026-03-05T07:16:48.179Z",
+        "result_preview": "PILOT_A_R1_OK\n/testbed\nLICENSE.md\nMANIFEST.in\nREADME.md\ndocs\nmkdocs.yml"
+      }
+    ]
+  },
+  "total_time": 19.006896018981934,
+  "end_time": "2026-03-04T23:17:01.560455"
+}

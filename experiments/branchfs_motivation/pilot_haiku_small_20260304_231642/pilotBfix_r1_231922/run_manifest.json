@@ -1,0 +1,61 @@
+{
+  "start_time": "2026-03-04T23:19:22.869237",
+  "image": "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+  "model": "haiku",
+  "task_name": "pilotBfix_r1_231922",
+  "output_root": "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642",
+  "trace_bin": "./agentsight/bpf/process_new",
+  "trace_mode": 2,
+  "trace_commands": "python,node,bash,sh,pip,pytest,git,claude",
+  "argv": [
+    "/home/yunwei37/workspace/agentcgroup/scripts/run_swebench_new.py",
+    "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+    "--task-name",
+    "pilotBfix_r1_231922",
+    "--output-root",
+    "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642",
+    "--model",
+    "haiku",
+    "--prompt",
+    "Use bash to run exactly: echo FS_MARK_1 > /tmp/pilot_bfix_r1_32058.txt && mkdir -p /tmp/pilot_bfix_r1_32058_dir && mv /tmp/pilot_bfix_r1_32058.txt /tmp/pilot_bfix_r1_32058_dir/moved.txt && rm -f /tmp/pilot_bfix_r1_32058_dir/moved.txt && rmdir /tmp/pilot_bfix_r1_32058_dir && echo pilot_bfix_r1_32058_OK. Then reply DONE.",
+    "--trace-all",
+    "--trace-cgroup-children"
+  ],
+  "container_id": "7a38624a2d6aea7139ddaa3acbd33fa52d4eb25e72e086e5af03805b22c808c3",
+  "container_cgroup_path": "/user.slice/user-1000.slice/user@1000.service/user.slice/libpod-7a38624a2d6aea7139ddaa3acbd33fa52d4eb25e72e086e5af03805b22c808c3.scope",
+  "trace_cgroup_filter_effective": "/user.slice/user-1000.slice/user@1000.service/user.slice/libpod-7a38624a2d6aea7139ddaa3acbd33fa52d4eb25e72e086e5af03805b22c808c3.scope",
+  "trace_cgroup_filter_source": "auto",
+  "trace_cgroup_children": true,
+  "trace_ready_timeout": 8.0,
+  "trace_ready_elapsed_s": 0.3005099296569824,
+  "trace_cmd": [
+    "sudo",
+    "./agentsight/bpf/process_new",
+    "-m",
+    "2",
+    "-c",
+    "python,node,bash,sh,pip,pytest,git,claude",
+    "--trace-all",
+    "--cgroup-filter",
+    "/user.slice/user-1000.slice/user@1000.service/user.slice/libpod-7a38624a2d6aea7139ddaa3acbd33fa52d4eb25e72e086e5af03805b22c808c3.scope",
+    "--cgroup-filter-children"
+  ],
+  "trace_pid": 978407,
+  "trace_pid_file": "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642/pilotBfix_r1_231922/ebpf_trace.pid",
+  "trace_stop": {
+    "pid": 978407,
+    "stop_method": "sigint",
+    "exit_code": 0,
+    "timeout": false
+  },
+  "swebench": {
+    "output_dir": "/home/yunwei37/workspace/agentcgroup/experiments/branchfs_motivation/pilot_haiku_small_20260304_231642/pilotBfix_r1_231922/swebench",
+    "error": null,
+    "total_time": 19.888629913330078,
+    "tool_calls": 1,
+    "claude_exit_code": 0
+  },
+  "error": null,
+  "end_time": "2026-03-04T23:19:42.757939",
+  "total_time": 19.888927936553955
+}

@@ -1,0 +1,60 @@
+{
+  "samples": [
+    {
+      "timestamp": "2026-03-04T23:20:06.830820",
+      "epoch": 1772695206.8308325,
+      "mem_usage": "446.5kB / 4.295GB",
+      "mem_percent": "0.01%",
+      "cpu_percent": "8.97%"
+    },
+    {
+      "timestamp": "2026-03-04T23:20:07.896477",
+      "epoch": 1772695207.8964949,
+      "mem_usage": "287.6MB / 4.295GB",
+      "mem_percent": "6.70%",
+      "cpu_percent": "91.56%"
+    },
+    {
+      "timestamp": "2026-03-04T23:20:08.944665",
+      "epoch": 1772695208.9446754,
+      "mem_usage": "290MB / 4.295GB",
+      "mem_percent": "6.75%",
+      "cpu_percent": "60.71%"
+    },
+    {
+      "timestamp": "2026-03-04T23:20:10.012405",
+      "epoch": 1772695210.0124166,
+      "mem_usage": "294.7MB / 4.295GB",
+      "mem_percent": "6.86%",
+      "cpu_percent": "44.91%"
+    },
+    {
+      "timestamp": "2026-03-04T23:20:11.081512",
+      "epoch": 1772695211.0815263,
+      "mem_usage": "334.3MB / 4.295GB",
+      "mem_percent": "7.78%",
+      "cpu_percent": "40.45%"
+    },
+    {
+      "timestamp": "2026-03-04T23:20:12.143188",
+      "epoch": 1772695212.1432047,
+      "mem_usage": "312.9MB / 4.295GB",
+      "mem_percent": "7.28%",
+      "cpu_percent": "35.25%"
+    }
+  ],
+  "summary": {
+    "sample_count": 6,
+    "duration_seconds": 5.312372207641602,
+    "memory_mb": {
+      "min": 0.4465,
+      "max": 334.3,
+      "avg": 253.32441666666668
+    },
+    "cpu_percent": {
+      "min": 8.97,
+      "max": 91.56,
+      "avg": 46.975
+    }
+  }
+}
