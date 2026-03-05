@@ -291,7 +291,7 @@ def _run_workload_in_container(
     runner: SWEBenchRunner, args: argparse.Namespace
 ) -> Tuple[Dict[str, object], Dict[str, object]]:
     script = _build_workload_script(runner, args)
-    monitor = ResourceMonitor(runner.container_id, interval=1.0)
+    monitor = ResourceMonitor(runner.container_id, interval=args.resource_monitor_interval)
     monitor.start()
 
     try:
@@ -356,6 +356,12 @@ def main() -> int:
     parser.add_argument("--cpus", default="2", help="Container CPU limit")
     parser.add_argument("--model", default="haiku", help="Model to use (default: haiku)")
     parser.add_argument("--enable-wrapper", action="store_true", help="Enable bash wrapper")
+    parser.add_argument(
+        "--resource-monitor-interval",
+        type=float,
+        default=1.0,
+        help="Container resource monitor interval in seconds (default: 1.0)",
+    )
 
     # process_new options.
     parser.add_argument(
@@ -455,6 +461,7 @@ def main() -> int:
         "cpu_limit": args.cpus,
         "model": args.model,
         "model_requested": args.model,
+        "resource_monitor_interval_s": args.resource_monitor_interval,
         "output_dir": str(swebench_dir),
     }
 

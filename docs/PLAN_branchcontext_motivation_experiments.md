@@ -293,7 +293,8 @@ Pilot 结论：
 
 ### 阶段级瓶颈归因（paper-style，2026-03-05）
 
-已新增脚本：`scripts/analyze_bottleneck_attribution.py`  
+一次性分析脚本（随实验结果归档，不放 `scripts/`）：  
+`experiments/branchfs_motivation/analysis_starlette1147_bottleneck_4runs_20260305/analyze_bottleneck_attribution.py`  
 用途：按 phase（`discovery/editing/testing/build_install/vcs_revert/runtime_probe/other`）归因
 
 - wall-clock 工具活跃时间占比
