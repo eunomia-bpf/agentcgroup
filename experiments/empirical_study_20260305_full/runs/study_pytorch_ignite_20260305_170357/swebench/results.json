@@ -1,0 +1,13 @@
+{
+  "image": "localhost/swebench-fixed-swerebench_sweb.eval.x86_64.pytorch_1776_ignite-1077:latest",
+  "start_time": "2026-03-05T17:09:21.849662",
+  "memory_limit": "4g",
+  "cpu_limit": "2",
+  "model": "haiku",
+  "model_requested": "haiku",
+  "resource_monitor_interval_s": 0.5,
+  "output_dir": "/home/yunwei37/workspace/agentcgroup/experiments/empirical_study_20260305_full/runs/study_pytorch_ignite_20260305_170357/swebench",
+  "error": "Failed to pull image: Trying to pull docker.io/localhost/swebench-fixed-swerebench_sweb.eval.x86_64.pytorch_1776_ignite-1077:latest...\nError: initializing source docker://localhost/swebench-fixed-swerebench_sweb.eval.x86_64.pytorch_1776_ignite-1077:latest: reading manifest latest in docker.io/localhost/swebench-fixed-swerebench_sweb.eval.x86_64.pytorch_1776_ignite-1077: requested access to the resource is denied\n",
+  "total_time": 0.8082268238067627,
+  "end_time": "2026-03-05T17:09:22.657732"
+}

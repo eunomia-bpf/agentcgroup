@@ -1,0 +1,73 @@
+[Runner] Claude binary: /home/yunwei37/.local/bin/claude
+Perfect! The issue is completely fixed. The implementation:
+
+1. ✅ **Handles the root cause**: Catches `TypeError` when `len()` is called on a DataLoader with an IterableDataset
+2. ✅ **Maintains backward compatibility**: Regular DataLoaders and explicit `epoch_length` still work 
+3. ✅ **All tests pass**: 48 engine tests pass, including the new test case
+4. ✅ **Follows the project style**: Minimal, focused change with clear comments
+=== GIT DIFF ===
+diff --git a/ignite/engine/engine.py b/ignite/engine/engine.py
+index 5d4a7652..bdbb20f0 100644
+--- a/ignite/engine/engine.py
++++ b/ignite/engine/engine.py
+@@ -640,9 +640,13 @@ class Engine(Serializable):
+                 max_epochs = 1
+             if epoch_length is None:
+                 if hasattr(data, "__len__"):
+-                    epoch_length = len(data)
+-                    if epoch_length < 1:
+-                        raise ValueError("Input data has zero size. Please provide non-empty data")
++                    try:
++                        epoch_length = len(data)
++                        if epoch_length < 1:
++                            raise ValueError("Input data has zero size. Please provide non-empty data")
++                    except TypeError:
++                        # Can happen with DataLoader wrapping an IterableDataset
++                        pass
+ 
+             self.state.iteration = 0
+             self.state.epoch = 0
+diff --git a/tests/ignite/engine/test_engine.py b/tests/ignite/engine/test_engine.py
+index 8ecec158..dffe525d 100644
+--- a/tests/ignite/engine/test_engine.py
++++ b/tests/ignite/engine/test_engine.py
+@@ -534,6 +534,35 @@ def test_engine_with_iterable_dataloader():
+     assert counter[0] == 50
+ 
+ 
++def test_engine_with_iterable_dataloader_without_epoch_length():
++    class MyIterableDataset(torch.utils.data.IterableDataset):
++        def __init__(self, start, end):
++            super(MyIterableDataset).__init__()
++            assert end > start, "this example code only works with end >= start"
++            self.start = start
++            self.end = end
++
++        def __iter__(self):
++            return iter(range(self.start, self.end))
++
++    ds = MyIterableDataset(0, 100)
++    data_loader = torch.utils.data.DataLoader(ds)
++
++    counter = [0]
++
++    def foo(e, b):
++        counter[0] += 1
++
++    engine = Engine(foo)
++    # This should not raise TypeError even without providing epoch_length
++    state = engine.run(data_loader, max_epochs=2)
++
++    # Should iterate through all 100 items for 2 epochs = 200 iterations
++    assert counter[0] == 200
++    assert state.iteration == 200
++    assert state.epoch == 2
++
++
+ def test_engine_random_state():
+     def random_data_generator():
+         while True:
+=== DISK USAGE ===
+103	/testbed
+=== TOOL CALL LOG ===
+No tool call log

@@ -1,0 +1,1268 @@
+{
+  "dynamic_runs": [
+    {
+      "run_name": "study_azure_msrest_20260305_170357_retry",
+      "repo_key": "azure_msrest",
+      "image": "swerebench/sweb.eval.x86_64.azure_1776_msrest-for-python-224",
+      "error": null,
+      "claude_exit": 0,
+      "total_time_s": 157.41403722763062,
+      "claude_time_s": 143.68859839439392,
+      "tool_calls": 44,
+      "mem_avg_mb": 334.3521154716981,
+      "mem_max_mb": 853.9,
+      "cpu_avg_pct": 11.349547169811322,
+      "cpu_max_pct": 85.08,
+      "disk_testbed_mb": 3.0,
+      "event_total": 9349,
+      "event_counts": {
+        "CLOCK_SYNC": 2,
+        "EXEC": 138,
+        "RESOURCE_DETAIL": 2827,
+        "RESOURCE_SAMPLE": 1311,
+        "FILE_OPEN": 3864,
+        "EXIT": 131,
+        "SUMMARY": 1076
+      },
+      "summary_counts": {
+        "WRITE": 12597,
+        "MMAP_SHARED": 115,
+        "FILE_RENAME": 76,
+        "CHDIR": 75,
+        "FILE_DELETE": 81,
+        "PROC_FORK": 319,
+        "DIR_CREATE": 1524,
+        "NET_BIND": 30,
+        "NET_CONNECT": 280,
+        "SIGNAL_SEND": 81,
+        "FILE_TRUNCATE": 3631
+      },
+      "summary_bytes": {
+        "WRITE": 17329937,
+        "MMAP_SHARED": 3421348,
+        "FILE_RENAME": 0,
+        "CHDIR": 0,
+        "FILE_DELETE": 0,
+        "PROC_FORK": 0,
+        "DIR_CREATE": 0,
+        "NET_BIND": 0,
+        "NET_CONNECT": 0,
+        "SIGNAL_SEND": 0,
+        "FILE_TRUNCATE": 0
+      },
+      "summary_total": 18809,
+      "fs_summary_total": 17984,
+      "fs_summary_share": 0.9561380190334414,
+      "write_mb": 16.52711582183838,
+      "event_per_s": 59.39114557160336,
+      "write_mb_per_s": 0.10499137251615705,
+      "event_per_tool_call": 212.47727272727272,
+      "write_mb_per_tool_call": 0.37561626867814496,
+      "top_summary_types": [
+        [
+          "WRITE",
+          12597
+        ],
+        [
+          "FILE_TRUNCATE",
+          3631
+        ],
+        [
+          "DIR_CREATE",
+          1524
+        ],
+        [
+          "PROC_FORK",
+          319
+        ],
+        [
+          "NET_CONNECT",
+          280
+        ],
+        [
+          "MMAP_SHARED",
+          115
+        ],
+        [
+          "FILE_DELETE",
+          81
+        ],
+        [
+          "SIGNAL_SEND",
+          81
+        ]
+      ]
+    },
+    {
+      "run_name": "study_diffcover_20260305_170357",
+      "repo_key": "diffcover",
+      "image": "swerebench/sweb.eval.x86_64.bachmann1234_1776_diff_cover-210",
+      "error": null,
+      "claude_exit": 0,
+      "total_time_s": 132.89115834236145,
+      "claude_time_s": 119.12906050682068,
+      "tool_calls": 49,
+      "mem_avg_mb": 335.6887031818182,
+      "mem_max_mb": 781.5,
+      "cpu_avg_pct": 19.122681818181817,
+      "cpu_max_pct": 82.12,
+      "disk_testbed_mb": 4.0,
+      "event_total": 12637,
+      "event_counts": {
+        "CLOCK_SYNC": 2,
+        "EXEC": 211,
+        "RESOURCE_DETAIL": 2600,
+        "RESOURCE_SAMPLE": 1070,
+        "FILE_OPEN": 6071,
+        "EXIT": 196,
+        "SUMMARY": 2487
+      },
+      "summary_counts": {
+        "MMAP_SHARED": 181,
+        "WRITE": 9643,
+        "FILE_RENAME": 262,
+        "CHDIR": 362,
+        "PROC_FORK": 375,
+        "FILE_DELETE": 1433,
+        "DIR_CREATE": 3045,
+        "NET_BIND": 21,
+        "NET_CONNECT": 172,
+        "SIGNAL_SEND": 83,
+        "FILE_TRUNCATE": 2607
+      },
+      "summary_bytes": {
+        "MMAP_SHARED": 5104437,
+        "WRITE": 30750088,
+        "FILE_RENAME": 0,
+        "CHDIR": 0,
+        "PROC_FORK": 0,
+        "FILE_DELETE": 0,
+        "DIR_CREATE": 0,
+        "NET_BIND": 0,
+        "NET_CONNECT": 0,
+        "SIGNAL_SEND": 0,
+        "FILE_TRUNCATE": 0
+      },
+      "summary_total": 18184,
+      "fs_summary_total": 17352,
+      "fs_summary_share": 0.954245490541135,
+      "write_mb": 29.32556915283203,
+      "event_per_s": 95.0928576259669,
+      "write_mb_per_s": 0.22067359122028193,
+      "event_per_tool_call": 257.8979591836735,
+      "write_mb_per_tool_call": 0.5984810031190211,
+      "top_summary_types": [
+        [
+          "WRITE",
+          9643
+        ],
+        [
+          "DIR_CREATE",
+          3045
+        ],
+        [
+          "FILE_TRUNCATE",
+          2607
+        ],
+        [
+          "FILE_DELETE",
+          1433
+        ],
+        [
+          "PROC_FORK",
+          375
+        ],
+        [
+          "CHDIR",
+          362
+        ],
+        [
+          "FILE_RENAME",
+          262
+        ],
+        [
+          "MMAP_SHARED",
+          181
+        ]
+      ]
+    },
+    {
+      "run_name": "study_pytorch_ignite_20260305_170357_retry",
+      "repo_key": "pytorch_ignite",
+      "image": "swerebench/sweb.eval.x86_64.pytorch_1776_ignite-1077",
+      "error": null,
+      "claude_exit": 0,
+      "total_time_s": 317.3453838825226,
+      "claude_time_s": 303.41006875038147,
+      "tool_calls": 44,
+      "mem_avg_mb": 476.82386898395725,
+      "mem_max_mb": 839.9,
+      "cpu_avg_pct": 42.30105169340463,
+      "cpu_max_pct": 86.07,
+      "disk_testbed_mb": 103.0,
+      "event_total": 67000,
+      "event_counts": {
+        "CLOCK_SYNC": 2,
+        "EXEC": 300,
+        "RESOURCE_DETAIL": 11984,
+        "RESOURCE_SAMPLE": 2732,
+        "FILE_OPEN": 14700,
+        "EXIT": 283,
+        "SUMMARY": 36999
+      },
+      "summary_counts": {
+        "WRITE": 140078,
+        "MMAP_SHARED": 27185,
+        "FILE_RENAME": 4182,
+        "FILE_DELETE": 29329,
+        "PROC_FORK": 6767,
+        "CHDIR": 86,
+        "DIR_CREATE": 8394,
+        "NET_BIND": 23,
+        "NET_CONNECT": 12641,
+        "SIGNAL_SEND": 85,
+        "FILE_TRUNCATE": 1710
+      },
+      "summary_bytes": {
+        "WRITE": 16842575188,
+        "MMAP_SHARED": 2727006376,
+        "FILE_RENAME": 0,
+        "FILE_DELETE": 0,
+        "PROC_FORK": 0,
+        "CHDIR": 0,
+        "DIR_CREATE": 0,
+        "NET_BIND": 0,
+        "NET_CONNECT": 0,
+        "SIGNAL_SEND": 0,
+        "FILE_TRUNCATE": 0
+      },
+      "summary_total": 230480,
+      "fs_summary_total": 183779,
+      "fs_summary_share": 0.7973750433877126,
+      "write_mb": 16062.331378936768,
+      "event_per_s": 211.12643637760488,
+      "write_mb_per_s": 50.614668417180596,
+      "event_per_tool_call": 1522.7272727272727,
+      "write_mb_per_tool_call": 365.05298588492656,
+      "top_summary_types": [
+        [
+          "WRITE",
+          140078
+        ],
+        [
+          "FILE_DELETE",
+          29329
+        ],
+        [
+          "MMAP_SHARED",
+          27185
+        ],
+        [
+          "NET_CONNECT",
+          12641
+        ],
+        [
+          "DIR_CREATE",
+          8394
+        ],
+        [
+          "PROC_FORK",
+          6767
+        ],
+        [
+          "FILE_RENAME",
+          4182
+        ],
+        [
+          "FILE_TRUNCATE",
+          1710
+        ]
+      ]
+    },
+    {
+      "run_name": "study_starlette_20260305_170357",
+      "repo_key": "starlette",
+      "image": "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+      "error": null,
+      "claude_exit": 0,
+      "total_time_s": 190.78600215911865,
+      "claude_time_s": 177.2582709789276,
+      "tool_calls": 39,
+      "mem_avg_mb": 333.18144725609756,
+      "mem_max_mb": 646.4,
+      "cpu_avg_pct": 11.209908536585365,
+      "cpu_max_pct": 85.96,
+      "disk_testbed_mb": 10.0,
+      "event_total": 10116,
+      "event_counts": {
+        "CLOCK_SYNC": 2,
+        "EXEC": 131,
+        "FILE_OPEN": 3557,
+        "RESOURCE_DETAIL": 3436,
+        "RESOURCE_SAMPLE": 1616,
+        "EXIT": 118,
+        "SUMMARY": 1256
+      },
+      "summary_counts": {
+        "WRITE": 5505,
+        "MMAP_SHARED": 95,
+        "FILE_RENAME": 78,
+        "CHDIR": 91,
+        "FILE_DELETE": 136,
+        "PROC_FORK": 308,
+        "NET_BIND": 17,
+        "DIR_CREATE": 2888,
+        "NET_CONNECT": 98,
+        "SIGNAL_SEND": 71,
+        "FILE_TRUNCATE": 1880
+      },
+      "summary_bytes": {
+        "WRITE": 18889838,
+        "MMAP_SHARED": 2880788,
+        "FILE_RENAME": 0,
+        "CHDIR": 0,
+        "FILE_DELETE": 0,
+        "PROC_FORK": 0,
+        "NET_BIND": 0,
+        "DIR_CREATE": 0,
+        "NET_CONNECT": 0,
+        "SIGNAL_SEND": 0,
+        "FILE_TRUNCATE": 0
+      },
+      "summary_total": 11167,
+      "fs_summary_total": 10578,
+      "fs_summary_share": 0.9472553058117669,
+      "write_mb": 18.014753341674805,
+      "event_per_s": 53.022757883270124,
+      "write_mb_per_s": 0.09442387354314498,
+      "event_per_tool_call": 259.38461538461536,
+      "write_mb_per_tool_call": 0.461916752350636,
+      "top_summary_types": [
+        [
+          "WRITE",
+          5505
+        ],
+        [
+          "DIR_CREATE",
+          2888
+        ],
+        [
+          "FILE_TRUNCATE",
+          1880
+        ],
+        [
+          "PROC_FORK",
+          308
+        ],
+        [
+          "FILE_DELETE",
+          136
+        ],
+        [
+          "NET_CONNECT",
+          98
+        ],
+        [
+          "MMAP_SHARED",
+          95
+        ],
+        [
+          "CHDIR",
+          91
+        ]
+      ]
+    }
+  ],
+  "static_images": {
+    "starlette": {
+      "image": "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+      "image_size_mb": 3801.783863067627,
+      "layer_count": 6,
+      "pip_testbed_count": 85,
+      "pip_testbed_pkgs": [
+        "aiocontextvars",
+        "aiofiles",
+        "aiosqlite",
+        "aniso8601",
+        "appdirs",
+        "attrs",
+        "autoflake",
+        "black",
+        "bleach",
+        "certifi",
+        "cffi",
+        "charset-normalizer",
+        "click",
+        "colorama",
+        "contextvars",
+        "coverage",
+        "cryptography",
+        "databases",
+        "dataclasses",
+        "docutils",
+        "flake8",
+        "ghp-import",
+        "graphene",
+        "graphql-core",
+        "graphql-relay",
+        "greenlet",
+        "idna",
+        "immutables",
+        "importlib-metadata",
+        "importlib-resources",
+        "iniconfig",
+        "isort",
+        "itsdangerous",
+        "jeepney",
+        "jinja2",
+        "keyring",
+        "markdown",
+        "markupsafe",
+        "mccabe",
+        "mergedeep",
+        "mkautodoc",
+        "mkdocs",
+        "mkdocs-material",
+        "mkdocs-material-extensions",
+        "mypy",
+        "mypy-extensions",
+        "packaging",
+        "pathspec",
+        "pip",
+        "pkginfo",
+        "pluggy",
+        "py",
+        "pycodestyle",
+        "pycparser",
+        "pyflakes",
+        "pygments",
+        "pymdown-extensions",
+        "pyparsing",
+        "pytest",
+        "pytest-asyncio",
+        "pytest-cov",
+        "python-dateutil",
+        "python-multipart",
+        "pyyaml",
+        "pyyaml_env_tag",
+        "readme-renderer",
+        "regex",
+        "requests",
+        "requests-toolbelt",
+        "rfc3986",
+        "secretstorage",
+        "setuptools",
+        "six",
+        "sqlalchemy",
+        "toml",
+        "tomli",
+        "tqdm",
+        "twine",
+        "typed-ast",
+        "typing_extensions",
+        "urllib3",
+        "watchdog",
+        "webencodings",
+        "wheel",
+        "zipp"
+      ],
+      "opt_conda_mb": 2053.0,
+      "opt_conda_pkgs_mb": 912.0,
+      "opt_conda_env_testbed_mb": 367.0,
+      "root_pip_cache_mb": 172.0,
+      "reclaim_mb": 1084.0,
+      "reclaim_pct": 28.512930746287342
+    },
+    "diffcover": {
+      "image": "swerebench/sweb.eval.x86_64.bachmann1234_1776_diff_cover-210",
+      "image_size_mb": 3527.9206953048706,
+      "layer_count": 17,
+      "pip_testbed_count": 57,
+      "pip_testbed_pkgs": [
+        "attrs",
+        "certifi",
+        "cffi",
+        "chardet",
+        "charset-normalizer",
+        "coverage",
+        "cryptography",
+        "cython",
+        "diff_cover",
+        "distro",
+        "exceptiongroup",
+        "execnet",
+        "freezegun",
+        "gherkin-official",
+        "hypothesis",
+        "idna",
+        "importlib_metadata",
+        "inflect",
+        "iniconfig",
+        "jinja2",
+        "jinja2-pluralize",
+        "mako",
+        "markupsafe",
+        "mock",
+        "more-itertools",
+        "packaging",
+        "parse",
+        "parse_type",
+        "pip",
+        "pluggy",
+        "py-cpuinfo",
+        "pycparser",
+        "pygments",
+        "pytest",
+        "pytest-asyncio",
+        "pytest-bdd",
+        "pytest-benchmark",
+        "pytest-cov",
+        "pytest-mock",
+        "pytest-randomly",
+        "pytest-xdist",
+        "python-dateutil",
+        "pyyaml",
+        "requests",
+        "requests-mock",
+        "responses",
+        "setuptools",
+        "six",
+        "sortedcontainers",
+        "tomli",
+        "tomlkit",
+        "trustme",
+        "typeguard",
+        "typing_extensions",
+        "urllib3",
+        "wheel",
+        "zipp"
+      ],
+      "opt_conda_mb": 1916.0,
+      "opt_conda_pkgs_mb": 865.0,
+      "opt_conda_env_testbed_mb": 260.0,
+      "root_pip_cache_mb": 113.0,
+      "reclaim_mb": 978.0,
+      "reclaim_pct": 27.721711582167092
+    },
+    "azure_msrest": {
+      "image": "swerebench/sweb.eval.x86_64.azure_1776_msrest-for-python-224",
+      "image_size_mb": 3321.3253860473633,
+      "layer_count": 6,
+      "pip_testbed_count": 40,
+      "pip_testbed_pkgs": [
+        "aiohappyeyeballs",
+        "aiohttp",
+        "aiosignal",
+        "astroid",
+        "async-timeout",
+        "attrs",
+        "certifi",
+        "charset-normalizer",
+        "coverage",
+        "dill",
+        "exceptiongroup",
+        "frozenlist",
+        "httpretty",
+        "idna",
+        "iniconfig",
+        "isodate",
+        "isort",
+        "mccabe",
+        "multidict",
+        "mypy",
+        "mypy_extensions",
+        "oauthlib",
+        "packaging",
+        "pip",
+        "platformdirs",
+        "pluggy",
+        "propcache",
+        "pylint",
+        "pytest",
+        "pytest-asyncio",
+        "pytest-cov",
+        "requests",
+        "requests-oauthlib",
+        "setuptools",
+        "tomli",
+        "tomlkit",
+        "typing_extensions",
+        "urllib3",
+        "wheel",
+        "yarl"
+      ],
+      "opt_conda_mb": 1970.0,
+      "opt_conda_pkgs_mb": 923.0,
+      "opt_conda_env_testbed_mb": 273.0,
+      "root_pip_cache_mb": 115.0,
+      "reclaim_mb": 1038.0,
+      "reclaim_pct": 31.252583813695566
+    },
+    "pytorch_ignite": {
+      "image": "swerebench/sweb.eval.x86_64.pytorch_1776_ignite-1077",
+      "image_size_mb": 6501.197432518005,
+      "layer_count": 6,
+      "pip_testbed_count": 134,
+      "pip_testbed_pkgs": [
+        "absl-py",
+        "alembic",
+        "arrow",
+        "attrs",
+        "boto3",
+        "botocore",
+        "bravado",
+        "bravado-core",
+        "cached-property",
+        "cachetools",
+        "certifi",
+        "charset-normalizer",
+        "click",
+        "cloudpickle",
+        "codecov",
+        "coverage",
+        "cycler",
+        "databricks-cli",
+        "dill",
+        "docker",
+        "entrypoints",
+        "exceptiongroup",
+        "execnet",
+        "flask",
+        "fonttools",
+        "fqdn",
+        "funcsigs",
+        "furl",
+        "future",
+        "gitdb",
+        "gitpython",
+        "google-auth",
+        "google-auth-oauthlib",
+        "greenlet",
+        "grpcio",
+        "gunicorn",
+        "gym",
+        "gym-notices",
+        "hestia",
+        "humanfriendly",
+        "idna",
+        "importlib-metadata",
+        "importlib-resources",
+        "iniconfig",
+        "isoduration",
+        "itsdangerous",
+        "jinja2",
+        "jmespath",
+        "joblib",
+        "jsonpatch",
+        "jsonpointer",
+        "jsonref",
+        "jsonschema",
+        "kiwisolver",
+        "mako",
+        "markdown",
+        "markupsafe",
+        "marshmallow",
+        "matplotlib",
+        "mlflow",
+        "monotonic",
+        "msgpack",
+        "neptune-client",
+        "networkx",
+        "numpy",
+        "oauthlib",
+        "orderedmultidict",
+        "packaging",
+        "pandas",
+        "pathlib2",
+        "pillow",
+        "pip",
+        "pkgutil_resolve_name",
+        "pluggy",
+        "polyaxon-client",
+        "polyaxon-schemas",
+        "polystores",
+        "prometheus-client",
+        "prometheus_flask_exporter",
+        "protobuf",
+        "psutil",
+        "pyasn1",
+        "pyasn1-modules",
+        "pyjwt",
+        "pynvml",
+        "pyparsing",
+        "pyrsistent",
+        "pytest",
+        "pytest-cov",
+        "pytest-xdist",
+        "python-dateutil",
+        "pytorch-ignite",
+        "pytz",
+        "pyyaml",
+        "querystring-parser",
+        "requests",
+        "requests-file",
+        "requests-oauthlib",
+        "requests-toolbelt",
+        "rfc3339-validator",
+        "rfc3986-validator",
+        "rhea",
+        "rsa",
+        "s3transfer",
+        "scikit-learn",
+        "scipy",
+        "setuptools",
+        "simplejson",
+        "six",
+        "smmap",
+        "sqlalchemy",
+        "sqlparse",
+        "swagger-spec-validator",
+        "tabulate",
+        "tensorboard",
+        "tensorboard-data-server",
+        "tensorboard-plugin-wit",
+        "tensorboardx",
+        "threadpoolctl",
+        "tomli",
+        "torch",
+        "torchvision",
+        "tornado",
+        "tqdm",
+        "trains",
+        "typing_extensions",
+        "uri-template",
+        "urllib3",
+        "visdom",
+        "webcolors",
+        "websocket-client",
+        "werkzeug",
+        "wheel",
+        "zipp"
+      ],
+      "opt_conda_mb": 3375.0,
+      "opt_conda_pkgs_mb": 955.0,
+      "opt_conda_env_testbed_mb": 1646.0,
+      "root_pip_cache_mb": 478.0,
+      "reclaim_mb": 1433.0,
+      "reclaim_pct": 22.0420932431978
+    }
+  },
+  "pip_overlap_jaccard": {
+    "starlette": {
+      "starlette": 1.0,
+      "diffcover": 0.24561403508771928,
+      "azure_msrest": 0.20192307692307693,
+      "pytorch_ignite": 0.1774193548387097
+    },
+    "diffcover": {
+      "starlette": 0.24561403508771928,
+      "diffcover": 1.0,
+      "azure_msrest": 0.2597402597402597,
+      "pytorch_ignite": 0.16463414634146342
+    },
+    "azure_msrest": {
+      "starlette": 0.20192307692307693,
+      "diffcover": 0.2597402597402597,
+      "azure_msrest": 1.0,
+      "pytorch_ignite": 0.13725490196078433
+    },
+    "pytorch_ignite": {
+      "starlette": 0.1774193548387097,
+      "diffcover": 0.16463414634146342,
+      "azure_msrest": 0.13725490196078433,
+      "pytorch_ignite": 1.0
+    }
+  },
+  "starlette_repeatability": {
+    "n": 5,
+    "runs": [
+      {
+        "run_name": "swebench_example_20260304_233348",
+        "repo_key": "starlette",
+        "image": "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+        "error": null,
+        "claude_exit": 0,
+        "total_time_s": 127.26733803749084,
+        "claude_time_s": 114.48676824569702,
+        "tool_calls": 37,
+        "mem_avg_mb": 335.31364259259254,
+        "mem_max_mb": 409.2,
+        "cpu_avg_pct": 20.59,
+        "cpu_max_pct": 87.45,
+        "disk_testbed_mb": 10.0,
+        "event_total": 6736,
+        "event_counts": {
+          "CLOCK_SYNC": 2,
+          "EXEC": 162,
+          "FILE_OPEN": 4290,
+          "EXIT": 144,
+          "SUMMARY": 2138
+        },
+        "summary_counts": {
+          "WRITE": 5687,
+          "MMAP_SHARED": 101,
+          "FILE_RENAME": 233,
+          "CHDIR": 120,
+          "PROC_FORK": 378,
+          "FILE_DELETE": 1163,
+          "NET_BIND": 24,
+          "DIR_CREATE": 3080,
+          "NET_CONNECT": 158,
+          "SIGNAL_SEND": 74,
+          "FILE_TRUNCATE": 2011
+        },
+        "summary_bytes": {
+          "WRITE": 31251814,
+          "MMAP_SHARED": 3042956,
+          "FILE_RENAME": 0,
+          "CHDIR": 0,
+          "PROC_FORK": 0,
+          "FILE_DELETE": 0,
+          "NET_BIND": 0,
+          "DIR_CREATE": 0,
+          "NET_CONNECT": 0,
+          "SIGNAL_SEND": 0,
+          "FILE_TRUNCATE": 0
+        },
+        "summary_total": 13029,
+        "fs_summary_total": 12294,
+        "fs_summary_share": 0.9435873819940134,
+        "write_mb": 29.804052352905273,
+        "event_per_s": 52.9279554665918,
+        "write_mb_per_s": 0.23418461336973587,
+        "event_per_tool_call": 182.05405405405406,
+        "write_mb_per_tool_call": 0.8055149284568993,
+        "top_summary_types": [
+          [
+            "WRITE",
+            5687
+          ],
+          [
+            "DIR_CREATE",
+            3080
+          ],
+          [
+            "FILE_TRUNCATE",
+            2011
+          ],
+          [
+            "FILE_DELETE",
+            1163
+          ],
+          [
+            "PROC_FORK",
+            378
+          ],
+          [
+            "FILE_RENAME",
+            233
+          ],
+          [
+            "NET_CONNECT",
+            158
+          ],
+          [
+            "CHDIR",
+            120
+          ]
+        ]
+      },
+      {
+        "run_name": "sweb.eval.x86_64.encode_1776_starlette-1147_20260305_005002",
+        "repo_key": "starlette",
+        "image": "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+        "error": null,
+        "claude_exit": 0,
+        "total_time_s": 116.31644296646118,
+        "claude_time_s": 103.56266760826111,
+        "tool_calls": 28,
+        "mem_avg_mb": 327.337922,
+        "mem_max_mb": 393.7,
+        "cpu_avg_pct": 19.6962,
+        "cpu_max_pct": 96.97,
+        "disk_testbed_mb": 10.0,
+        "event_total": 4453,
+        "event_counts": {
+          "CLOCK_SYNC": 2,
+          "EXEC": 116,
+          "FILE_OPEN": 3039,
+          "EXIT": 103,
+          "SUMMARY": 1193
+        },
+        "summary_counts": {
+          "WRITE": 5203,
+          "MMAP_SHARED": 91,
+          "FILE_RENAME": 81,
+          "CHDIR": 107,
+          "PROC_FORK": 284,
+          "FILE_DELETE": 145,
+          "NET_BIND": 15,
+          "DIR_CREATE": 2848,
+          "NET_CONNECT": 74,
+          "SIGNAL_SEND": 59,
+          "FILE_TRUNCATE": 2003
+        },
+        "summary_bytes": {
+          "WRITE": 19770226,
+          "MMAP_SHARED": 2772676,
+          "FILE_RENAME": 0,
+          "CHDIR": 0,
+          "PROC_FORK": 0,
+          "FILE_DELETE": 0,
+          "NET_BIND": 0,
+          "DIR_CREATE": 0,
+          "NET_CONNECT": 0,
+          "SIGNAL_SEND": 0,
+          "FILE_TRUNCATE": 0
+        },
+        "summary_total": 10910,
+        "fs_summary_total": 10387,
+        "fs_summary_share": 0.9520623281393217,
+        "write_mb": 18.85435676574707,
+        "event_per_s": 38.283495320468006,
+        "write_mb_per_s": 0.16209536919198567,
+        "event_per_tool_call": 159.03571428571428,
+        "write_mb_per_tool_call": 0.6733698844909668,
+        "top_summary_types": [
+          [
+            "WRITE",
+            5203
+          ],
+          [
+            "DIR_CREATE",
+            2848
+          ],
+          [
+            "FILE_TRUNCATE",
+            2003
+          ],
+          [
+            "PROC_FORK",
+            284
+          ],
+          [
+            "FILE_DELETE",
+            145
+          ],
+          [
+            "CHDIR",
+            107
+          ],
+          [
+            "MMAP_SHARED",
+            91
+          ],
+          [
+            "FILE_RENAME",
+            81
+          ]
+        ]
+      },
+      {
+        "run_name": "sweb.eval.x86_64.encode_1776_starlette-1147_20260305_004821",
+        "repo_key": "starlette",
+        "image": "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+        "error": null,
+        "claude_exit": 0,
+        "total_time_s": 94.60958194732666,
+        "claude_time_s": 81.84791827201843,
+        "tool_calls": 26,
+        "mem_avg_mb": 325.57548860759493,
+        "mem_max_mb": 386.1,
+        "cpu_avg_pct": 22.486582278481013,
+        "cpu_max_pct": 94.41,
+        "disk_testbed_mb": 10.0,
+        "event_total": 3987,
+        "event_counts": {
+          "CLOCK_SYNC": 2,
+          "EXEC": 109,
+          "FILE_OPEN": 2833,
+          "EXIT": 99,
+          "SUMMARY": 944
+        },
+        "summary_counts": {
+          "MMAP_SHARED": 87,
+          "WRITE": 3858,
+          "FILE_RENAME": 71,
+          "CHDIR": 86,
+          "FILE_DELETE": 86,
+          "PROC_FORK": 274,
+          "NET_BIND": 18,
+          "DIR_CREATE": 2119,
+          "NET_CONNECT": 76,
+          "SIGNAL_SEND": 60,
+          "FILE_TRUNCATE": 391
+        },
+        "summary_bytes": {
+          "MMAP_SHARED": 2664564,
+          "WRITE": 33538959,
+          "FILE_RENAME": 0,
+          "CHDIR": 0,
+          "FILE_DELETE": 0,
+          "PROC_FORK": 0,
+          "NET_BIND": 0,
+          "DIR_CREATE": 0,
+          "NET_CONNECT": 0,
+          "SIGNAL_SEND": 0,
+          "FILE_TRUNCATE": 0
+        },
+        "summary_total": 7126,
+        "fs_summary_total": 6611,
+        "fs_summary_share": 0.9277294414818973,
+        "write_mb": 31.985243797302246,
+        "event_per_s": 42.141608893481205,
+        "write_mb_per_s": 0.338076156124544,
+        "event_per_tool_call": 153.34615384615384,
+        "write_mb_per_tool_call": 1.2302016845116248,
+        "top_summary_types": [
+          [
+            "WRITE",
+            3858
+          ],
+          [
+            "DIR_CREATE",
+            2119
+          ],
+          [
+            "FILE_TRUNCATE",
+            391
+          ],
+          [
+            "PROC_FORK",
+            274
+          ],
+          [
+            "MMAP_SHARED",
+            87
+          ],
+          [
+            "CHDIR",
+            86
+          ],
+          [
+            "FILE_DELETE",
+            86
+          ],
+          [
+            "NET_CONNECT",
+            76
+          ]
+        ]
+      },
+      {
+        "run_name": "sweb.eval.x86_64.encode_1776_starlette-1147_20260305_004649",
+        "repo_key": "starlette",
+        "image": "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+        "error": null,
+        "claude_exit": 0,
+        "total_time_s": 87.87295818328857,
+        "claude_time_s": 74.54654264450073,
+        "tool_calls": 22,
+        "mem_avg_mb": 329.7762236111111,
+        "mem_max_mb": 389.3,
+        "cpu_avg_pct": 19.410138888888888,
+        "cpu_max_pct": 81.14,
+        "disk_testbed_mb": 10.0,
+        "event_total": 3738,
+        "event_counts": {
+          "CLOCK_SYNC": 2,
+          "EXEC": 103,
+          "FILE_OPEN": 2669,
+          "EXIT": 94,
+          "SUMMARY": 870
+        },
+        "summary_counts": {
+          "WRITE": 3064,
+          "MMAP_SHARED": 86,
+          "FILE_RENAME": 61,
+          "CHDIR": 79,
+          "PROC_FORK": 223,
+          "FILE_DELETE": 83,
+          "DIR_CREATE": 1865,
+          "NET_BIND": 16,
+          "NET_CONNECT": 70,
+          "SIGNAL_SEND": 58,
+          "FILE_TRUNCATE": 379
+        },
+        "summary_bytes": {
+          "WRITE": 18107753,
+          "MMAP_SHARED": 2637536,
+          "FILE_RENAME": 0,
+          "CHDIR": 0,
+          "PROC_FORK": 0,
+          "FILE_DELETE": 0,
+          "DIR_CREATE": 0,
+          "NET_BIND": 0,
+          "NET_CONNECT": 0,
+          "SIGNAL_SEND": 0,
+          "FILE_TRUNCATE": 0
+        },
+        "summary_total": 5984,
+        "fs_summary_total": 5531,
+        "fs_summary_share": 0.924298128342246,
+        "write_mb": 17.268898963928223,
+        "event_per_s": 42.53868399653902,
+        "write_mb_per_s": 0.19652119743036456,
+        "event_per_tool_call": 169.9090909090909,
+        "write_mb_per_tool_call": 0.7849499529058283,
+        "top_summary_types": [
+          [
+            "WRITE",
+            3064
+          ],
+          [
+            "DIR_CREATE",
+            1865
+          ],
+          [
+            "FILE_TRUNCATE",
+            379
+          ],
+          [
+            "PROC_FORK",
+            223
+          ],
+          [
+            "MMAP_SHARED",
+            86
+          ],
+          [
+            "FILE_DELETE",
+            83
+          ],
+          [
+            "CHDIR",
+            79
+          ],
+          [
+            "NET_CONNECT",
+            70
+          ]
+        ]
+      },
+      {
+        "run_name": "sweb1147_100ms_20260305_011002",
+        "repo_key": "starlette",
+        "image": "swerebench/sweb.eval.x86_64.encode_1776_starlette-1147",
+        "error": null,
+        "claude_exit": 0,
+        "total_time_s": 67.162757396698,
+        "claude_time_s": 54.17597842216492,
+        "tool_calls": 21,
+        "mem_avg_mb": 325.80381253132833,
+        "mem_max_mb": 739.8,
+        "cpu_avg_pct": 23.751152882205513,
+        "cpu_max_pct": 101.72,
+        "disk_testbed_mb": 10.0,
+        "event_total": 4659,
+        "event_counts": {
+          "CLOCK_SYNC": 2,
+          "EXEC": 88,
+          "RESOURCE_DETAIL": 1082,
+          "RESOURCE_SAMPLE": 476,
+          "FILE_OPEN": 2225,
+          "EXIT": 80,
+          "SUMMARY": 706
+        },
+        "summary_counts": {
+          "WRITE": 2704,
+          "MMAP_SHARED": 57,
+          "FILE_RENAME": 58,
+          "FILE_DELETE": 69,
+          "PROC_FORK": 231,
+          "NET_BIND": 10,
+          "DIR_CREATE": 1631,
+          "NET_CONNECT": 52,
+          "CHDIR": 63,
+          "SIGNAL_SEND": 41,
+          "FILE_TRUNCATE": 356
+        },
+        "summary_bytes": {
+          "WRITE": 32896740,
+          "MMAP_SHARED": 1853724,
+          "FILE_RENAME": 0,
+          "FILE_DELETE": 0,
+          "PROC_FORK": 0,
+          "NET_BIND": 0,
+          "DIR_CREATE": 0,
+          "NET_CONNECT": 0,
+          "CHDIR": 0,
+          "SIGNAL_SEND": 0,
+          "FILE_TRUNCATE": 0
+        },
+        "summary_total": 5272,
+        "fs_summary_total": 4881,
+        "fs_summary_share": 0.9258345978755691,
+        "write_mb": 31.37277603149414,
+        "event_per_s": 69.36880170779075,
+        "write_mb_per_s": 0.46711566420941136,
+        "event_per_tool_call": 221.85714285714286,
+        "write_mb_per_tool_call": 1.4939417157854353,
+        "top_summary_types": [
+          [
+            "WRITE",
+            2704
+          ],
+          [
+            "DIR_CREATE",
+            1631
+          ],
+          [
+            "FILE_TRUNCATE",
+            356
+          ],
+          [
+            "PROC_FORK",
+            231
+          ],
+          [
+            "FILE_DELETE",
+            69
+          ],
+          [
+            "CHDIR",
+            63
+          ],
+          [
+            "FILE_RENAME",
+            58
+          ],
+          [
+            "MMAP_SHARED",
+            57
+          ]
+        ]
+      }
+    ],
+    "stats": {
+      "total_time_s": {
+        "mean": 98.64581570625305,
+        "stddev": 21.236625019133278,
+        "cv": 0.21528155925408515,
+        "min": 67.162757396698,
+        "max": 127.26733803749084
+      },
+      "event_total": {
+        "mean": 4714.6,
+        "stddev": 1062.1424763185023,
+        "cv": 0.22528793032675143,
+        "min": 3738,
+        "max": 6736
+      },
+      "write_mb": {
+        "mean": 25.85706558227539,
+        "stddev": 6.424186659739178,
+        "cv": 0.24844995033554218,
+        "min": 17.268898963928223,
+        "max": 31.985243797302246
+      },
+      "tool_calls": {
+        "mean": 26.8,
+        "stddev": 5.706137047074842,
+        "cv": 0.2129155614580165,
+        "min": 21,
+        "max": 37
+      }
+    }
+  }
+}

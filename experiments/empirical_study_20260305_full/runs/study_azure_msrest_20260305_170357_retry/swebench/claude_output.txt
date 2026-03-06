@@ -1,0 +1,94 @@
+[Runner] Claude binary: /home/yunwei37/.local/bin/claude
+## Summary
+
+I've successfully fixed the issue where non-standard types (datetime and Decimal) in object fields were being serialized incorrectly.
+
+### The Problem
+When serializing event data that contained `datetime` or `decimal.Decimal` objects in the `data` field (which has type 'object'), the serializer was converting them to strings using Python's `str()` function instead of using the proper serialization methods:
+- `datetime.datetime` → `'2020-09-07 10:37:08.348679+00:00'` ❌ (should be `'2020-09-07T10:37:08.348679Z'`)
+- `decimal.Decimal` → `'123.45'` (string) ❌ (should be `123.45` float)
+
+### The Solution
+I modified the `serialize_object` method in `/testbed/msrest/serialization.py` to properly handle datetime and decimal types by checking for them explicitly and using the appropriate serialization methods:
+
+- `datetime.datetime` → uses `serialize_iso()` for ISO-8601 format
+- `datetime.date` → uses `serialize_date()` for date format
+- `datetime.time` → uses `serialize_time()` for time format  
+- `decimal.Decimal` → uses `serialize_decimal()` to convert to float
+
+### Changes Made
+**File: `/testbed/msrest/serialization.py` (lines 980-993)**
+
+Added 4 type checks before the final `str(attr)` fallback to properly serialize:
+1. `datetime.datetime` objects using `serialize_iso()`
+2. `datetime.date` objects using `serialize_date()`
+3. `datetime.time` objects using `serialize_time()`
+4. `decimal.Decimal` objects using `serialize_decimal()`
+
+### Testing
+✅ **All tests pass:**
+- 79 tests in `test_serialization.py` - **PASS**
+- 51 tests in `test_xml_serialization.py` - **PASS**
+- Total: **130 tests passed**
+
+✅ **Comprehensive verification:**
+- Datetime objects now serialize to ISO-8601 format
+- Decimal objects convert to floats
+- Nested structures (dicts/lists) properly serialize non-standard types
+- Result is JSON-serializable
+- Edge cases handled (timezones, microseconds, negative numbers, etc.)
+
+### Git Diff
+```diff
+diff --git a/msrest/serialization.py b/msrest/serialization.py
+index f9037b9..7aa0fef 100644
+--- a/msrest/serialization.py
++++ b/msrest/serialization.py
+@@ -977,6 +977,19 @@ class Serializer(object):
+                 except ValueError:
+                     pass
+             return serialized
++
++        # Handle datetime types
++        if isinstance(attr, datetime.datetime):
++            return Serializer.serialize_iso(attr, **kwargs)
++        if isinstance(attr, datetime.date):
++            return Serializer.serialize_date(attr, **kwargs)
++        if isinstance(attr, datetime.time):
++            return Serializer.serialize_time(attr, **kwargs)
++
++        # Handle decimal types
++        if isinstance(attr, decimal.Decimal):
++            return Serializer.serialize_decimal(attr, **kwargs)
++
+         return str(attr)
+```
+=== GIT DIFF ===
+diff --git a/msrest/serialization.py b/msrest/serialization.py
+index f9037b9..7aa0fef 100644
+--- a/msrest/serialization.py
++++ b/msrest/serialization.py
+@@ -977,6 +977,19 @@ class Serializer(object):
+                 except ValueError:
+                     pass
+             return serialized
++
++        # Handle datetime types
++        if isinstance(attr, datetime.datetime):
++            return Serializer.serialize_iso(attr, **kwargs)
++        if isinstance(attr, datetime.date):
++            return Serializer.serialize_date(attr, **kwargs)
++        if isinstance(attr, datetime.time):
++            return Serializer.serialize_time(attr, **kwargs)
++
++        # Handle decimal types
++        if isinstance(attr, decimal.Decimal):
++            return Serializer.serialize_decimal(attr, **kwargs)
++
+         return str(attr)
+ 
+     @staticmethod
+=== DISK USAGE ===
+3	/testbed
+=== TOOL CALL LOG ===
+No tool call log

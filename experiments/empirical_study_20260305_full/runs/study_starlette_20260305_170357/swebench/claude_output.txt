@@ -1,0 +1,135 @@
+[Runner] Claude binary: /home/yunwei37/.local/bin/claude
+## Summary
+
+I've successfully fixed the issue where session cookies were using a hardcoded `/` path instead of respecting the ASGI root path. Here's what was done:
+
+### Changes Made:
+
+**1. Fixed `/testbed/starlette/middleware/sessions.py`** (lines 52, 58-61, 69-74):
+   - Extract the root_path from the ASGI scope: `path = scope.get("root_path", "") or "/"`
+   - Use this path when setting the session cookie
+   - Use this path when clearing the session cookie
+   - This ensures session cookies are properly scoped when applications are submounted
+
+**2. Added comprehensive tests in `/testbed/tests/middleware/test_session.py`**:
+   - `test_session_with_root_path()`: Verifies that cookies are scoped to `/sub_path` when root_path is set
+   - `test_session_with_empty_root_path()`: Verifies that cookies default to `/` when root_path is empty
+
+### How It Works:
+
+**Before the fix:**
+- Session cookies always had `path=/` regardless of the application's mount point
+
+**After the fix:**
+- Session cookies use `path={root_path}` when available
+- Session cookies use `path=/` when root_path is empty
+- Applications submounted at paths like `/sub_path` now have properly scoped session cookies
+
+### Test Results:
+
+✅ All 5 session middleware tests pass  
+✅ All 38 middleware tests pass  
+✅ Backward compatibility maintained  
+✅ New functionality properly tested
+
+The implementation correctly handles the ASGI root_path specification, allowing submounted applications to maintain proper cookie scoping for sessions.
+=== GIT DIFF ===
+diff --git a/starlette/middleware/sessions.py b/starlette/middleware/sessions.py
+index d1b1d5a..c7437d0 100644
+--- a/starlette/middleware/sessions.py
++++ b/starlette/middleware/sessions.py
+@@ -49,14 +49,16 @@ class SessionMiddleware:
+ 
+         async def send_wrapper(message: Message) -> None:
+             if message["type"] == "http.response.start":
++                path = scope.get("root_path", "") or "/"
+                 if scope["session"]:
+                     # We have session data to persist.
+                     data = b64encode(json.dumps(scope["session"]).encode("utf-8"))
+                     data = self.signer.sign(data)
+                     headers = MutableHeaders(scope=message)
+-                    header_value = "%s=%s; path=/; Max-Age=%d; %s" % (
++                    header_value = "%s=%s; path=%s; Max-Age=%d; %s" % (
+                         self.session_cookie,
+                         data.decode("utf-8"),
++                        path,
+                         self.max_age,
+                         self.security_flags,
+                     )
+@@ -64,10 +66,11 @@ class SessionMiddleware:
+                 elif not initial_session_was_empty:
+                     # The session has been cleared.
+                     headers = MutableHeaders(scope=message)
+-                    header_value = "{}={}; {}".format(
++                    header_value = "{}={}; path={}; {}".format(
+                         self.session_cookie,
+-                        "null; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;",
+-                        self.security_flags,
++                        "null",
++                        path,
++                        "expires=Thu, 01 Jan 1970 00:00:00 GMT; " + self.security_flags,
+                     )
+                     headers.append("Set-Cookie", header_value)
+             await send(message)
+diff --git a/tests/middleware/test_session.py b/tests/middleware/test_session.py
+index 3f71232..2d9c07e 100644
+--- a/tests/middleware/test_session.py
++++ b/tests/middleware/test_session.py
+@@ -101,3 +101,53 @@ def test_secure_session():
+ 
+     response = secure_client.get("/view_session")
+     assert response.json() == {"session": {}}
++
++
++def test_session_with_root_path():
++    app = create_app()
++    app.add_middleware(SessionMiddleware, secret_key="example")
++    client = TestClient(app, root_path="/sub_path")
++
++    response = client.get("/view_session")
++    assert response.json() == {"session": {}}
++
++    response = client.post("/update_session", json={"some": "data"})
++    assert response.json() == {"session": {"some": "data"}}
++
++    # check cookie path uses root_path
++    set_cookie = response.headers["set-cookie"]
++    assert "path=/sub_path" in set_cookie
++
++    # Extract the session cookie and manually test persistence
++    # since requests.Session's cookie jar won't automatically match
++    # cookies with path=/sub_path to requests without the root_path prefix
++    session_cookie_match = re.search(r"session=([^;]*);", set_cookie)
++    assert session_cookie_match is not None
++    session_cookie_value = session_cookie_match[1]
++
++    response = client.get("/view_session", cookies={"session": session_cookie_value})
++    assert response.json() == {"session": {"some": "data"}}
++
++    response = client.post("/clear_session", cookies={"session": session_cookie_value})
++    assert response.json() == {"session": {}}
++
++    # check clear cookie path uses root_path
++    set_cookie = response.headers["set-cookie"]
++    assert "path=/sub_path" in set_cookie
++
++    # Verify that a new request with the cleared cookie returns empty session
++    response = client.get("/view_session")
++    assert response.json() == {"session": {}}
++
++
++def test_session_with_empty_root_path():
++    app = create_app()
++    app.add_middleware(SessionMiddleware, secret_key="example")
++    client = TestClient(app, root_path="")
++
++    response = client.post("/update_session", json={"some": "data"})
++    assert response.json() == {"session": {"some": "data"}}
++
++    # check cookie path defaults to / when root_path is empty
++    set_cookie = response.headers["set-cookie"]
++    assert "path=/" in set_cookie
+=== DISK USAGE ===
+10	/testbed
+=== TOOL CALL LOG ===
+No tool call log
