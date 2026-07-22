@@ -7,7 +7,7 @@ Compares:
   - New ratio: tool_time / active_time  (only actual agent execution from trace timestamps)
 
 active_time = last trace entry timestamp - first trace entry timestamp
-tool_time   = sum of (tool_result.timestamp - tool_use.timestamp) for each tool call
+tool_time   = union of concrete non-Task tool intervals
 """
 
 import json
@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 # Add parent dir so we can import from analysis/
 sys.path.insert(0, os.path.dirname(__file__))
 from filter_valid_tasks import get_valid_task_names
+from tool_timing import union_duration_seconds
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -105,23 +106,25 @@ def compute_tool_time_from_trace(trace_path):
         try:
             with open(tool_calls_path) as f:
                 tool_calls = json.load(f)
-            total_tool_time = 0.0
+            intervals = []
             count = 0
             for tc in tool_calls:
+                if tc.get("tool") == "Task":
+                    continue
                 start_ts = parse_iso_timestamp(tc.get("timestamp"))
                 end_ts = parse_iso_timestamp(tc.get("end_timestamp"))
                 if start_ts and end_ts:
                     duration = (end_ts - start_ts).total_seconds()
                     if duration >= 0:
-                        total_tool_time += duration
+                        intervals.append((start_ts, end_ts))
                         count += 1
             if count > 0:
-                return total_tool_time, count
+                return union_duration_seconds(intervals), count
         except (json.JSONDecodeError, KeyError):
             pass
 
     # Fallback: parse trace.jsonl directly
-    tool_use_times = {}  # id -> timestamp
+    tool_use_times = {}  # id -> (timestamp, tool name)
     tool_result_times = {}  # tool_use_id -> timestamp
 
     try:
@@ -149,7 +152,10 @@ def compute_tool_time_from_trace(trace_path):
                             if item.get("type") == "tool_use" and entry_type == "assistant":
                                 tool_id = item.get("id")
                                 if tool_id:
-                                    tool_use_times[tool_id] = parse_iso_timestamp(ts_str)
+                                    tool_use_times[tool_id] = (
+                                        parse_iso_timestamp(ts_str),
+                                        item.get("name", "Unknown"),
+                                    )
                             elif item.get("type") == "tool_result" and entry_type == "user":
                                 tool_id = item.get("tool_use_id")
                                 if tool_id:
@@ -157,17 +163,19 @@ def compute_tool_time_from_trace(trace_path):
     except FileNotFoundError:
         return 0.0, 0
 
-    total_tool_time = 0.0
+    intervals = []
     count = 0
-    for tool_id, start_dt in tool_use_times.items():
+    for tool_id, (start_dt, tool_name) in tool_use_times.items():
+        if tool_name == "Task":
+            continue
         end_dt = tool_result_times.get(tool_id)
         if start_dt and end_dt:
             duration = (end_dt - start_dt).total_seconds()
             if duration >= 0:
-                total_tool_time += duration
+                intervals.append((start_dt, end_dt))
                 count += 1
 
-    return total_tool_time, count
+    return union_duration_seconds(intervals), count
 
 
 def analyze_dataset(name, base_dir):

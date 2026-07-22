@@ -383,7 +383,7 @@ def print_summary(haiku_tasks, haiku_results, local_tasks, local_results,
                               key=lambda x: x[1]["total_time"], reverse=True)
         for tname, tstats in sorted_tools:
             if tstats["count"] > 0:
-                avg_t = tstats["total_time"] / tstats["count"]
+                avg_t = tstats.get("raw_total_time", tstats["total_time"]) / tstats["count"]
                 print(f"    {tname:<15} avg={avg_t:.2f}s  count={tstats['count']}")
 
     # ---- 3.3 RQ2: Resource Unpredictability ----
@@ -774,6 +774,7 @@ def _load_bash_categories(base_dir):
         return "Other"
 
     from analyze_tool_time_ratio import parse_iso
+    from tool_timing import attribute_union_seconds
     valid = get_valid_task_names(base_dir)
     cat_time = defaultdict(float)
 
@@ -784,6 +785,7 @@ def _load_bash_categories(base_dir):
             continue
         with open(tc_path) as f:
             calls = _json.load(f)
+        labeled_intervals = []
         for call in calls:
             if call.get("tool") != "Bash":
                 continue
@@ -794,7 +796,9 @@ def _load_bash_categories(base_dir):
             if ts_s and ts_e:
                 dur = (ts_e - ts_s).total_seconds()
                 if dur >= 0:
-                    cat_time[cat] += dur
+                    labeled_intervals.append((cat, ts_s, ts_e))
+        for category, duration in attribute_union_seconds(labeled_intervals).items():
+            cat_time[category] += duration
     return dict(cat_time)
 
 
@@ -810,10 +814,11 @@ def step_tool_and_bash_pie_chart(haiku_results, local_results):
 
     # ---- Use GLM (Local) tool_stats ----
     from collections import defaultdict
-    merged_tool = defaultdict(lambda: {"count": 0, "total_time": 0.0})
+    merged_tool = defaultdict(lambda: {"count": 0, "total_time": 0.0, "raw_total_time": 0.0})
     for tname, stats in local_results.get("tools", {}).get("tool_stats", {}).items():
         merged_tool[tname]["count"] += stats["count"]
         merged_tool[tname]["total_time"] += stats["total_time"]
+        merged_tool[tname]["raw_total_time"] += stats.get("raw_total_time", stats["total_time"])
 
     # ---- GLM bash categories ----
     merged_bash = _load_bash_categories(LOCAL_DIR)
@@ -901,7 +906,7 @@ def step_tool_and_bash_pie_chart(haiku_results, local_results):
     print(f"\n  Tool usage (combined, total {total_tool_time:.0f}s):")
     for n, s in sorted_tools:
         pct = s["total_time"] / total_tool_time * 100
-        avg = s["total_time"] / s["count"] if s["count"] > 0 else 0
+        avg = s["raw_total_time"] / s["count"] if s["count"] > 0 else 0
         print(f"    {n:<15} {s['total_time']:>9.1f}s  ({pct:5.1f}%)  "
               f"n={s['count']:<5}  avg={avg:.2f}s")
 

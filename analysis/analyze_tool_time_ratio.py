@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
 from filter_valid_tasks import get_valid_task_names
+from tool_timing import attribute_union_seconds, union_duration_seconds
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CHART_DPI = 150
@@ -240,12 +241,16 @@ def main():
         if active_time <= 0:
             active_time = claude_time  # fallback
 
-        # --- Original tool time computation ---
-        tool_total_time = 0.0
+        # Task is a sub-agent lifecycle wrapper that includes child LLM/API
+        # waiting and contains nested concrete calls. Measure the union of only
+        # concrete tool intervals to avoid both misclassification and overlap.
+        concrete_intervals = []
         valid_calls = 0
         tool_call_times = []
 
         for call in tool_calls:
+            if call.get("tool") == "Task":
+                continue
             ts_start = parse_iso(call.get("timestamp"))
             ts_end = parse_iso(call.get("end_timestamp"))
             if ts_start is None or ts_end is None:
@@ -254,12 +259,14 @@ def main():
             if duration < 0:
                 continue
             valid_calls += 1
-            tool_total_time += duration
+            concrete_intervals.append((ts_start, ts_end))
             tool_call_times.append(duration)
+
+        tool_total_time = union_duration_seconds(concrete_intervals)
 
         # Use active_time (excludes container startup) for ratio calculation
         exec_time = active_time
-        thinking_time = exec_time - tool_total_time
+        thinking_time = max(0.0, exec_time - tool_total_time)
         tool_ratio = (tool_total_time / exec_time * 100) if exec_time > 0 else 0
         thinking_ratio = (thinking_time / exec_time * 100) if exec_time > 0 else 0
 
@@ -271,7 +278,7 @@ def main():
 
         # --- Bash command categorization ---
         bash_categories = []
-        bash_cat_times = defaultdict(float)
+        bash_cat_intervals = []
         bash_cat_counts = defaultdict(int)
         for call in tool_calls:
             if call.get("tool") == "Bash":
@@ -283,21 +290,32 @@ def main():
                 if ts_s and ts_e:
                     dur = (ts_e - ts_s).total_seconds()
                     if dur >= 0:
-                        bash_cat_times[cat] += dur
+                        bash_cat_intervals.append((cat, ts_s, ts_e))
                         bash_cat_counts[cat] += 1
+        bash_cat_times = defaultdict(float, attribute_union_seconds(bash_cat_intervals))
 
         # --- Per-tool time breakdown ---
         per_tool_time = defaultdict(float)
         per_tool_count = defaultdict(int)
+        per_tool_intervals = defaultdict(list)
         for call in tool_calls:
             tn = call.get("tool", "Unknown")
+            if tn == "Task":
+                continue
             ts_s = parse_iso(call.get("timestamp"))
             ts_e = parse_iso(call.get("end_timestamp"))
             if ts_s and ts_e:
                 dur = (ts_e - ts_s).total_seconds()
                 if dur >= 0:
-                    per_tool_time[tn] += dur
+                    per_tool_intervals[tn].append((ts_s, ts_e))
                     per_tool_count[tn] += 1
+
+        labeled_tool_intervals = [
+            (tool_name, start, end)
+            for tool_name, intervals in per_tool_intervals.items()
+            for start, end in intervals
+        ]
+        per_tool_time.update(attribute_union_seconds(labeled_tool_intervals))
 
         # --- Tool diversity ---
         unique_tools = len(set(call.get("tool") for call in tool_calls if call.get("tool")))

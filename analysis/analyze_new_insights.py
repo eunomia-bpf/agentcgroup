@@ -367,6 +367,13 @@ def analyze_tool_burst_correlation(base_dir, label="Dataset"):
         samples = _load_resource_samples(attempt)
         calls = _load_tool_calls(attempt)
 
+        # A Task interval is the full sub-agent lifecycle: it includes nested
+        # LLM/API waiting and contains the sub-agent's concrete tool calls.
+        # Resource attribution must therefore use only the nested/non-nested
+        # concrete calls, otherwise the wrapper both misclassifies reasoning
+        # time and double counts its child calls.
+        concrete_calls = [tc for tc in calls if tc["tool"] != "Task"]
+
         if len(samples) < 10:
             continue
 
@@ -380,7 +387,7 @@ def analyze_tool_burst_correlation(base_dir, label="Dataset"):
         sample_tool_type = [None] * len(samples)
         sample_bash_cat = [None] * len(samples)
 
-        for tc in calls:
+        for tc in concrete_calls:
             if tc["start_epoch"] is None or tc["end_epoch"] is None:
                 continue
             mask = (epochs >= tc["start_epoch"]) & (epochs <= tc["end_epoch"])
@@ -411,7 +418,7 @@ def analyze_tool_burst_correlation(base_dir, label="Dataset"):
                     llm_burst_cpu_samples += 1
 
         # Per-tool-call burst magnitude
-        for tc in calls:
+        for tc in concrete_calls:
             if tc["start_epoch"] is None or tc["end_epoch"] is None:
                 continue
             if tc["duration"] < 0.1:
