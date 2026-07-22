@@ -35,6 +35,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from filter_valid_tasks import get_valid_task_names
+from tool_timing import attribute_union_seconds, merge_intervals, union_duration_seconds
 
 # Base paths
 SCRIPT_DIR_PATH = Path(os.path.dirname(os.path.abspath(__file__)))
@@ -90,6 +91,7 @@ class ToolCall:
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     duration_seconds: float = 0.0
+    is_sidechain: bool = False
 
 
 @dataclass
@@ -184,7 +186,7 @@ def extract_tool_times_from_trace(trace_records: List[Dict]) -> Dict[str, ToolCa
 
     Tool execution time = tool_result.timestamp - tool_use.timestamp
     """
-    tool_starts = {}  # id -> (tool_name, start_time)
+    tool_starts = {}  # id -> (tool_name, start_time, is_sidechain)
     tool_calls = {}  # id -> ToolCall
 
     for record in trace_records:
@@ -199,7 +201,11 @@ def extract_tool_times_from_trace(trace_records: List[Dict]) -> Dict[str, ToolCa
                     tool_id = item.get("id")
                     tool_name = item.get("name")
                     if tool_id and tool_name and timestamp:
-                        tool_starts[tool_id] = (tool_name, timestamp)
+                        tool_starts[tool_id] = (
+                            tool_name,
+                            timestamp,
+                            bool(record.get("isSidechain", False)),
+                        )
 
         elif record.get("type") == "user":
             message = record.get("message", {})
@@ -212,14 +218,15 @@ def extract_tool_times_from_trace(trace_records: List[Dict]) -> Dict[str, ToolCa
                     if isinstance(item, dict) and item.get("type") == "tool_result":
                         tool_id = item.get("tool_use_id")
                         if tool_id and tool_id in tool_starts and timestamp:
-                            tool_name, start_time = tool_starts[tool_id]
+                            tool_name, start_time, is_sidechain = tool_starts[tool_id]
                             duration = (timestamp - start_time).total_seconds()
                             tool_calls[tool_id] = ToolCall(
                                 tool=tool_name,
                                 tool_id=tool_id,
                                 start_time=start_time,
                                 end_time=timestamp,
-                                duration_seconds=max(0, duration)
+                                duration_seconds=max(0, duration),
+                                is_sidechain=is_sidechain,
                             )
 
     return tool_calls
@@ -327,11 +334,25 @@ def load_task_data(task_dir: Path, task_name: str, task_info: Dict,
                 dur = (et - st).total_seconds() if st and et else 0.0
                 tool_calls.append(ToolCall(
                     tool=entry.get("tool", "Unknown"),
-                    tool_id=entry.get("tool_use_id", ""),
+                    tool_id=entry.get("id", entry.get("tool_use_id", "")),
                     start_time=st,
                     end_time=et,
                     duration_seconds=max(0, dur),
                 ))
+
+        # tool_calls.json predates sidechain metadata. Infer nested calls from
+        # containment by a Task wrapper when trace.jsonl is unavailable.
+        task_wrappers = [call for call in tool_calls if call.tool == "Task"]
+        for call in tool_calls:
+            if call.tool == "Task" or call.start_time is None or call.end_time is None:
+                continue
+            call.is_sidechain = any(
+                wrapper.start_time is not None
+                and wrapper.end_time is not None
+                and wrapper.start_time <= call.start_time
+                and call.end_time <= wrapper.end_time
+                for wrapper in task_wrappers
+            )
 
     # Detect bursts
     bursts = detect_bursts(samples)
@@ -537,6 +558,11 @@ def _plot_dynamics(tasks: Dict[str, TaskData], results: Dict):
         t0_epoch = samples[0].epoch
         tool_label_added = False
         for tc in sample_task.tool_calls:
+            # Task is a sub-agent lifecycle wrapper. Its interval contains child
+            # LLM/API waits and nested concrete tools, so shading it as OS tool
+            # execution would double count the nested intervals.
+            if tc.tool == "Task":
+                continue
             if tc.start_time is None:
                 continue
             tc_start = tc.start_time.timestamp() - t0_epoch
@@ -788,24 +814,74 @@ def analyze_tools(tasks: Dict[str, TaskData]) -> Dict[str, Any]:
     print("=" * 78)
 
     results = {
-        "tool_stats": defaultdict(lambda: {"count": 0, "total_time": 0.0, "durations": []}),
+        "tool_stats": defaultdict(lambda: {
+            "count": 0,
+            "total_time": 0.0,
+            "raw_total_time": 0.0,
+            "durations": [],
+        }),
         "per_task_tool_time": [],
         "tool_vs_thinking_ratio": []
     }
 
-    # Aggregate tool call statistics
+    # Aggregate tool call statistics. Task is a lifecycle wrapper around a
+    # sub-agent, not concrete OS execution. For elapsed-time ratios, count the
+    # union of all concrete (non-Task) tool intervals. For the per-tool
+    # breakdown, attribute a Task call only the union of its nested concrete
+    # sidechain intervals, so the existing sub-agent category remains useful
+    # without including child LLM/API waiting time.
     for task in tasks.values():
-        total_tool_time = 0.0
+        concrete_calls = [
+            call for call in task.tool_calls
+            if call.tool != "Task" and call.start_time is not None and call.end_time is not None
+        ]
+        total_tool_time = union_duration_seconds(
+            (call.start_time, call.end_time) for call in concrete_calls
+        )
 
-        for call in task.tool_calls:
-            tool_name = call.tool
+        task_wrappers = [call for call in task.tool_calls if call.tool == "Task"]
+        wrapped_sidechain_ids = set()
+        attributed_calls = []
+
+        for wrapper in task_wrappers:
+            if wrapper.start_time is None or wrapper.end_time is None:
+                continue
+            children = [
+                call for call in concrete_calls
+                if call.is_sidechain
+                and wrapper.start_time <= call.start_time
+                and call.end_time <= wrapper.end_time
+            ]
+            child_intervals = merge_intervals(
+                (call.start_time, call.end_time) for call in children
+            )
+            child_duration = union_duration_seconds(child_intervals)
+            wrapped_sidechain_ids.update(id(call) for call in children)
+            attributed_calls.append(("Task", child_duration, child_intervals))
+
+        for call in concrete_calls:
+            if id(call) in wrapped_sidechain_ids:
+                continue
+            attributed_calls.append((
+                call.tool,
+                call.duration_seconds,
+                [(call.start_time, call.end_time)],
+            ))
+
+        labeled_intervals = []
+        for tool_name, duration, intervals in attributed_calls:
             results["tool_stats"][tool_name]["count"] += 1
-            results["tool_stats"][tool_name]["total_time"] += call.duration_seconds
-            results["tool_stats"][tool_name]["durations"].append(call.duration_seconds)
-            total_tool_time += call.duration_seconds
+            results["tool_stats"][tool_name]["raw_total_time"] += duration
+            results["tool_stats"][tool_name]["durations"].append(duration)
+            labeled_intervals.extend(
+                (tool_name, start, end) for start, end in intervals
+            )
+
+        for tool_name, duration in attribute_union_seconds(labeled_intervals).items():
+            results["tool_stats"][tool_name]["total_time"] += duration
 
         exec_time = task.active_time if task.active_time > 0 else task.claude_time
-        thinking_time = exec_time - total_tool_time
+        thinking_time = max(0.0, exec_time - total_tool_time)
         ratio = (total_tool_time / exec_time * 100) if exec_time > 0 else 0
 
         results["per_task_tool_time"].append({
@@ -815,7 +891,7 @@ def analyze_tools(tasks: Dict[str, TaskData]) -> Dict[str, Any]:
             "tool_time": total_tool_time,
             "thinking_time": thinking_time,
             "tool_ratio": ratio,
-            "num_calls": len(task.tool_calls)
+            "num_calls": len(attributed_calls)
         })
 
         results["tool_vs_thinking_ratio"].append(ratio)
@@ -829,7 +905,7 @@ def analyze_tools(tasks: Dict[str, TaskData]) -> Dict[str, Any]:
     sorted_tools = sorted(results["tool_stats"].items(), key=lambda x: x[1]["total_time"], reverse=True)
     for tool_name, stats in sorted_tools:
         if stats["count"] > 0:
-            avg_time = stats["total_time"] / stats["count"]
+            avg_time = stats["raw_total_time"] / stats["count"]
             max_time = max(stats["durations"]) if stats["durations"] else 0
             print(f"  {tool_name:<20} {stats['count']:>8} {stats['total_time']:>10.2f}s {avg_time:>9.2f}s {max_time:>9.2f}s")
 
@@ -1159,7 +1235,7 @@ def generate_report(tasks: Dict[str, TaskData],
         sorted_tools = sorted(tools_results["tool_stats"].items(),
                              key=lambda x: x[1]["total_time"], reverse=True)[:10]
         for tool_name, stats in sorted_tools:
-            avg_time = stats["total_time"] / stats["count"] if stats["count"] > 0 else 0
+            avg_time = stats["raw_total_time"] / stats["count"] if stats["count"] > 0 else 0
             report.append(f"| {tool_name} | {stats['count']} | {stats['total_time']:.2f} | {avg_time:.2f} |")
 
         if tools_results["tool_vs_thinking_ratio"]:

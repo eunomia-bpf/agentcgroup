@@ -1,6 +1,6 @@
 # AgentCgroup SWE-Bench Experiment Analysis Report (haiku)
 
-Generated: 2026-02-08 14:15:23
+Generated: 2026-07-22 01:18:48
 
 Data source: `/home/yunwei37/workspace/agentcgroup/experiments/all_images_haiku`
 
@@ -60,18 +60,18 @@ Total tasks analyzed: 33
 
 | Tool | Call Count | Total Time (s) | Avg Time (s) |
 |------|------------|----------------|--------------|
-| Task | 17 | 1707.99 | 100.47 |
-| Bash | 410 | 1543.21 | 3.76 |
-| WebSearch | 9 | 108.57 | 12.06 |
-| Read | 222 | 75.19 | 0.34 |
-| WebFetch | 9 | 67.75 | 7.53 |
-| Grep | 159 | 31.98 | 0.20 |
-| Glob | 45 | 26.29 | 0.58 |
-| Edit | 109 | 5.59 | 0.05 |
+| Bash | 273 | 1458.79 | 5.34 |
+| Task | 17 | 313.94 | 18.47 |
+| WebFetch | 2 | 16.20 | 8.10 |
+| Read | 102 | 7.07 | 0.07 |
+| Edit | 109 | 5.60 | 0.05 |
 | TodoWrite | 94 | 3.46 | 0.04 |
-| Write | 26 | 1.27 | 0.05 |
+| Grep | 64 | 2.98 | 0.05 |
+| Write | 23 | 1.12 | 0.05 |
+| Glob | 10 | 0.39 | 0.04 |
+| BashOutput | 2 | 0.05 | 0.02 |
 
-**Tool Time Ratio**: Mean 42.5%, Median 34.7%
+**Tool Time Ratio**: Mean 19.8%, Median 11.6%
 
 ![Tool Analysis](rq3_tool_analysis.png)
 

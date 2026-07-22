@@ -1,6 +1,6 @@
 # AgentCgroup SWE-Bench Experiment Analysis Report (qwen3)
 
-Generated: 2026-02-08 14:15:24
+Generated: 2026-07-22 01:18:50
 
 Data source: `/home/yunwei37/workspace/agentcgroup/experiments/all_images_local`
 
@@ -60,18 +60,18 @@ Total tasks analyzed: 111
 
 | Tool | Call Count | Total Time (s) | Avg Time (s) |
 |------|------------|----------------|--------------|
-| Bash | 3343 | 19597.66 | 5.86 |
-| Read | 1282 | 100.27 | 0.08 |
-| WebFetch | 5 | 77.94 | 15.59 |
-| Task | 1 | 67.47 | 67.47 |
-| TodoWrite | 514 | 50.50 | 0.10 |
-| Grep | 534 | 28.45 | 0.05 |
-| Edit | 654 | 27.10 | 0.04 |
-| Glob | 217 | 14.49 | 0.07 |
-| WebSearch | 2 | 13.59 | 6.79 |
-| Write | 71 | 6.82 | 0.10 |
+| Bash | 3342 | 18802.60 | 5.86 |
+| WebFetch | 5 | 73.53 | 15.59 |
+| Read | 1272 | 57.83 | 0.08 |
+| TodoWrite | 514 | 28.70 | 0.10 |
+| Edit | 654 | 22.44 | 0.04 |
+| Grep | 527 | 17.70 | 0.05 |
+| WebSearch | 2 | 8.85 | 6.79 |
+| Glob | 217 | 7.70 | 0.07 |
+| Write | 71 | 4.46 | 0.10 |
+| Task | 1 | 0.18 | 0.18 |
 
-**Tool Time Ratio**: Mean 36.4%, Median 36.5%
+**Tool Time Ratio**: Mean 34.9%, Median 35.3%
 
 ![Tool Analysis](rq3_tool_analysis.png)
 
