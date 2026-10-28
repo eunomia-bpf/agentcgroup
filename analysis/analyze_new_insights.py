@@ -20,6 +20,7 @@ Usage:
 import argparse
 import json
 import os
+import re
 import statistics
 import sys
 from collections import defaultdict
@@ -60,21 +61,24 @@ def _parse_iso(ts_str):
         return None
 
 
+_MEM_USAGE_RE = re.compile(r"\s*([0-9]*\.?[0-9]+)\s*([A-Za-z]*)\s*")
+_MEM_USAGE_SCALES = {
+    "B": 1 / (1024 * 1024), "kB": 1 / 1024, "KB": 1 / 1024,
+    "KiB": 1 / 1024, "MB": 1.0, "MiB": 1.0,
+    "GB": 1024.0, "GiB": 1024.0,
+    "TB": 1024.0 * 1024, "TiB": 1024.0 * 1024,
+    "": 1.0,
+}
+
+
 def _parse_mem_usage(mem_str):
     """Parse mem_usage string like '195.7MB / 134.5GB' → float (MB)."""
     if not mem_str:
         return 0.0
-    try:
-        val_part = mem_str.split("/")[0].strip()
-        if val_part.upper().endswith("GIB") or val_part.upper().endswith("GB"):
-            return float(val_part[:-3]) * 1024
-        if val_part.upper().endswith("MIB") or val_part.upper().endswith("MB"):
-            return float(val_part[:-3])
-        if val_part.upper().endswith("KIB") or val_part.upper().endswith("KB"):
-            return float(val_part[:-3]) / 1024
-        return float(val_part)
-    except (ValueError, IndexError):
+    value = _MEM_USAGE_RE.fullmatch(mem_str.split("/")[0])
+    if not value or value.group(2) not in _MEM_USAGE_SCALES:
         return 0.0
+    return float(value.group(1)) * _MEM_USAGE_SCALES[value.group(2)]
 
 
 def _load_resource_samples(attempt_dir):
