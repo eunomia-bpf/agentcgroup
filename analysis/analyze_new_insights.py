@@ -63,10 +63,9 @@ def _parse_iso(ts_str):
 
 _MEM_USAGE_RE = re.compile(r"\s*([0-9]*\.?[0-9]+)\s*([A-Za-z]*)\s*")
 _MEM_USAGE_SCALES = {
-    "B": 1 / (1024 * 1024), "kB": 1 / 1024, "KB": 1 / 1024,
-    "KiB": 1 / 1024, "MB": 1.0, "MiB": 1.0,
-    "GB": 1024.0, "GiB": 1024.0,
-    "TB": 1024.0 * 1024, "TiB": 1024.0 * 1024,
+    "B": 1 / (1024 * 1024), "KB": 1 / 1024, "KIB": 1 / 1024,
+    "MB": 1.0, "MIB": 1.0, "GB": 1024.0, "GIB": 1024.0,
+    "TB": 1024.0 * 1024, "TIB": 1024.0 * 1024,
     "": 1.0,
 }
 
@@ -76,9 +75,12 @@ def _parse_mem_usage(mem_str):
     if not mem_str:
         return 0.0
     value = _MEM_USAGE_RE.fullmatch(mem_str.split("/")[0])
-    if not value or value.group(2) not in _MEM_USAGE_SCALES:
+    if not value:
         return 0.0
-    return float(value.group(1)) * _MEM_USAGE_SCALES[value.group(2)]
+    unit = value.group(2).upper()
+    if unit not in _MEM_USAGE_SCALES:
+        return 0.0
+    return float(value.group(1)) * _MEM_USAGE_SCALES[unit]
 
 
 def _load_resource_samples(attempt_dir):
