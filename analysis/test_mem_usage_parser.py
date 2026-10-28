@@ -13,6 +13,9 @@ class MemUsageParsingTest(unittest.TestCase):
             "2.041GB": 2.041 * 1024,
             "4GB": 4096.0,
             "512.3kB": 512.3 / 1024,
+            "193mb": 193.0,
+            "1.5gib": 1536.0,
+            "512.3kb": 512.3 / 1024,
         }
         for value, expected in cases.items():
             with self.subTest(value=value):
